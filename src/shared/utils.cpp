@@ -3,6 +3,9 @@
 #include <mcp_can.h>
 #include <SPI.h>
 
+#include "./CanbusMessage.cpp"
+#include "./Category.cpp"
+
 union IntegerByteConverter {
   int size = 4;
   uint8_t array[4];
@@ -49,7 +52,7 @@ void cloneByteArray (uint8_t *from, uint8_t *to, int len) {
   }
 }
 
-void sendfloatMessageCanbus(MCP_CAN can, unsigned long id, float v) {
+void sendFloatMessageCanbus(MCP_CAN can, unsigned long id, float v) {
   uint8_t buf[5];
   convertFloatToByteArray(buf, v);
   sendMessageCanBus(can, 0, 5, buf);
@@ -68,4 +71,14 @@ void sendMessageCanBus(MCP_CAN can, unsigned long messageId, int len, byte *buf)
   } else {
     Serial.println("Error Sending Message...");
   }
+}
+
+#define IDNAME(name) #name
+String convertCanbusMessageToString(CanbusMessage canbusMessage) {
+    String message = "";
+    message += "CANBUS;";
+    message += CATEGORY_STRING[canbusMessage.getCategory()];
+    message += ";";
+    message += canbusMessage.getPayload();
+    return message;
 }

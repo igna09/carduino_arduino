@@ -54,13 +54,13 @@ sensors_event_t humidity, temp;
 void temperatureCallback() {
   aht.getEvent(&humidity, &temp);// populate temp and humidity objects with fresh data
 
-  sendfloatMessageCanbus(CAN0, 0, temp.temperature);
+  sendFloatMessageCanbus(CAN0, 0, temp.temperature);
 };
 Task temperatureTask(1000, TASK_FOREVER, &temperatureCallback);
 
 void otaStartup() {
   WiFi.softAP(ssid, password);
-  delay(1000);
+  delay(250);
   IPAddress IP = IPAddress (10, 10, 10, 1);
   IPAddress NMask = IPAddress (255, 255, 255, 0);
   WiFi.softAPConfig(IP, IP, NMask);
@@ -106,14 +106,15 @@ void dhtSetup() {
 }
 
 void handleCanbus() {
-  /* YOUR LOOP CODE HERE */
-  if(!digitalRead(CAN0_INT))                         // If CAN0_INT pin is low, read receive buffer
-  {
+  if(!digitalRead(CAN0_INT)) {                         // If CAN0_INT pin is low, read receive buffer
     while(CAN_MSGAVAIL == CAN0.checkReceive()) {
       CAN0.readMsgBuf(&rxId, &len, rxBuf);
       // print the data
       for (int i = 0; i < len; i++) {
         Serial.print(rxBuf[i]); Serial.print("\t");
+        String message = "";
+        message += "CANBUS;";
+        Serial.write(message);
       }
       Serial.println();
     }
@@ -122,14 +123,14 @@ void handleCanbus() {
 
 void handleOta() {
   if(otaMode) {
-    if(WiFi.getMode() == WIFI_OFF) {
+    if(WiFi.getMode() != WIFI_AP) {
       otaStartup();
     } else {
       /* HANDLE UPDATE REQUESTS */
       server.handleClient();
     }
   } else {
-    if(WiFi.getMode() == WIFI_AP) {
+    if(WiFi.getMode() != WIFI_OFF) {
       otaShutdown();
     }
   }
