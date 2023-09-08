@@ -10,13 +10,13 @@ class MainCarduinoNode : public CarduinoNode {
     public:
         Scheduler* scheduler;
         Adafruit_AHTX0* aht;
+        Scheduler *runner;
 
-        MainCarduinoNode(int cs, int interruptPin, String ssid, String password, Scheduler* scheduler);
+        MainCarduinoNode(int cs, int interruptPin, String ssid, String password);
         ~MainCarduinoNode();
 
         void luminanceCallback();
-
         void temperatureCallback();
-
         void manageReceivedMessage(CanbusMessage message);
+        void loop();
 };

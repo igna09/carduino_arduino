@@ -1,7 +1,7 @@
 #include "MainCarduinoNode.h"
 
-MainCarduinoNode::MainCarduinoNode(int cs, int interruptPin, String ssid, String password, Scheduler* scheduler) : CarduinoNode(cs, interruptPin, ssid, password) {
-    this->scheduler = scheduler;
+MainCarduinoNode::MainCarduinoNode(int cs, int interruptPin, String ssid, String password) : CarduinoNode(cs, interruptPin, ssid, password) {
+    this->scheduler = new Scheduler();
     this->aht = new Adafruit_AHTX0();
 
     Callback<void(void)>::func = std::bind(&MainCarduinoNode::luminanceCallback, this);
@@ -26,6 +26,11 @@ void MainCarduinoNode::temperatureCallback() {
 
     sendFloatMessageCanbus(0, temp.temperature);
 };
+
+void MainCarduinoNode::loop() {
+    CarduinoNode::loop();
+    this->scheduler->execute();
+}
 
 void MainCarduinoNode::manageReceivedMessage(CanbusMessage message) {
 

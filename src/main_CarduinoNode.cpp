@@ -4,7 +4,7 @@
 #include "./shared/CarduinoNode/MainCarduinoNode.h"
 
 Scheduler runner;
-MainCarduinoNode carduinoNode(0,0,"ssid","pwd",&runner);
+CarduinoNode carduinoNode(0,0,"ssid","pwd");
 
 /**
  * convenzione:
