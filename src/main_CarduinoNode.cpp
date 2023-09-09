@@ -1,5 +1,4 @@
 #include <Arduino.h>
-#include <TaskScheduler.h>
 
 #include "./shared/CarduinoNode/MainCarduinoNode.h"
 

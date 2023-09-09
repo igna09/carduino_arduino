@@ -1,10 +1,10 @@
 #pragma once
 
-//#include <TaskSchedulerDeclarations.h>
-#include <TaskScheduler.h>
+#include <TaskSchedulerDeclarations.h>
 #include <Adafruit_AHTX0.h>
 #include <functional>
-#include "../callbacks/Callback.h"
+#include "../callbacks/TemperatureCallback.h"
+#include "../callbacks/LuminanceCallback.h"
 #include "./CarduinoNode.h"
 
 class MainCarduinoNode : public CarduinoNode {

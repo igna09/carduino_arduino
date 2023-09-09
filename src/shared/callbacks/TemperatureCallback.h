@@ -3,10 +3,10 @@
 #include <functional>
 
 template <typename T>
-struct Callback;
+struct TemperatureCallback;
 
 template <typename Ret, typename... Params>
-struct Callback<Ret(Params...)> {
+struct TemperatureCallback<Ret(Params...)> {
    template <typename... Args> 
    static Ret callback(Args... args) {                    
       func(args...);  
@@ -15,4 +15,4 @@ struct Callback<Ret(Params...)> {
 };
 
 template <typename Ret, typename... Params>
-std::function<Ret(Params...)> Callback<Ret(Params...)>::func;
+std::function<Ret(Params...)> TemperatureCallback<Ret(Params...)>::func;
