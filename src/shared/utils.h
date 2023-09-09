@@ -16,7 +16,7 @@ extern void resetArray(uint8_t *a, int len);
 
 extern int convertByteArrayToInt(uint8_t *bytes, int size);
 
-extern float convertByteArrayToFloat(uint8_t *bytes);
+extern float convertByteArrayToFloat(uint8_t *bytes, int size);
 
 extern void pickSubarray( uint8_t A[], uint8_t sub[], int &m, int i, int j );
 

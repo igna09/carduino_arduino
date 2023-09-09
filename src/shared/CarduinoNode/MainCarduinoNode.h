@@ -12,8 +12,8 @@ class MainCarduinoNode : public CarduinoNode {
         Scheduler* scheduler;
         Adafruit_AHTX0* aht;
         Scheduler *runner;
-        Task *temperatureTask;
-        Task *luminanceTask;
+        Task temperatureTask;
+        Task luminanceTask;
 
         MainCarduinoNode(int cs, int interruptPin, String ssid, String password);
         ~MainCarduinoNode();

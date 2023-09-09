@@ -58,7 +58,7 @@ int convertByteArrayToInt(uint8_t *bytes, int size) {
     return integerByteConverter.value;
 }
 
-float convertByteArrayToFloat(uint8_t *bytes) {
+float convertByteArrayToFloat(uint8_t *bytes, int size) {
     int integerPart, decimalPart;
 
     integerPart = convertByteArrayToInt(bytes, 4);
