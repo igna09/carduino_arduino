@@ -1,6 +1,7 @@
 #pragma once
 
-#include <TaskSchedulerDeclarations.h>
+//#include <TaskSchedulerDeclarations.h>
+#include <TaskScheduler.h>
 #include <Adafruit_AHTX0.h>
 #include <functional>
 #include "../callbacks/Callback.h"
