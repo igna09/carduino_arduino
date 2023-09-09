@@ -7,10 +7,10 @@ MainCarduinoNode::MainCarduinoNode(int cs, int interruptPin, String ssid, String
     //TODO: verify i can use only one callback
 
     LuminanceCallback<void(void)>::func = std::bind(&MainCarduinoNode::luminanceCallback, this);
-    Task luminanceTask(TASK_MILLISECOND, TASK_FOREVER, static_cast<TaskCallback>(LuminanceCallback<void(void)>::callback), scheduler, true);
+    this->luminanceTask = &Task(TASK_MILLISECOND, TASK_FOREVER, static_cast<TaskCallback>(LuminanceCallback<void(void)>::callback), scheduler, true);
 
     TemperatureCallback<void(void)>::func = std::bind(&MainCarduinoNode::temperatureCallback, this);
-    Task temperatureTask(TASK_MILLISECOND, TASK_FOREVER, static_cast<TaskCallback>(TemperatureCallback<void(void)>::callback), scheduler, true);
+    this->temperatureTask = &Task(TASK_MILLISECOND, TASK_FOREVER, static_cast<TaskCallback>(TemperatureCallback<void(void)>::callback), scheduler, true);
 
     this->scheduler->startNow();
 };
