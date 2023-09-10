@@ -14,6 +14,7 @@ MainCarduinoNode::MainCarduinoNode(int cs, int interruptPin, String ssid, String
 
     this->scheduler->startNow();
 };
+
 MainCarduinoNode::~MainCarduinoNode() {};
 
 void MainCarduinoNode::luminanceCallback() {

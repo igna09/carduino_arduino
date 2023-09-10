@@ -14,6 +14,7 @@ extern void convertIntegerToByteArray(uint8_t *bytes, uint32_t v);
 
 extern void resetArray(uint8_t *a, int len);
 
+//TODO: change return types to pointer
 extern int convertByteArrayToInt(uint8_t *bytes, int size);
 
 extern float convertByteArrayToFloat(uint8_t *bytes, int size);
@@ -24,3 +25,5 @@ extern int separate (String str, char **p, int size, char *separator);
 
 #define SPTR_SIZE   20
 extern void convertSerialMessagetoArduino(String msg);
+
+extern String* convertByteArrayToString(uint8_t *bytes, int size);
