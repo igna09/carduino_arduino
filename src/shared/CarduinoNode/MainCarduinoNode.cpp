@@ -5,13 +5,12 @@ MainCarduinoNode::MainCarduinoNode(int cs, int interruptPin, String ssid, String
     this->aht = new Adafruit_AHTX0();
 
     //TODO: verify i can use only one callback
-    //TODO: replace with pointer
 
     LuminanceCallback<void(void)>::func = std::bind(&MainCarduinoNode::luminanceCallback, this);
-    Task luminanceTask(TASK_MILLISECOND, TASK_FOREVER, static_cast<TaskCallback>(LuminanceCallback<void(void)>::callback), scheduler, true);
+    luminanceTask = new Task(TASK_MILLISECOND, TASK_FOREVER, static_cast<TaskCallback>(LuminanceCallback<void(void)>::callback), scheduler, true);
 
     TemperatureCallback<void(void)>::func = std::bind(&MainCarduinoNode::temperatureCallback, this);
-    Task temperatureTask(TASK_MILLISECOND, TASK_FOREVER, static_cast<TaskCallback>(TemperatureCallback<void(void)>::callback), scheduler, true);
+    temperatureTask = new Task(TASK_MILLISECOND, TASK_FOREVER, static_cast<TaskCallback>(TemperatureCallback<void(void)>::callback), scheduler, true);
 
     this->scheduler->startNow();
 };
