@@ -14,10 +14,10 @@ template<class T>
 class CarstatusCanbusMessage : public CanbusMessage {
     public:
         Carstatus carstatus;
-        T value;
+        T *value;
         std::function<T(uint8_t*, int)> convertByteArrayToTypeFunction;
 
-        CarstatusCanbusMessage(unsigned long id, uint8_t *payload, uint8_t payloadLength, std::function<T(uint8_t*, int)> convertByteArrayToTypeFunction);
+        CarstatusCanbusMessage(unsigned long id, uint8_t *payload, uint8_t payloadLength, std::function<T*(uint8_t*, int)> convertByteArrayToTypeFunction);
         ~CarstatusCanbusMessage();
 
         String getPayloadString();

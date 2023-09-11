@@ -52,21 +52,24 @@ void resetArray(uint8_t *a, int len) {
   }
 }
 
-int convertByteArrayToInt(uint8_t *bytes, int size) {
+//TODO: test these functions
+int* convertByteArrayToInt(uint8_t *bytes, int size) {
     resetArray(integerByteConverter.array, 4);
     cloneByteArray(bytes, integerByteConverter.array, size);
-    return integerByteConverter.value;
+    int i;
+    i = integerByteConverter.value;
+    return new int(i);
 }
 
-float convertByteArrayToFloat(uint8_t *bytes, int size) {
+float* convertByteArrayToFloat(uint8_t *bytes, int size) {
     int integerPart, decimalPart;
 
-    integerPart = convertByteArrayToInt(bytes, 4);
-    decimalPart = convertByteArrayToInt(&bytes[4], 1);
+    integerPart = *convertByteArrayToInt(bytes, size - 1);
+    decimalPart = *convertByteArrayToInt(&bytes[4], 1);
 
     float v = integerPart + decimalPart * pow(10, -2);
     
-    return v;
+    return new float(v);
 }
 
 void pickSubarray( uint8_t A[], uint8_t sub[], int &m, int i, int j ) {

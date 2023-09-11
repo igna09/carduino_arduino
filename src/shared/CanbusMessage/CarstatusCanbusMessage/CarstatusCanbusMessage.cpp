@@ -1,7 +1,7 @@
 #include "CarStatusCanbusMessage.h"
 
 template<class T>
-CarstatusCanbusMessage<T>::CarstatusCanbusMessage(unsigned long id, uint8_t *payload, uint8_t payloadLength, std::function<T(uint8_t*, int)> convertByteArrayToTypeFunction): CanbusMessage(id, payload, payloadLength) {
+CarstatusCanbusMessage<T>::CarstatusCanbusMessage(unsigned long id, uint8_t *payload, uint8_t payloadLength, std::function<T*(uint8_t*, int)> convertByteArrayToTypeFunction): CanbusMessage(id, payload, payloadLength) {
     this->carstatus = static_cast<Carstatus>(payload[0]);
 
     uint8_t sub[this->payloadLength - 1];
