@@ -1,26 +1,29 @@
 #pragma once
 
-#define FOREACH_CARSTATUS(ACTION) \
-        ACTION(EXTERNAL_TEMPERATURE)   \
-        ACTION(INTERNAL_TEMPERATURE)  \
-        ACTION(SPEED)  \
-        ACTION(INTERNAL_LUMINANCE)  \
-        ACTION(FRONT_DISTANCE)  \
-        ACTION(ENGINE_WATER_COOLING_TEMPERATURE)  \
-        ACTION(ENGINE_OIL_TEMPERATURE)  \
-        ACTION(ENGINE_INTAKE_MANIFOLD_PRESSURE)  \
-        ACTION(ENGINE_RPM)  \
-        ACTION(TRIP_DURATION)  \
-        ACTION(TRIP_AVERAGE_SPEED)  \
-        ACTION(TRIP_MAX_SPEED)  \
+#include "Enum.h"
 
-#define GENERATE_ENUM(ENUM) ENUM,
-#define GENERATE_STRING(STRING) #STRING,
+class Carstatus : Enum {
+    public:
+        static const Carstatus EXTERNAL_TEMPERATURE;
+        static const Carstatus INTERNAL_TEMPERATURE;
+        static const Carstatus SPEED;
+        static const Carstatus INTERNAL_LUMINANCE;
+        static const Carstatus FRONT_DISTANCE;
+        static const Carstatus ENGINE_WATER_COOLING_TEMPERATURE;
+        static const Carstatus ENGINE_OIL_TEMPERATURE;
+        static const Carstatus ENGINE_INTAKE_MANIFOLD_PRESSURE;
+        static const Carstatus ENGINE_RPM;
+        static const Carstatus TRIP_DURATION;
+        static const Carstatus TRIP_AVERAGE_SPEED;
+        static const Carstatus TRIP_MAX_SPEED;
 
-enum Carstatus {
-    FOREACH_CARSTATUS(GENERATE_ENUM)
-};
+        static const Enum* getValueById(uint8_t id);
+        static const Enum** getValues();
+        static uint8_t getSize();
 
-static const char *CARSTATUS_STRING[] = {
-    FOREACH_CARSTATUS(GENERATE_STRING)
+    private:
+        static const Enum* values[];
+        static uint8_t index;
+
+        Carstatus(uint8_t id, char *name);
 };

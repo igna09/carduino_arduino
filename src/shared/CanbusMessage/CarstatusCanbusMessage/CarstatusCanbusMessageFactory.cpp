@@ -3,20 +3,13 @@
 template<class T>
 CarstatusCanbusMessage<T>* CarstatusCanbusMessageFactory::getCarstatusCanbusMessage(CarstatusCanbusMessageType type, unsigned long id, uint8_t *payload, uint8_t payloadLength) {
     CarstatusCanbusMessage<T> *carstatusCanbusMessage;
-    
-    switch (type)
-    {
-    case CarstatusCanbusMessageType::FLOAT:
+
+    if(type == CarstatusCanbusMessageType::FLOAT) {
         carstatusCanbusMessage = new CarstatusCanbusMessage<T>(id, payload, payloadLength, convertByteArrayToFloat);
-        break;
-    
-    case CarstatusCanbusMessageType::INT:
+    } else if(type == CarstatusCanbusMessageType::FLOAT) {
         carstatusCanbusMessage = new CarstatusCanbusMessage<T>(id, payload, payloadLength, convertByteArrayToInt);
-        break;
-    
-    case CarstatusCanbusMessageType::STRING:
+    } else if(type == CarstatusCanbusMessageType::FLOAT) {
         carstatusCanbusMessage = new CarstatusCanbusMessage<T>(id, payload, payloadLength, convertByteArrayToString);
-        break;
     }
 
     return carstatusCanbusMessage;

@@ -1,17 +1,21 @@
 #pragma once
 
-#define FOREACH_CARSTATUS_CANBUS_MESSAGE_TYPE(ACTION) \
-        ACTION(INT)   \
-        ACTION(FLOAT)   \
-        ACTION(STRING)   \
+#include "Enum.h"
 
-#define GENERATE_ENUM(ENUM) ENUM,
-#define GENERATE_STRING(STRING) #STRING,
+class CarstatusCanbusMessageType : public Enum {
+    public:
+        static const CarstatusCanbusMessageType INT;
+        static const CarstatusCanbusMessageType FLOAT;
+        static const CarstatusCanbusMessageType STRING;
 
-enum CarstatusCanbusMessageType {
-    FOREACH_CARSTATUS_CANBUS_MESSAGE_TYPE(GENERATE_ENUM)
+        static const Enum* getValueById(uint8_t id);
+        static const Enum** getValues();
+        static uint8_t getSize();
+
+    private:
+        static const Enum* values[];
+        static uint8_t index;
+        
+        CarstatusCanbusMessageType(uint8_t id, char *name);
 };
 
-static const char *CARSTATUS_CANBUS_MESSAGE_TYPE_STRING[] = {
-    FOREACH_CARSTATUS_CANBUS_MESSAGE_TYPE(GENERATE_STRING)
-};

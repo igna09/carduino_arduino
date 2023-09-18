@@ -16,7 +16,7 @@ public:
     unsigned long id;
     unsigned char *payload;
     uint8_t payloadLength;
-    Category category;
+    const Category *category;
 
     CanbusMessage(unsigned long id, unsigned char *payload, uint8_t payloadLength);
     ~CanbusMessage();

@@ -1,16 +1,19 @@
 #pragma once
 
-#define FOREACH_CATEGORY(ACTION) \
-        ACTION(CAR_STATUS)   \
-        ACTION(READ_SETTING)  \
+#include "Enum.h"
 
-#define GENERATE_ENUM(ENUM) ENUM,
-#define GENERATE_STRING(STRING) #STRING,
+class Category : public Enum {
+    public:
+        static const Category CAR_STATUS;
+        static const Category READ_SETTINGS;
 
-enum Category {
-    FOREACH_CATEGORY(GENERATE_ENUM)
-};
+        static const Enum* getValueById(uint8_t id);
+        static const Enum** getValues();
+        static uint8_t getSize();
 
-static const char *CATEGORY_STRING[] = {
-    FOREACH_CATEGORY(GENERATE_STRING)
+    private:
+        static const Enum* values[];
+        static uint8_t index;
+        
+        Category(uint8_t id, char *name);
 };
