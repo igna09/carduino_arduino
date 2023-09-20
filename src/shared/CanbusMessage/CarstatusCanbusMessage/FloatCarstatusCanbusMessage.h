@@ -16,5 +16,5 @@ class FloatCarstatusCanbusMessage : public CarstatusCanbusMessageTypedInterface,
         FloatCarstatusCanbusMessage();
         FloatCarstatusCanbusMessage(unsigned long id, uint8_t *payload, uint8_t payloadLength);
 
-        String* toSerialString();
+        String toSerialString();
 };

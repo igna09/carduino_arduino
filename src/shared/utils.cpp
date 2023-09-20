@@ -54,24 +54,22 @@ void resetArray(uint8_t *a, int len) {
 }
 
 //TODO: test these functions
-int* convertByteArrayToInt(uint8_t bytes[], int size) {
+int convertByteArrayToInt(uint8_t bytes[], int size) {
     resetArray(integerByteConverter.array, 4);
     for(int i=0; i < size; i++){
       integerByteConverter.array[size - i - 1] = bytes[i]; //reverse the byte order here.
     }
-    return new int(integerByteConverter.value);
+    return integerByteConverter.value;
 }
 
-float* convertByteArrayToFloat(uint8_t *bytes, int size) {
+float convertByteArrayToFloat(uint8_t *bytes, int size) {
     int integerPart, decimalPart;
 
-    integerPart = *convertByteArrayToInt(bytes, size - 1);
+    integerPart = convertByteArrayToInt(bytes, size - 1);
     uint8_t decimalArray[] = {bytes[4]};
-    decimalPart = *convertByteArrayToInt(decimalArray, 1);
-
-    float v = integerPart + decimalPart * pow(10, -2);
+    decimalPart = convertByteArrayToInt(decimalArray, 1);
     
-    return new float(v);
+    return integerPart + decimalPart * pow(10, -2);
 }
 
 void pickSubarray( uint8_t A[], uint8_t sub[], int &m, int i, int j ) {
@@ -101,7 +99,7 @@ void convertSerialMessagetoArduino(String msg) {
   separate(msg, sPtr, SPTR_SIZE, ";");
 }
 
-String* convertByteArrayToString(uint8_t bytes[], uint8_t len)
+String convertByteArrayToString(uint8_t bytes[], uint8_t len)
 {
   char buffer[len];
 
@@ -114,5 +112,11 @@ String* convertByteArrayToString(uint8_t bytes[], uint8_t len)
   }
   buffer[len*2] = '\0';
 
-  return new String(buffer);
+  return String(buffer);
+}
+
+void printFreeHeap(const char label[]) {
+    Serial.print(ESP.getFreeHeap());
+    Serial.print(" - ");
+    Serial.println(label);
 }

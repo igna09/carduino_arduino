@@ -3,6 +3,7 @@
 #include <Arduino.h>
 #include "../enums/Category.h"
 #include "../enums/Carstatus.h"
+#include "../utils.h"
 
 /**
  * message structure:
@@ -20,4 +21,5 @@ class CanbusMessage {
 
         CanbusMessage();
         CanbusMessage(unsigned long id, uint8_t *payload, uint8_t payloadLength);
+        virtual ~CanbusMessage() = default;
 };

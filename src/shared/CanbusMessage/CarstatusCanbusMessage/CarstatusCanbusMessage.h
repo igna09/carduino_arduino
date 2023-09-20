@@ -17,11 +17,12 @@ class CarstatusCanbusMessage : public CanbusMessage {
     public:
         const Enum *carstatus;
         const Enum *category;
-        T *value;
-        std::function<T*(uint8_t[], int)> convertByteArrayToTypeFunction;
+        T value;
+        std::function<T(uint8_t[], int)> convertByteArrayToTypeFunction;
 
-        CarstatusCanbusMessage(unsigned long id, uint8_t *payload, uint8_t payloadLength, std::function<T*(uint8_t[], int)> convertByteArrayToTypeFunction);
+        CarstatusCanbusMessage(unsigned long id, uint8_t *payload, uint8_t payloadLength, std::function<T(uint8_t[], int)> convertByteArrayToTypeFunction);
         CarstatusCanbusMessage();
+        virtual ~CarstatusCanbusMessage() = default;
 
-        virtual String* toSerialString();
+        virtual String toSerialString();
 };

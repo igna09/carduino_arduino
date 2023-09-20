@@ -4,7 +4,7 @@ template<class T>
 CarstatusCanbusMessage<T>::CarstatusCanbusMessage() : CanbusMessage() {};
 
 template<class T>
-CarstatusCanbusMessage<T>::CarstatusCanbusMessage(unsigned long id, uint8_t *payload, uint8_t payloadLength, std::function<T*(uint8_t[], int)> convertByteArrayToTypeFunction): CanbusMessage(id, payload, payloadLength) {
+CarstatusCanbusMessage<T>::CarstatusCanbusMessage(unsigned long id, uint8_t *payload, uint8_t payloadLength, std::function<T(uint8_t[], int)> convertByteArrayToTypeFunction): CanbusMessage(id, payload, payloadLength) {
     this->carstatus = Carstatus::getValueById(this->messageId);
     this->category = Category::getValueById(this->categoryId);
 
@@ -13,8 +13,8 @@ CarstatusCanbusMessage<T>::CarstatusCanbusMessage(unsigned long id, uint8_t *pay
 };
 
 template<class T>
-String* CarstatusCanbusMessage<T>::toSerialString() {
-    return nullptr;
+String CarstatusCanbusMessage<T>::toSerialString() {
+    return "";
 };
 
 template class CarstatusCanbusMessage<int>;

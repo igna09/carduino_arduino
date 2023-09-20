@@ -39,16 +39,17 @@ void MainCarduinoNode::loop() {
     this->scheduler->execute();
         
     if(millis() > next) {
-        next = random((5 * 1000),(10 * 1000)) + millis();
+        next = random((1 * 1000),(2 * 1000)) + millis();
         
         uint8_t payload[] = {0x00, 0x00, 0x00, 0x10, 0x02};
-        CanbusMessage m((unsigned long)0b00100000001, payload, (uint8_t)5);
+        CanbusMessage m((unsigned long)0b00000000001, payload, (uint8_t)5);
         manageReceivedMessage(m);
     }
 }
 
 void MainCarduinoNode::manageReceivedMessage(CanbusMessage message) {
     CarstatusCanbusMessageTypedInterface *carstatusCanbusMessage = CarstatusCanbusMessageFactory::getCarstatusCanbusMessage(message);
-    Serial.println(*(carstatusCanbusMessage->toSerialString()));
-    Serial.println(ESP.getFreeHeap());
+    String s = carstatusCanbusMessage->toSerialString();
+    Serial.println(s);
+    delete carstatusCanbusMessage;
 }

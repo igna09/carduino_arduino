@@ -5,5 +5,6 @@
 
 class CarstatusCanbusMessageTypedInterface : public CanbusMessage {
     public:
-        virtual String* toSerialString() = 0;
+        virtual String toSerialString() = 0;
+        virtual ~CarstatusCanbusMessageTypedInterface() = default;
 };

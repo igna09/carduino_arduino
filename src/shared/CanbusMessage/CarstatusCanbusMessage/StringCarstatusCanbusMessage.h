@@ -15,5 +15,5 @@ class StringCarstatusCanbusMessage : public CarstatusCanbusMessageTypedInterface
     public:
         StringCarstatusCanbusMessage(unsigned long id, uint8_t *payload, uint8_t payloadLength);
 
-        String* toSerialString();
+        String toSerialString();
 };
