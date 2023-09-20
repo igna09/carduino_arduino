@@ -52,8 +52,8 @@ void CarduinoNode::loop() {
 
 void CarduinoNode::manageReceivedMessage(CanbusMessage message) {};
 
-void CarduinoNode::sendMessageCanBus(unsigned long messageId, int len, byte *buf) {
-    byte sndStat = can->sendMsgBuf(0x100, 0, len, buf);
+void CarduinoNode::sendMessageCanBus(uint16_t messageId, int len, uint8_t buf[]) {
+    byte sndStat = can->sendMsgBuf(messageId, 0, len, buf);
     if(sndStat == CAN_OK){
         Serial.println("Message Sent Successfully!");
     } else {
@@ -61,16 +61,16 @@ void CarduinoNode::sendMessageCanBus(unsigned long messageId, int len, byte *buf
     }
 };
 
-void CarduinoNode::sendFloatMessageCanbus(unsigned long id, float v) {
+void CarduinoNode::sendFloatMessageCanbus(uint16_t id, float v) {
     uint8_t buf[5];
     convertFloatToByteArray(buf, v);
-    sendMessageCanBus(0, 5, buf);
+    sendMessageCanBus(id, 5, buf);
 };
 
-void CarduinoNode::sendIntMessageCanbus(unsigned long id, uint32_t v) {
+void CarduinoNode::sendIntMessageCanbus(uint16_t id, int v) {
     uint8_t buf[4];
     convertIntegerToByteArray(buf, v);
-    sendMessageCanBus(0, 4, buf);
+    sendMessageCanBus(id, 4, buf);
 };
 
 void CarduinoNode::otaStartup() {
@@ -93,3 +93,9 @@ void CarduinoNode::otaShutdown() {
     WiFi.softAPdisconnect(true);
     WiFi.mode(WIFI_OFF);
 };
+
+uint16_t CarduinoNode::generateId(Category category, Enum messageEnum) {
+    uint16_t id = category.id;
+    id = (id << 8) | messageEnum.id;
+    return id;
+}

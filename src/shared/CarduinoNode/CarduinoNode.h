@@ -28,7 +28,9 @@ class CarduinoNode {
         CarduinoNode(int cs, int interruptPin, char *ssid, char *password);
         void loop();
         void manageReceivedMessage(CanbusMessage message);
-        void sendMessageCanBus(unsigned long messageId, int len, byte *buf);
-        void sendFloatMessageCanbus(unsigned long id, float v);
-        void sendIntMessageCanbus(unsigned long id, uint32_t v);
+        void sendMessageCanBus(uint16_t messageId, int len, uint8_t buf[]);
+        void sendFloatMessageCanbus(uint16_t id, float v);
+        void sendIntMessageCanbus(uint16_t id, int v);
+
+        static uint16_t generateId(Category, Enum);
 };

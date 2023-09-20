@@ -8,10 +8,10 @@ MainCarduinoNode::MainCarduinoNode(int cs, int interruptPin, char *ssid, char *p
     //TODO: verify i can use only one callback
 
     LuminanceCallback<void(void)>::func = std::bind(&MainCarduinoNode::luminanceCallback, this);
-    luminanceTask = new Task(TASK_MILLISECOND, TASK_FOREVER, static_cast<TaskCallback>(LuminanceCallback<void(void)>::callback), scheduler, false);
+    luminanceTask = new Task(1000, TASK_FOREVER, static_cast<TaskCallback>(LuminanceCallback<void(void)>::callback), scheduler, false);
 
     TemperatureCallback<void(void)>::func = std::bind(&MainCarduinoNode::temperatureCallback, this);
-    temperatureTask = new Task(TASK_MILLISECOND, TASK_FOREVER, static_cast<TaskCallback>(TemperatureCallback<void(void)>::callback), scheduler, false);
+    temperatureTask = new Task(1000, TASK_FOREVER, static_cast<TaskCallback>(TemperatureCallback<void(void)>::callback), scheduler, true);
 
     this->scheduler->startNow();
 };
@@ -22,14 +22,17 @@ void MainCarduinoNode::luminanceCallback() {
     float microamps = amps * 1000000;
     float lux = microamps * 2.0;
 
-    sendIntMessageCanbus(0, floor(lux));
+    Serial.println(lux);
+    // sendIntMessageCanbus(0, floor(lux));
 };
 
 void MainCarduinoNode::temperatureCallback() {
-    sensors_event_t humidity, temp;
+    /*sensors_event_t humidity, temp;
     this->aht->getEvent(&humidity, &temp);// populate temp and humidity objects with fresh data
 
-    sendFloatMessageCanbus(0, temp.temperature);
+    sendFloatMessageCanbus(0, temp.temperature);*/
+    Serial.println(generateId(Category::READ_SETTINGS, Carstatus::INTERNAL_TEMPERATURE), BIN);
+    // sendFloatMessageCanbus(generateId(Category::READ_SETTINGS, Carstatus::INTERNAL_TEMPERATURE), 24.5);
 };
 
 unsigned long int next = 0;
