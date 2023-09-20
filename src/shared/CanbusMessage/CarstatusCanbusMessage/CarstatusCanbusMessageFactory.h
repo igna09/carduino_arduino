@@ -10,5 +10,6 @@
 
 class CarstatusCanbusMessageFactory {
     public:
+        static CarstatusCanbusMessageTypedInterface* getCarstatusCanbusMessage(CanbusMessage message);
         static CarstatusCanbusMessageTypedInterface* getCarstatusCanbusMessage(CarstatusCanbusMessageType type, unsigned long id, uint8_t *payload, uint8_t payloadLength);
 };

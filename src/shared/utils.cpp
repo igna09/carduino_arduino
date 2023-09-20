@@ -1,18 +1,16 @@
 #include "utils.h"
 
 union IntegerByteConverter {
-  int size = 4;
   uint8_t array[4];
   uint32_t value;
 } integerByteConverter;
 
 union DecimalByteConverter {
-  int size = 1;
   uint8_t array[1];
   uint32_t value;
 } decimalByteConverter;
 
-void cloneByteArray (uint8_t *from, uint8_t *to, int len) {
+void cloneByteArray (uint8_t from[], uint8_t to[], int len) {
 //   Serial.print("len -> ");
 //   Serial.println(len);
   for(int i = 0; i < len; i++) {
@@ -43,7 +41,10 @@ void convertFloatToByteArray(uint8_t *bytes, float v) {
 
 void convertIntegerToByteArray(uint8_t *bytes, uint32_t v) {
     integerByteConverter.value = v;
-    cloneByteArray(integerByteConverter.array, bytes, integerByteConverter.size);
+    // for(int i=0; i < 4; i++){
+    //   integerByteConverter.array[4 - i - 1] = bytes[i]; //reverse the byte order here.
+    // }
+    cloneByteArray(integerByteConverter.array, bytes, 4);
 }
 
 void resetArray(uint8_t *a, int len) {
@@ -53,19 +54,20 @@ void resetArray(uint8_t *a, int len) {
 }
 
 //TODO: test these functions
-int* convertByteArrayToInt(uint8_t *bytes, int size) {
+int* convertByteArrayToInt(uint8_t bytes[], int size) {
     resetArray(integerByteConverter.array, 4);
-    cloneByteArray(bytes, integerByteConverter.array, size);
-    int i;
-    i = integerByteConverter.value;
-    return new int(i);
+    for(int i=0; i < size; i++){
+      integerByteConverter.array[size - i - 1] = bytes[i]; //reverse the byte order here.
+    }
+    return new int(integerByteConverter.value);
 }
 
 float* convertByteArrayToFloat(uint8_t *bytes, int size) {
     int integerPart, decimalPart;
 
     integerPart = *convertByteArrayToInt(bytes, size - 1);
-    decimalPart = *convertByteArrayToInt(&bytes[4], 1);
+    uint8_t decimalArray[] = {bytes[4]};
+    decimalPart = *convertByteArrayToInt(decimalArray, 1);
 
     float v = integerPart + decimalPart * pow(10, -2);
     
