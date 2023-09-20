@@ -1,16 +1,17 @@
 #include "CarstatusCanbusMessageFactory.h"
 
-template<class T>
-CarstatusCanbusMessage<T>* CarstatusCanbusMessageFactory::getCarstatusCanbusMessage(CarstatusCanbusMessageType type, unsigned long id, uint8_t *payload, uint8_t payloadLength) {
-    CarstatusCanbusMessage<T> *carstatusCanbusMessage;
 
+CarstatusCanbusMessageTypedInterface* CarstatusCanbusMessageFactory::getCarstatusCanbusMessage(CarstatusCanbusMessageType type, unsigned long id, uint8_t *payload, uint8_t payloadLength) {
+    Serial.println(type.name);
+    
     if(type == CarstatusCanbusMessageType::FLOAT) {
-        carstatusCanbusMessage = new CarstatusCanbusMessage<T>(id, payload, payloadLength, convertByteArrayToFloat);
-    } else if(type == CarstatusCanbusMessageType::FLOAT) {
-        carstatusCanbusMessage = new CarstatusCanbusMessage<T>(id, payload, payloadLength, convertByteArrayToInt);
-    } else if(type == CarstatusCanbusMessageType::FLOAT) {
-        carstatusCanbusMessage = new CarstatusCanbusMessage<T>(id, payload, payloadLength, convertByteArrayToString);
+        return new FloatCarstatusCanbusMessage(id, payload, payloadLength);
+    } else if(type == CarstatusCanbusMessageType::INT) {
+        Serial.println("ifelse int");
+        return new IntCarstatusCanbusMessage(id, payload, payloadLength);
+    } else if(type == CarstatusCanbusMessageType::STRING) {
+        return new StringCarstatusCanbusMessage(id, payload, payloadLength);
     }
 
-    return carstatusCanbusMessage;
+    return nullptr;
 }

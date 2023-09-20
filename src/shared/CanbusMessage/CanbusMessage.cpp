@@ -1,21 +1,11 @@
-#include "./CanbusMessage.h"
+#include "CanbusMessage.h"
 
-CanbusMessage::CanbusMessage(unsigned long id, unsigned char *payload, uint8_t payloadLength) {
+CanbusMessage::CanbusMessage(unsigned long id, uint8_t *payload, uint8_t payloadLength) {
     this->id = id;
     this->payload = payload;
     this->payloadLength = payloadLength;
-    this->category = (const Category*)Category::getValueById(this->id>>8);
+    this->categoryId = this->id>>8;
+    this->messageId = (this->id<<3)>>3;
 };
-CanbusMessage::~CanbusMessage() {};
 
-String CanbusMessage::toString() {
-    String s = "";
-    s += "CANBUS;CAR_STATUS;";
-    s += getPayloadString();
-    s += ";;";
-    return s;
-}
-
-String CanbusMessage::getPayloadString() {
-    return "";
-};
+CanbusMessage::CanbusMessage() {};

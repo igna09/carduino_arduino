@@ -11,11 +11,12 @@ class CarstatusCanbusMessageType : public Enum {
         static const Enum* getValueById(uint8_t id);
         static const Enum** getValues();
         static uint8_t getSize();
+        
+        CarstatusCanbusMessageType();
+        CarstatusCanbusMessageType(uint8_t id, char *name);
 
     private:
         static const Enum* values[];
         static uint8_t index;
-        
-        CarstatusCanbusMessageType(uint8_t id, char *name);
 };
 

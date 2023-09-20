@@ -2,6 +2,9 @@
 
 KlineValueEnum::KlineValueEnum(uint8_t id, char *name, char *unit) : Enum(id, name) {
   this->name = name;
+  
+  values[index] = this;
+  index++;
 };
 
 const Enum* KlineValueEnum::getValueById(uint8_t id) {

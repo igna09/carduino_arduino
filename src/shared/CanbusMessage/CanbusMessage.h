@@ -10,16 +10,14 @@
  * payload -> 8 byte
 */
 
-class CanbusMessage
-{
-public:
-    unsigned long id;
-    unsigned char *payload;
-    uint8_t payloadLength;
-    const Category *category;
+class CanbusMessage {
+    public:
+        unsigned long id;
+        uint8_t *payload;
+        uint8_t payloadLength;
+        uint8_t categoryId;
+        uint8_t messageId;
 
-    CanbusMessage(unsigned long id, unsigned char *payload, uint8_t payloadLength);
-    ~CanbusMessage();
-    String toString();
-    String getPayloadString();
+        CanbusMessage();
+        CanbusMessage(unsigned long id, uint8_t *payload, uint8_t payloadLength);
 };

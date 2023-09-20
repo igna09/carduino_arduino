@@ -3,7 +3,7 @@
 
 #include "./shared/CarduinoNode/MainCarduinoNode.h"
 
-MainCarduinoNode carduinoNode(0,0,"ssid","pwd");
+MainCarduinoNode *carduinoNode;
 
 /**
  * convenzione:
@@ -13,8 +13,11 @@ MainCarduinoNode carduinoNode(0,0,"ssid","pwd");
 
 void setup(void) {
   Serial.begin(115200);
+  randomSeed(analogRead(0));
+
+  carduinoNode = new MainCarduinoNode(0,0,"SSID_MAIN_CARDUINO_NODE","pwd12345");
 }
 
 void loop(void) {
-  carduinoNode.loop();
+  carduinoNode->loop();
 }

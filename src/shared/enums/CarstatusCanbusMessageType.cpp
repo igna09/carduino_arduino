@@ -1,6 +1,10 @@
 #include "CarstatusCanbusMessageType.h"
 
-CarstatusCanbusMessageType::CarstatusCanbusMessageType(uint8_t id, char *name) : Enum(id, name) {};
+CarstatusCanbusMessageType::CarstatusCanbusMessageType() : Enum(0, nullptr) {};
+CarstatusCanbusMessageType::CarstatusCanbusMessageType(uint8_t id, char *name) : Enum(id, name) {
+  values[index] = this;
+  index++;
+};
 
 const Enum* CarstatusCanbusMessageType::getValueById(uint8_t id) {
   for(uint8_t i = 0; i < getSize(); i++) {

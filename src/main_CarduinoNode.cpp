@@ -1,9 +1,8 @@
 #include <Arduino.h>
 
-#include "./shared/CarduinoNode/MainCarduinoNode.h"
+#include "./shared/CarduinoNode/CarduinoNode.h"
 
-Scheduler runner;
-CarduinoNode carduinoNode(0,0,"ssid","pwd");
+CarduinoNode *carduinoNode;
 
 /**
  * convenzione:
@@ -13,9 +12,10 @@ CarduinoNode carduinoNode(0,0,"ssid","pwd");
 
 void setup(void) {
   Serial.begin(115200);
+
+  carduinoNode = new CarduinoNode(0,0,"SSID_CARDUINO_NODE","pwd12345");
 }
 
 void loop(void) {
-
-  //delay(5);
+  carduinoNode->loop();
 }

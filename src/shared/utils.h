@@ -26,4 +26,4 @@ extern int separate (String str, char **p, int size, char *separator);
 #define SPTR_SIZE   20
 extern void convertSerialMessagetoArduino(String msg);
 
-extern String* convertByteArrayToString(uint8_t *bytes, int size);
+extern String* convertByteArrayToString(uint8_t bytes[], uint8_t size);

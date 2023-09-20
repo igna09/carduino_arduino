@@ -1,24 +1,22 @@
-#include "CarStatusCanbusMessage.h"
+#include "CarstatusCanbusMessage.h"
 
 template<class T>
-CarstatusCanbusMessage<T>::CarstatusCanbusMessage(unsigned long id, uint8_t *payload, uint8_t payloadLength, std::function<T*(uint8_t*, int)> convertByteArrayToTypeFunction): CanbusMessage(id, payload, payloadLength) {
-    this->carstatus = Carstatus::getValueById(payload[0]);
+CarstatusCanbusMessage<T>::CarstatusCanbusMessage() : CanbusMessage() {};
 
-    uint8_t sub[this->payloadLength - 1];
-    int m;
-    pickSubarray(this->payload, sub, m, 1, this->payloadLength);
+template<class T>
+CarstatusCanbusMessage<T>::CarstatusCanbusMessage(unsigned long id, uint8_t *payload, uint8_t payloadLength, std::function<T*(uint8_t[], int)> convertByteArrayToTypeFunction): CanbusMessage(id, payload, payloadLength) {
+    this->carstatus = Carstatus::getValueById(this->messageId);
+    this->category = Category::getValueById(this->categoryId);
+
     this->convertByteArrayToTypeFunction = convertByteArrayToTypeFunction;
-    this->value = this->convertByteArrayToTypeFunction(sub, this->payloadLength - 1);
+    this->value = this->convertByteArrayToTypeFunction(this->payload, this->payloadLength);
 };
 
 template<class T>
-CarstatusCanbusMessage<T>::~CarstatusCanbusMessage() {};
-
-template<class T>
-String CarstatusCanbusMessage<T>::getPayloadString() {
-    String s = "";
-    s += carstatus.name;
-    s += "-";
-    s += value;
-    return s;
+String* CarstatusCanbusMessage<T>::toSerialString() {
+    return nullptr;
 };
+
+template class CarstatusCanbusMessage<int>;
+template class CarstatusCanbusMessage<String>;
+template class CarstatusCanbusMessage<float>;

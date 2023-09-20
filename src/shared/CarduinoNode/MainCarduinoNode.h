@@ -6,6 +6,8 @@
 #include "../callbacks/TemperatureCallback.h"
 #include "../callbacks/LuminanceCallback.h"
 #include "./CarduinoNode.h"
+#include "../CanbusMessage/CarstatusCanbusMessage/CarstatusCanbusMessageFactory.h"
+#include "../CanbusMessage/CarstatusCanbusMessage/CarstatusCanbusMessageTypedInterface.h"
 
 class MainCarduinoNode : public CarduinoNode {
     public:
@@ -15,8 +17,7 @@ class MainCarduinoNode : public CarduinoNode {
         Task *temperatureTask;
         Task *luminanceTask;
 
-        MainCarduinoNode(int cs, int interruptPin, String ssid, String password);
-        ~MainCarduinoNode();
+        MainCarduinoNode(int cs, int interruptPin, char *ssid,  char *password);
 
         void luminanceCallback();
         void temperatureCallback();

@@ -6,6 +6,7 @@ class Category : public Enum {
     public:
         static const Category CAR_STATUS;
         static const Category READ_SETTINGS;
+        static const Category MEDIA_CONTROL;
 
         static const Enum* getValueById(uint8_t id);
         static const Enum** getValues();

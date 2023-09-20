@@ -25,8 +25,7 @@ class CarduinoNode {
         bool otaMode;
         int interruptPin;
 
-        CarduinoNode(int cs, int interruptPin, String ssid, String password);
-        ~CarduinoNode();
+        CarduinoNode(int cs, int interruptPin, char *ssid, char *password);
         void loop();
         void manageReceivedMessage(CanbusMessage message);
         void sendMessageCanBus(unsigned long messageId, int len, byte *buf);

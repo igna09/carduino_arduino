@@ -99,14 +99,14 @@ void convertSerialMessagetoArduino(String msg) {
   separate(msg, sPtr, SPTR_SIZE, ";");
 }
 
-String* convertByteArrayToCharArray(byte array[], unsigned int len)
+String* convertByteArrayToString(uint8_t bytes[], uint8_t len)
 {
   char buffer[len];
 
   for (unsigned int i = 0; i < len; i++)
   {
-      byte nib1 = (array[i] >> 4) & 0x0F;
-      byte nib2 = (array[i] >> 0) & 0x0F;
+      byte nib1 = (bytes[i] >> 4) & 0x0F;
+      byte nib2 = (bytes[i] >> 0) & 0x0F;
       buffer[i*2+0] = nib1  < 0xA ? '0' + nib1  : 'A' + nib1  - 0xA;
       buffer[i*2+1] = nib2  < 0xA ? '0' + nib2  : 'A' + nib2  - 0xA;
   }

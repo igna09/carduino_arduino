@@ -1,6 +1,7 @@
 #include "CarduinoNode.h"
 
-CarduinoNode::CarduinoNode(int cs, int interruptPin, String ssid, String password) {
+CarduinoNode::CarduinoNode(int cs, int interruptPin, char *ssid, char *password) {
+    //Serial.println("start CarduinoNode");
     this->can = new MCP_CAN(cs);
     this->server = new ESP8266WebServer(80);
     this->ssid = ssid;
@@ -14,15 +15,16 @@ CarduinoNode::CarduinoNode(int cs, int interruptPin, String ssid, String passwor
         Serial.println("Error Initializing MCP2515...");
     can->setMode(MCP_NORMAL);                     // Set operation mode to normal so the MCP2515 sends acks to received data.
     pinMode(interruptPin, INPUT);                            // Configuring pin for /INT input
-    this->otaMode = false;
+    this->otaMode = true;
+    WiFi.mode(WIFI_OFF);
+    //Serial.println("end CarduinoNode");
 };
-
-CarduinoNode::~CarduinoNode() {};
 
 void CarduinoNode::loop() {
     if(otaMode) {
         if(WiFi.getMode() != WIFI_AP) {
             this->otaStartup();
+            delay(2000);
         } else {
             /* HANDLE UPDATE REQUESTS */
             this->server->handleClient();

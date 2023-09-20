@@ -23,7 +23,8 @@ const Enum** Category::getValues() {
 }
 
 //const Enum* Enum::values [] = {&Category::CAR_STATUS, &Category::READ_SETTINGS};
-const Enum* Category::values [2] = { 0 };
+const Enum* Category::values [3] = { 0 };
 uint8_t Category::index = 0;
 const Category Category::CAR_STATUS = Category(0x00, "CAR_STATUS");
 const Category Category::READ_SETTINGS = Category(0x01, "READ_SETTINGS");
+const Category Category::MEDIA_CONTROL = Category(0x02, "MEDIA_CONTROL");
