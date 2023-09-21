@@ -14,11 +14,9 @@ class Category : public Enum {
         static const Enum** getValues();
         static uint8_t getSize();
 
-        const ExecutorInterface *executor;
-
     private:
         static const Enum* values[];
         static uint8_t index;
         
-        Category(uint8_t id, const char *name, ExecutorInterface *executor);
+        Category(uint8_t id, const char *name);
 };
