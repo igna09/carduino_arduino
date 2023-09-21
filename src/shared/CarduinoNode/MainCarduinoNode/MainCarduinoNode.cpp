@@ -1,5 +1,4 @@
 #include "MainCarduinoNode.h"
-#include "./shared/CanbusMessage/CarstatusCanbusMessage/CarstatusCanbusMessage.h"
 
 MainCarduinoNode::MainCarduinoNode(int cs, int interruptPin, char *ssid, char *password) : CarduinoNode(cs, interruptPin, ssid, password) {
     this->scheduler = new Scheduler();

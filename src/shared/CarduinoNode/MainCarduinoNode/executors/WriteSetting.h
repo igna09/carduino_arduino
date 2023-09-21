@@ -4,9 +4,10 @@
 #include "../../../CanbusMessage/CanbusMessage.h"
 #include "../../CarduinoNode/CarduinoNode.h"
 #include "../../../executors/CarduinoNodeExecutorInterface.h"
-#include "../../../CanbusMessage/CarstatusMessage/CarstatusMessage.h"
+#include "../../../enums/Setting.h"
+#include "../../../CanbusMessage/SettingMessage/SettingMessage.h"
 
-class CarstatusExecutor : public CarduinoNodeExecutorInterface {
+class WriteSetting : public CarduinoNodeExecutorInterface {
     public:
         void execute(CarduinoNode *node, CanbusMessage message);
 };

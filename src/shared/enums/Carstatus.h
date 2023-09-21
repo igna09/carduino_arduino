@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Enum.h"
-#include "CarstatusCanbusMessageType.h"
+#include "CanbusMessageType.h"
 
 class Carstatus : public Enum {
     public:
@@ -22,9 +22,9 @@ class Carstatus : public Enum {
         static const Enum** getValues();
         static uint8_t getSize();
 
-        CarstatusCanbusMessageType type;
+        CanbusMessageType type;
 
-        Carstatus(uint8_t id, const char *name, CarstatusCanbusMessageType type);
+        Carstatus(uint8_t id, const char *name, CanbusMessageType type);
 
     private:
         static const Enum* values[];
