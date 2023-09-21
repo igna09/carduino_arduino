@@ -52,7 +52,7 @@ void CarduinoNode::loop() {
 
 void CarduinoNode::manageReceivedCanbusMessage(CanbusMessage message) {};
 
-void CarduinoNode::sendMessageCanBus(uint16_t messageId, int len, uint8_t buf[]) {
+void CarduinoNode::sendByteCanbus(uint16_t messageId, int len, uint8_t buf[]) {
     byte sndStat = can->sendMsgBuf(messageId, 0, len, buf);
     if(sndStat == CAN_OK){
         Serial.println("Message Sent Successfully!");
@@ -61,16 +61,22 @@ void CarduinoNode::sendMessageCanBus(uint16_t messageId, int len, uint8_t buf[])
     }
 };
 
-void CarduinoNode::sendFloatMessageCanbus(uint16_t id, float v) {
+void CarduinoNode::sendCanbus(uint16_t id, float v) {
     uint8_t buf[5];
     convertFloatToByteArray(buf, v);
-    sendMessageCanBus(id, 5, buf);
+    sendByteCanbus(id, 5, buf);
 };
 
-void CarduinoNode::sendIntMessageCanbus(uint16_t id, int v) {
+void CarduinoNode::sendCanbus(uint16_t id, int v) {
     uint8_t buf[4];
     convertIntegerToByteArray(buf, v);
-    sendMessageCanBus(id, 4, buf);
+    sendByteCanbus(id, 4, buf);
+};
+
+void CarduinoNode::sendCanbus(uint16_t id, bool v) {
+    uint8_t buf[1];
+    convertBoolToByteArray(buf, v);
+    sendByteCanbus(id, 1, buf);
 };
 
 void CarduinoNode::otaStartup() {

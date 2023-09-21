@@ -19,6 +19,8 @@
  * Receive message from android --> Category;paylod;
  * READ_SETTINGS;get;
  * WRITE_SETTING;auto_close_rearview_mirrors-false;
+ * 
+ * This node has got a canbus interface and a wifi AP to update software
 */
 
 class CarduinoNode {
@@ -35,11 +37,13 @@ class CarduinoNode {
         int interruptPin;
 
         CarduinoNode(int cs, int interruptPin, char *ssid, char *password);
+
         void loop();
         void manageReceivedCanbusMessage(CanbusMessage message);
-        void sendMessageCanBus(uint16_t messageId, int len, uint8_t buf[]);
-        void sendFloatMessageCanbus(uint16_t id, float v);
-        void sendIntMessageCanbus(uint16_t id, int v);
+        void sendByteCanbus(uint16_t messageId, int len, uint8_t buf[]);
+        void sendCanbus(uint16_t id, float v);
+        void sendCanbus(uint16_t id, int v);
+        void sendCanbus(uint16_t id, bool v);
         bool availableCanbusMessages();
 
         static uint16_t generateId(Category, Enum);

@@ -40,11 +40,15 @@ void convertFloatToByteArray(uint8_t *bytes, float v) {
 }
 
 void convertIntegerToByteArray(uint8_t *bytes, uint32_t v) {
-    integerByteConverter.value = v;
-    // for(int i=0; i < 4; i++){
-    //   integerByteConverter.array[4 - i - 1] = bytes[i]; //reverse the byte order here.
-    // }
-    cloneByteArray(integerByteConverter.array, bytes, 4);
+	integerByteConverter.value = v;
+	// for(int i=0; i < 4; i++){
+	//   integerByteConverter.array[4 - i - 1] = bytes[i]; //reverse the byte order here.
+	// }
+	cloneByteArray(integerByteConverter.array, bytes, 4);
+}
+
+void convertBoolToByteArray(uint8_t *bytes, bool v) {
+	bytes[0] = v ? 1 : 0;
 }
 
 void resetArray(uint8_t *a, int len) {

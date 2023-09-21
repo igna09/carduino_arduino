@@ -12,6 +12,8 @@ extern void convertFloatToByteArray(uint8_t *bytes, float v);
 
 extern void convertIntegerToByteArray(uint8_t *bytes, uint32_t v);
 
+extern void convertBoolToByteArray(uint8_t *bytes, bool v);
+
 extern void resetArray(uint8_t *a, int len);
 
 //TODO: change return types to pointer

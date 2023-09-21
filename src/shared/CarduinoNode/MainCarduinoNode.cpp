@@ -90,5 +90,5 @@ void MainCarduinoNode::manageReceivedCanbusMessage(CanbusMessage message) {
 }
 
 void MainCarduinoNode::manageReceivedUsbMessage(CanbusMessage message) {
-    sendMessageCanBus(message.id, message.payloadLength, message.payload);
+    sendByteCanbus(message.id, message.payloadLength, message.payload);
 }
