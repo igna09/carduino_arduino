@@ -21,6 +21,7 @@ class MainCarduinoNode : public CarduinoNode {
 
         void luminanceCallback();
         void temperatureCallback();
-        void manageReceivedMessage(CanbusMessage message);
+        void manageReceivedCanbusMessage(CanbusMessage message);
+        void manageReceivedUsbMessage(CanbusMessage message);
         void loop();
 };

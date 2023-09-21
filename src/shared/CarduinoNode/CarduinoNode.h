@@ -12,6 +12,15 @@
 #include "../utils.h"
 #include "../CanbusMessage/CanbusMessage.h"
 
+/**
+ * Send message to android --> Category;payload;
+ * READ_SETTINGS;auto_close_rearview_mirrors-true;
+ * CAR_STATUS;INTERNAL_LUMINANCE-2700;
+ * Receive message from android --> Category;paylod;
+ * READ_SETTINGS;get;
+ * WRITE_SETTING;auto_close_rearview_mirrors-false;
+*/
+
 class CarduinoNode {
     private:
         void otaStartup();
@@ -27,10 +36,11 @@ class CarduinoNode {
 
         CarduinoNode(int cs, int interruptPin, char *ssid, char *password);
         void loop();
-        void manageReceivedMessage(CanbusMessage message);
+        void manageReceivedCanbusMessage(CanbusMessage message);
         void sendMessageCanBus(uint16_t messageId, int len, uint8_t buf[]);
         void sendFloatMessageCanbus(uint16_t id, float v);
         void sendIntMessageCanbus(uint16_t id, int v);
+        bool availableCanbusMessages();
 
         static uint16_t generateId(Category, Enum);
 };

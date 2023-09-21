@@ -39,20 +39,56 @@ unsigned long int next = 0;
 
 void MainCarduinoNode::loop() {
     CarduinoNode::loop();
+
     this->scheduler->execute();
+
+    /**
+     * manage received messages over USB
+    */
+    if(Serial.available() > 0) {
+        String s = Serial.readStringUntil('\n');
+        CanbusMessage m;
+        manageReceivedUsbMessage(m);
+    }
+
+    /**
+     * manage received messages over CANBUS
+    */
+    if (availableCanbusMessages()) {
+      // iterate over all pending messages
+      // If either the bus is saturated or the MCU is busy,
+      // both RX buffers may be in use and reading a single
+      // message does not clear the IRQ conditon.
+      while (CAN_MSGAVAIL == can->checkReceive()) {
+        uint8_t len = 0;
+        uint8_t buf[8];
+        long unsigned int id;
+
+        can->readMsgBuf(&id, &len, buf);
+        CanbusMessage m(id, buf, len);
+
+        manageReceivedCanbusMessage(m);
+      }
+   }
         
+    // TODO: to remove, just for testing purpose
     if(millis() > next) {
         next = random((1 * 1000),(2 * 1000)) + millis();
         
         uint8_t payload[] = {0x00, 0x00, 0x00, 0x10, 0x02};
         CanbusMessage m((unsigned long)0b00000000001, payload, (uint8_t)5);
-        manageReceivedMessage(m);
+        manageReceivedCanbusMessage(m);
     }
 }
 
-void MainCarduinoNode::manageReceivedMessage(CanbusMessage message) {
+// TODO: manage received message
+void MainCarduinoNode::manageReceivedCanbusMessage(CanbusMessage message) {
     CarstatusCanbusMessageTypedInterface *carstatusCanbusMessage = CarstatusCanbusMessageFactory::getCarstatusCanbusMessage(message);
     String s = carstatusCanbusMessage->toSerialString();
     Serial.println(s);
     delete carstatusCanbusMessage;
+}
+
+void MainCarduinoNode::manageReceivedUsbMessage(CanbusMessage message) {
+    sendMessageCanBus(message.id, message.payloadLength, message.payload);
 }

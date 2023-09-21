@@ -45,12 +45,12 @@ void CarduinoNode::loop() {
             //TODO: replace with factory
             CanbusMessage message(id, buf, len);
             
-            manageReceivedMessage(message);
+            manageReceivedCanbusMessage(message);
         }
     }
 };
 
-void CarduinoNode::manageReceivedMessage(CanbusMessage message) {};
+void CarduinoNode::manageReceivedCanbusMessage(CanbusMessage message) {};
 
 void CarduinoNode::sendMessageCanBus(uint16_t messageId, int len, uint8_t buf[]) {
     byte sndStat = can->sendMsgBuf(messageId, 0, len, buf);
@@ -98,4 +98,8 @@ uint16_t CarduinoNode::generateId(Category category, Enum messageEnum) {
     uint16_t id = category.id;
     id = (id << 8) | messageEnum.id;
     return id;
+}
+
+bool CarduinoNode::availableCanbusMessages() {
+    return digitalRead(this->interruptPin) == HIGH;
 }
