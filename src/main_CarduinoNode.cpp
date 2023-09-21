@@ -1,6 +1,6 @@
 #include <Arduino.h>
 
-#include "./shared/CarduinoNode/CarduinoNode.h"
+#include "./shared/CarduinoNode/CarduinoNode/CarduinoNode.h"
 
 CarduinoNode *carduinoNode;
 
