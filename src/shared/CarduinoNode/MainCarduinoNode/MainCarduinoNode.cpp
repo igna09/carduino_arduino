@@ -1,4 +1,5 @@
 #include "MainCarduinoNode.h"
+#include "../../executors/Executors.h"
 
 MainCarduinoNode::MainCarduinoNode(int cs, int interruptPin, char *ssid, char *password) : CarduinoNode(cs, interruptPin, ssid, password) {
     this->scheduler = new Scheduler();
@@ -14,7 +15,6 @@ MainCarduinoNode::MainCarduinoNode(int cs, int interruptPin, char *ssid, char *p
 
     this->scheduler->startNow();
 
-    this->executors = new Executors();
     this->executors->addExecutor(new CarstatusExecutor());
     // this->executors->addExecutor(new WriteSettingExecutor());
 };
@@ -92,7 +92,7 @@ void MainCarduinoNode::manageReceivedCanbusMessage(CanbusMessage message) {
     // Serial.println(s);
     // delete carstatusCanbusMessage;
 
-    this->executors->execute(this, message);
+    
 }
 
 void MainCarduinoNode::manageReceivedUsbMessage(CanbusMessage message) {

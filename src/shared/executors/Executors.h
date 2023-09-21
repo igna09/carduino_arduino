@@ -3,6 +3,7 @@
 #include <Arduino.h>
 #include "../CanbusMessage/CanbusMessage.h"
 #include "CarduinoNodeExecutorInterface.h"
+#include "../CarduinoNode/CarduinoNode/CarduinoNode.h"
 
 class Executors : public CarduinoNodeExecutorInterface {
     public:

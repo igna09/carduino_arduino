@@ -6,7 +6,6 @@
 #include "../../callbacks/TemperatureCallback.h"
 #include "../../callbacks/LuminanceCallback.h"
 #include "../CarduinoNode/CarduinoNode.h"
-#include "../../executors/Executors.h"
 #include "executors/CarstatusExecutor.h"
 
 class MainCarduinoNode : public CarduinoNode {
@@ -16,7 +15,6 @@ class MainCarduinoNode : public CarduinoNode {
         Scheduler *runner;
         Task *temperatureTask;
         Task *luminanceTask;
-        Executors *executors;
 
         MainCarduinoNode(int cs, int interruptPin, char *ssid,  char *password);
 

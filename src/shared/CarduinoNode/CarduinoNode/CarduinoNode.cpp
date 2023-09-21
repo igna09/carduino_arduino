@@ -1,4 +1,5 @@
 #include "CarduinoNode.h"
+#include "../../executors/Executors.h"
 
 CarduinoNode::CarduinoNode(int cs, int interruptPin, char *ssid, char *password) {
     //Serial.println("start CarduinoNode");
@@ -18,6 +19,7 @@ CarduinoNode::CarduinoNode(int cs, int interruptPin, char *ssid, char *password)
     this->otaMode = true;
     WiFi.mode(WIFI_OFF);
     //Serial.println("end CarduinoNode");
+    this->executors = new Executors();
 };
 
 void CarduinoNode::loop() {
@@ -35,22 +37,27 @@ void CarduinoNode::loop() {
         }
     }
 
-    if(!digitalRead(this->interruptPin)) {                         // If CAN0_INT pin is low, read receive buffer
-        while(CAN_MSGAVAIL == can->checkReceive()) {
-            unsigned long id;
-            uint8_t len;
-            unsigned char buf[8];
+    if (availableCanbusMessages()) {
+      // iterate over all pending messages
+      // If either the bus is saturated or the MCU is busy,
+      // both RX buffers may be in use and reading a single
+      // message does not clear the IRQ conditon.
+      while (CAN_MSGAVAIL == can->checkReceive()) {
+        uint8_t len = 0;
+        uint8_t buf[8];
+        long unsigned int id;
 
-            can->readMsgBuf(&id, &len, buf);
-            //TODO: replace with factory
-            CanbusMessage message(id, buf, len);
-            
-            manageReceivedCanbusMessage(message);
-        }
+        can->readMsgBuf(&id, &len, buf);
+        CanbusMessage m(id, buf, len);
+
+        manageReceivedCanbusMessage(m);
+      }
     }
 };
 
-void CarduinoNode::manageReceivedCanbusMessage(CanbusMessage message) {};
+void CarduinoNode::manageReceivedCanbusMessage(CanbusMessage message) {
+    this->executors->execute(this, message);
+};
 
 void CarduinoNode::sendByteCanbus(uint16_t messageId, int len, uint8_t buf[]) {
     byte sndStat = can->sendMsgBuf(messageId, 0, len, buf);
@@ -107,5 +114,5 @@ uint16_t CarduinoNode::generateId(Category category, Enum messageEnum) {
 }
 
 bool CarduinoNode::availableCanbusMessages() {
-    return digitalRead(this->interruptPin) == HIGH;
+    return digitalRead(this->interruptPin) == LOW;
 }

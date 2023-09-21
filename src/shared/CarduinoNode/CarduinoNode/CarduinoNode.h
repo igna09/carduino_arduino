@@ -23,6 +23,7 @@
  * This node has got a canbus interface and a wifi AP to update software
 */
 
+class Executors; // forward declaration to avoid circular dependency
 class CarduinoNode {
     private:
         void otaStartup();
@@ -35,11 +36,12 @@ class CarduinoNode {
         String password;
         bool otaMode;
         int interruptPin;
+        Executors *executors;
 
         CarduinoNode(int cs, int interruptPin, char *ssid, char *password);
 
         void loop();
-        virtual void manageReceivedCanbusMessage(CanbusMessage message);
+        void manageReceivedCanbusMessage(CanbusMessage message);
         void sendByteCanbus(uint16_t messageId, int len, uint8_t buf[]);
         void sendCanbus(uint16_t id, float v);
         void sendCanbus(uint16_t id, int v);
