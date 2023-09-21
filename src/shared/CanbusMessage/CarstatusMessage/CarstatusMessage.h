@@ -10,4 +10,5 @@ class CarstatusMessage : public TypedCanbusMessage {
         const Carstatus *carstatus;
 
         CarstatusMessage(CanbusMessage canbusMessage);
+        String toSerialString();
 };

@@ -10,4 +10,5 @@ class SettingMessage : public TypedCanbusMessage {
         const Setting *setting;
 
         SettingMessage(CanbusMessage canbusMessage);
+        String toSerialString();
 };

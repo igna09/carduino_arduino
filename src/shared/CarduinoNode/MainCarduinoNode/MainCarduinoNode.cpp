@@ -51,6 +51,7 @@ void MainCarduinoNode::loop() {
     if(Serial.available() > 0) {
         String s = Serial.readStringUntil('\n');
         CanbusMessage m;
+        //TODO: add s management
         manageReceivedUsbMessage(m);
     }
 
@@ -85,16 +86,15 @@ void MainCarduinoNode::loop() {
     }
 }
 
-// TODO: manage received message
 void MainCarduinoNode::manageReceivedCanbusMessage(CanbusMessage message) {
-    // CarstatusCanbusMessageTypedInterface *carstatusCanbusMessage = CarstatusCanbusMessageFactory::getCarstatusCanbusMessage(message);
-    // String s = carstatusCanbusMessage->toSerialString();
-    // Serial.println(s);
-    // delete carstatusCanbusMessage;
-
-    
+    CarduinoNode::manageReceivedCanbusMessage(message);
+    this->sendSerialMessage(message);
 }
 
 void MainCarduinoNode::manageReceivedUsbMessage(CanbusMessage message) {
     sendByteCanbus(message.id, message.payloadLength, message.payload);
+}
+
+void MainCarduinoNode::sendSerialMessage(CanbusMessage message) {
+    Serial.println(message.toSerialString());
 }

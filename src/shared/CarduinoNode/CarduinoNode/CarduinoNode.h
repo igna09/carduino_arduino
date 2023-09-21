@@ -43,9 +43,7 @@ class CarduinoNode {
         void loop();
         void manageReceivedCanbusMessage(CanbusMessage message);
         void sendByteCanbus(uint16_t messageId, int len, uint8_t buf[]);
-        void sendCanbus(uint16_t id, float v);
-        void sendCanbus(uint16_t id, int v);
-        void sendCanbus(uint16_t id, bool v);
+        void sendCanbusMessage(CanbusMessage message);
         bool availableCanbusMessages();
 
         static uint16_t generateId(Category, Enum);

@@ -3,8 +3,7 @@
 TypedCanbusMessage::TypedCanbusMessage() : CanbusMessage() {};
 
 TypedCanbusMessage::TypedCanbusMessage(CanbusMessageType *type, unsigned long id, uint8_t *payload, uint8_t payloadLength) : CanbusMessage(id, payload, payloadLength) {
-    this->carstatus = Carstatus::getValueById(this->messageId);
-    this->category = Category::getValueById(this->categoryId);
+    this->category = (Category*)Category::getValueById(this->categoryId);
     this->type = type;
 
     if(*type == CanbusMessageType::BOOL) {
@@ -27,4 +26,16 @@ float TypedCanbusMessage::getFloatValue() {
 
 bool TypedCanbusMessage::getBoolValue() {
     return this->value.boolValue;
+};
+
+//TODO: check memory leak
+String TypedCanbusMessage::getValueToString() {
+    if(this->type->id == CanbusMessageType::BOOL.id) {
+        return this->getBoolValue() ? "true" : "false";
+    } else if(this->type->id == CanbusMessageType::INT.id) {
+        return String(this->getIntValue());
+    } else if(this->type->id == CanbusMessageType::FLOAT.id) {
+        return String(this->getFloatValue());
+    }
+    return "";
 };

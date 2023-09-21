@@ -68,24 +68,6 @@ void CarduinoNode::sendByteCanbus(uint16_t messageId, int len, uint8_t buf[]) {
     }
 };
 
-void CarduinoNode::sendCanbus(uint16_t id, float v) {
-    uint8_t buf[5];
-    convertFloatToByteArray(buf, v);
-    sendByteCanbus(id, 5, buf);
-};
-
-void CarduinoNode::sendCanbus(uint16_t id, int v) {
-    uint8_t buf[4];
-    convertIntegerToByteArray(buf, v);
-    sendByteCanbus(id, 4, buf);
-};
-
-void CarduinoNode::sendCanbus(uint16_t id, bool v) {
-    uint8_t buf[1];
-    convertBoolToByteArray(buf, v);
-    sendByteCanbus(id, 1, buf);
-};
-
 void CarduinoNode::otaStartup() {
     WiFi.softAP(this->ssid, this->password);
     delay(250);
@@ -115,4 +97,8 @@ uint16_t CarduinoNode::generateId(Category category, Enum messageEnum) {
 
 bool CarduinoNode::availableCanbusMessages() {
     return digitalRead(this->interruptPin) == LOW;
+}
+
+void CarduinoNode::sendCanbusMessage(CanbusMessage message) {
+    sendByteCanbus(message.id, message.payloadLength, message.payload);
 }

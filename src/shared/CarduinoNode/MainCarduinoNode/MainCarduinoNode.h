@@ -23,4 +23,5 @@ class MainCarduinoNode : public CarduinoNode {
         void manageReceivedCanbusMessage(CanbusMessage message);
         void manageReceivedUsbMessage(CanbusMessage message);
         void loop();
+        void sendSerialMessage(CanbusMessage message);
 };

@@ -20,8 +20,7 @@ union ValueType {
 
 class TypedCanbusMessage : public CanbusMessage {
     public:
-        const Enum *carstatus;
-        const Enum *category;
+        const Category *category;
         const CanbusMessageType *type;
 
         TypedCanbusMessage(CanbusMessageType *type, unsigned long id, uint8_t *payload, uint8_t payloadLength);
@@ -35,6 +34,7 @@ class TypedCanbusMessage : public CanbusMessage {
         int getIntValue();
         float getFloatValue();
         bool getBoolValue();
+        String getValueToString();
 
     private:
         ValueType value;
