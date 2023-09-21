@@ -5,6 +5,7 @@
 #include "IntCarstatusCanbusMessage.h"
 #include "FloatCarstatusCanbusMessage.h"
 #include "StringCarstatusCanbusMessage.h"
+#include "BoolCarstatusCanbusMessage.h"
 #include "CarstatusCanbusMessageTypedInterface.h"
 #include "../../enums/CarstatusCanbusMessageType.h"
 

@@ -7,6 +7,7 @@ class CarstatusCanbusMessageType : public Enum {
         static const CarstatusCanbusMessageType INT;
         static const CarstatusCanbusMessageType FLOAT;
         static const CarstatusCanbusMessageType STRING;
+        static const CarstatusCanbusMessageType BOOL;
 
         static const Enum* getValueById(uint8_t id);
         static const Enum** getValues();

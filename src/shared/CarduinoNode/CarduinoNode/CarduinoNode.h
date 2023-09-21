@@ -9,8 +9,8 @@
 #include <mcp_can.h>
 #include <SPI.h>
 
-#include "../utils.h"
-#include "../CanbusMessage/CanbusMessage.h"
+#include "../../utils.h"
+#include "../../CanbusMessage/CanbusMessage.h"
 
 /**
  * Send message to android --> Category;payload;

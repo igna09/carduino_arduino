@@ -3,11 +3,13 @@
 #include <TaskSchedulerDeclarations.h>
 #include <Adafruit_AHTX0.h>
 #include <functional>
-#include "../callbacks/TemperatureCallback.h"
-#include "../callbacks/LuminanceCallback.h"
-#include "./CarduinoNode.h"
-#include "../CanbusMessage/CarstatusCanbusMessage/CarstatusCanbusMessageFactory.h"
-#include "../CanbusMessage/CarstatusCanbusMessage/CarstatusCanbusMessageTypedInterface.h"
+#include "../../callbacks/TemperatureCallback.h"
+#include "../../callbacks/LuminanceCallback.h"
+#include "../CarduinoNode/CarduinoNode.h"
+#include "../../CanbusMessage/CarstatusCanbusMessage/CarstatusCanbusMessageFactory.h"
+#include "../../CanbusMessage/CarstatusCanbusMessage/CarstatusCanbusMessageTypedInterface.h"
+#include "../../executors/Executors.h"
+#include "executors/CarstatusExecutor.h"
 
 class MainCarduinoNode : public CarduinoNode {
     public:
@@ -16,6 +18,7 @@ class MainCarduinoNode : public CarduinoNode {
         Scheduler *runner;
         Task *temperatureTask;
         Task *luminanceTask;
+        Executors *executors;
 
         MainCarduinoNode(int cs, int interruptPin, char *ssid,  char *password);
 

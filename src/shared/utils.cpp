@@ -63,6 +63,10 @@ int convertByteArrayToInt(uint8_t bytes[], int size) {
     return integerByteConverter.value;
 }
 
+bool convertByteArrayToBool(uint8_t bytes[], int size) {
+    return bytes[0] == 1;
+}
+
 float convertByteArrayToFloat(uint8_t *bytes, int size) {
     int integerPart, decimalPart;
 

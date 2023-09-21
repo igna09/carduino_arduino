@@ -1,7 +1,7 @@
 #include <Arduino.h>
 #include <TaskScheduler.h>
 
-#include "./shared/CarduinoNode/MainCarduinoNode.h"
+#include "./shared/CarduinoNode/MainCarduinoNode/MainCarduinoNode.h"
 
 MainCarduinoNode *carduinoNode;
 

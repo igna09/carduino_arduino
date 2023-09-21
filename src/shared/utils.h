@@ -21,6 +21,8 @@ extern int convertByteArrayToInt(uint8_t *bytes, int size);
 
 extern float convertByteArrayToFloat(uint8_t *bytes, int size);
 
+extern bool convertByteArrayToBool(uint8_t *bytes, int size);
+
 extern void pickSubarray( uint8_t A[], uint8_t sub[], int &m, int i, int j );
 
 extern int separate (String str, char **p, int size, char *separator);

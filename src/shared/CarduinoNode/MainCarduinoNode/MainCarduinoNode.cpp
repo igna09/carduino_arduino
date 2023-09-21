@@ -1,5 +1,5 @@
-#include "./shared/CanbusMessage/CarstatusCanbusMessage/CarstatusCanbusMessage.h"
 #include "MainCarduinoNode.h"
+#include "./shared/CanbusMessage/CarstatusCanbusMessage/CarstatusCanbusMessage.h"
 
 MainCarduinoNode::MainCarduinoNode(int cs, int interruptPin, char *ssid, char *password) : CarduinoNode(cs, interruptPin, ssid, password) {
     this->scheduler = new Scheduler();
@@ -14,6 +14,10 @@ MainCarduinoNode::MainCarduinoNode(int cs, int interruptPin, char *ssid, char *p
     temperatureTask = new Task(1000, TASK_FOREVER, static_cast<TaskCallback>(TemperatureCallback<void(void)>::callback), scheduler, true);
 
     this->scheduler->startNow();
+
+    this->executors = new Executors();
+    this->executors->addExecutor(new CarstatusExecutor());
+    // this->executors->addExecutor(new WriteSettingExecutor());
 };
 
 void MainCarduinoNode::luminanceCallback() {
@@ -84,10 +88,12 @@ void MainCarduinoNode::loop() {
 
 // TODO: manage received message
 void MainCarduinoNode::manageReceivedCanbusMessage(CanbusMessage message) {
-    CarstatusCanbusMessageTypedInterface *carstatusCanbusMessage = CarstatusCanbusMessageFactory::getCarstatusCanbusMessage(message);
-    String s = carstatusCanbusMessage->toSerialString();
-    Serial.println(s);
-    delete carstatusCanbusMessage;
+    // CarstatusCanbusMessageTypedInterface *carstatusCanbusMessage = CarstatusCanbusMessageFactory::getCarstatusCanbusMessage(message);
+    // String s = carstatusCanbusMessage->toSerialString();
+    // Serial.println(s);
+    // delete carstatusCanbusMessage;
+
+    this->executors->execute(this, message);
 }
 
 void MainCarduinoNode::manageReceivedUsbMessage(CanbusMessage message) {

@@ -20,3 +20,4 @@ String CarstatusCanbusMessage<T>::toSerialString() {
 template class CarstatusCanbusMessage<int>;
 template class CarstatusCanbusMessage<String>;
 template class CarstatusCanbusMessage<float>;
+template class CarstatusCanbusMessage<bool>;

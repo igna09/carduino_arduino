@@ -23,8 +23,9 @@ const Enum** CarstatusCanbusMessageType::getValues() {
   return values;
 }
 
-const Enum* CarstatusCanbusMessageType::values [3] = { 0 };
+const Enum* CarstatusCanbusMessageType::values [4] = { 0 };
 uint8_t CarstatusCanbusMessageType::index = 0;
 const CarstatusCanbusMessageType CarstatusCanbusMessageType::INT = CarstatusCanbusMessageType(0x00, "INT");
 const CarstatusCanbusMessageType CarstatusCanbusMessageType::STRING = CarstatusCanbusMessageType(0x01, "FLOAT");
 const CarstatusCanbusMessageType CarstatusCanbusMessageType::FLOAT = CarstatusCanbusMessageType(0x02, "STRING");
+const CarstatusCanbusMessageType CarstatusCanbusMessageType::BOOL = CarstatusCanbusMessageType(0x02, "BOOL");

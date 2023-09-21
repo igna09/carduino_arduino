@@ -12,6 +12,8 @@ CarstatusCanbusMessageTypedInterface* CarstatusCanbusMessageFactory::getCarstatu
         return new IntCarstatusCanbusMessage(id, payload, payloadLength);
     } else if(type == CarstatusCanbusMessageType::STRING) {
         return new StringCarstatusCanbusMessage(id, payload, payloadLength);
+    } else if(type == CarstatusCanbusMessageType::BOOL) {
+        return new BoolCarstatusCanbusMessage(id, payload, payloadLength);
     }
 
     return nullptr;
