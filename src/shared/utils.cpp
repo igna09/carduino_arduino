@@ -11,10 +11,7 @@ union DecimalByteConverter {
 } decimalByteConverter;
 
 void cloneByteArray (uint8_t from[], uint8_t to[], int len) {
-//   Serial.print("len -> ");
-//   Serial.println(len);
   for(int i = 0; i < len; i++) {
-    // Serial.println(from[i], HEX);
     to[i] = from[i];
   }
 }
