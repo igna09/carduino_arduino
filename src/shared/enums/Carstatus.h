@@ -24,7 +24,7 @@ class Carstatus : public Enum {
 
         CarstatusCanbusMessageType type;
 
-        Carstatus(uint8_t id, char *name, CarstatusCanbusMessageType type);
+        Carstatus(uint8_t id, const char *name, CarstatusCanbusMessageType type);
 
     private:
         static const Enum* values[];

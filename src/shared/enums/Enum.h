@@ -4,7 +4,7 @@
 
 class Enum {
     public:
-        char *name;
+        const char *name;
         uint8_t id;
 
         static const Enum* getValues();
@@ -12,7 +12,7 @@ class Enum {
         static const Enum** getValueById(uint8_t id);
         
         Enum();
-        Enum(uint8_t id, char *name);
+        Enum(uint8_t id, const char *name);
 
         bool operator== (const Enum &e);
 };

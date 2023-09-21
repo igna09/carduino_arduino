@@ -13,7 +13,7 @@ class CarstatusCanbusMessageType : public Enum {
         static uint8_t getSize();
         
         CarstatusCanbusMessageType();
-        CarstatusCanbusMessageType(uint8_t id, char *name);
+        CarstatusCanbusMessageType(uint8_t id, const char *name);
 
     private:
         static const Enum* values[];

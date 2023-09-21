@@ -54,7 +54,8 @@ void MainCarduinoNode::loop() {
     /**
      * manage received messages over CANBUS
     */
-    if (availableCanbusMessages()) {
+    // TODO: manage mcp2515 not started correctly
+    /*if (availableCanbusMessages()) {
       // iterate over all pending messages
       // If either the bus is saturated or the MCU is busy,
       // both RX buffers may be in use and reading a single
@@ -69,14 +70,14 @@ void MainCarduinoNode::loop() {
 
         manageReceivedCanbusMessage(m);
       }
-   }
+   }*/
         
     // TODO: to remove, just for testing purpose
     if(millis() > next) {
         next = random((1 * 1000),(2 * 1000)) + millis();
         
         uint8_t payload[] = {0x00, 0x00, 0x00, 0x10, 0x02};
-        CanbusMessage m((unsigned long)0b00000000001, payload, (uint8_t)5);
+        CanbusMessage m(generateId(Category::CAR_STATUS, Carstatus::INTERNAL_TEMPERATURE), payload, 5);
         manageReceivedCanbusMessage(m);
     }
 }

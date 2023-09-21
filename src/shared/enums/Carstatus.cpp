@@ -1,6 +1,6 @@
 #include "Carstatus.h"
 
-Carstatus::Carstatus(uint8_t id, char *name, CarstatusCanbusMessageType type) : Enum(id, name) {
+Carstatus::Carstatus(uint8_t id, const char *name, CarstatusCanbusMessageType type) : Enum(id, name) {
   this->type = type;
 
   values[index] = this;

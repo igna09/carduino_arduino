@@ -2,7 +2,7 @@
 
 Enum::Enum() {}
 
-Enum::Enum(uint8_t id, char *name) {
+Enum::Enum(uint8_t id, const char *name) {
     this->name = name;
     this->id = id;
 };
