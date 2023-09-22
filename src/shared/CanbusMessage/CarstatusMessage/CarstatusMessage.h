@@ -9,6 +9,6 @@ class CarstatusMessage : public TypedCanbusMessage {
     public:
         const Carstatus *carstatus;
 
-        CarstatusMessage(CanbusMessage canbusMessage);
-        String toSerialString();
+        CarstatusMessage(const CanbusMessageType*,  CanbusMessage*);
+        String toSerialString() override;
 };

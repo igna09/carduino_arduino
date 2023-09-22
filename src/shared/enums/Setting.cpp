@@ -1,6 +1,6 @@
 #include "Setting.h"
 
-Setting::Setting(uint8_t id, const char *name, CanbusMessageType type) : Enum(id, name) {
+Setting::Setting(uint8_t id, const char *name, const CanbusMessageType *type) : Enum(id, name) {
   this->type = type;
   
   values[index] = this;
@@ -27,5 +27,5 @@ const Enum** Setting::getValues() {
 //const Enum* Enum::values [] = {&Category::CAR_STATUS, &Category::READ_SETTINGS};
 const Enum* Setting::values [2] = { 0 };
 uint8_t Setting::index = 0;
-const Setting Setting::AUTO_CLOSE_REARVIEW_MIRRORS = Setting(0x00, "AUTO_CLOSE_REARVIEW_MIRRORS", CanbusMessageType::BOOL);
-const Setting Setting::OTA_MODE = Setting(0x01, "OTA_MODE", CanbusMessageType::BOOL);
+const Setting* Setting::AUTO_CLOSE_REARVIEW_MIRRORS = new Setting(0x00, "AUTO_CLOSE_REARVIEW_MIRRORS", CanbusMessageType::BOOL);
+const Setting* Setting::OTA_MODE = new Setting(0x01, "OTA_MODE", CanbusMessageType::BOOL);

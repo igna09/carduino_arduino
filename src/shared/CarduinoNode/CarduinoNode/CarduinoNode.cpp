@@ -48,14 +48,16 @@ void CarduinoNode::loop() {
         long unsigned int id;
 
         can->readMsgBuf(&id, &len, buf);
-        CanbusMessage m(id, buf, len);
+        CanbusMessage *m = new CanbusMessage(id, buf, len);
 
         manageReceivedCanbusMessage(m);
+
+        delete m;
       }
     }
 };
 
-void CarduinoNode::manageReceivedCanbusMessage(CanbusMessage message) {
+void CarduinoNode::manageReceivedCanbusMessage(CanbusMessage *message) {
     this->executors->execute(this, message);
 };
 
@@ -89,9 +91,9 @@ void CarduinoNode::otaShutdown() {
     WiFi.mode(WIFI_OFF);
 };
 
-uint16_t CarduinoNode::generateId(Category category, Enum messageEnum) {
-    uint16_t id = category.id;
-    id = (id << 8) | messageEnum.id;
+uint16_t CarduinoNode::generateId(const Category *category, const Enum *messageEnum) {
+    uint16_t id = category->id;
+    id = (id << 8) | messageEnum->id;
     return id;
 }
 

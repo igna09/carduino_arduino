@@ -3,6 +3,7 @@
 #include <TaskSchedulerDeclarations.h>
 #include <Adafruit_AHTX0.h>
 #include <functional>
+#include "shared/enums/CanbusMessageType.h"
 #include "../../callbacks/TemperatureCallback.h"
 #include "../../callbacks/LuminanceCallback.h"
 #include "../CarduinoNode/CarduinoNode.h"
@@ -20,8 +21,8 @@ class MainCarduinoNode : public CarduinoNode {
 
         void luminanceCallback();
         void temperatureCallback();
-        void manageReceivedCanbusMessage(CanbusMessage message);
+        // void manageReceivedCanbusMessage(CanbusMessage message);
         void manageReceivedUsbMessage(CanbusMessage message);
         void loop();
-        void sendSerialMessage(CanbusMessage message);
+        void sendSerialMessage(CanbusMessage *message);
 };

@@ -1,5 +1,7 @@
 #include "Category.h"
 
+Category::Category() : Enum() {}
+
 Category::Category(uint8_t id, const char *name) : Enum(id, name) {
   values[index] = this;
   index++;
@@ -25,7 +27,7 @@ const Enum** Category::getValues() {
 //const Enum* Enum::values [] = {&Category::CAR_STATUS, &Category::READ_SETTINGS};
 const Enum* Category::values [4] = { 0 };
 uint8_t Category::index = 0;
-const Category Category::CAR_STATUS = Category(0x00, "CAR_STATUS");
-const Category Category::READ_SETTINGS = Category(0x01, "READ_SETTINGS");
-const Category Category::MEDIA_CONTROL = Category(0x02, "MEDIA_CONTROL");
-const Category Category::WRITE_SETTING = Category(0x03, "WRITE_SETTING");
+const Category* Category::CAR_STATUS = new Category(0x00, "CAR_STATUS");
+const Category* Category::READ_SETTINGS = new Category(0x01, "READ_SETTINGS");
+const Category* Category::MEDIA_CONTROL = new Category(0x02, "MEDIA_CONTROL");
+const Category* Category::WRITE_SETTING = new Category(0x03, "WRITE_SETTING");

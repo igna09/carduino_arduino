@@ -41,10 +41,10 @@ class CarduinoNode {
         CarduinoNode(int cs, int interruptPin, char *ssid, char *password);
 
         void loop();
-        void manageReceivedCanbusMessage(CanbusMessage message);
+        void manageReceivedCanbusMessage(CanbusMessage *message);
         void sendByteCanbus(uint16_t messageId, int len, uint8_t buf[]);
         void sendCanbusMessage(CanbusMessage message);
         bool availableCanbusMessages();
 
-        static uint16_t generateId(Category, Enum);
+        static uint16_t generateId(const Category *category, const Enum *messageEnum);
 };

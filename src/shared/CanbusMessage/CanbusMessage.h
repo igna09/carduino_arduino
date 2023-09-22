@@ -23,5 +23,7 @@ class CanbusMessage {
         CanbusMessage(unsigned long id, uint8_t *payload, uint8_t payloadLength);
         virtual ~CanbusMessage() = default;
 
-        virtual String toSerialString() {return "";};
+        virtual String toSerialString() {
+            return "";
+        };
 };

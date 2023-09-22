@@ -1,10 +1,11 @@
 #pragma once
 
+#include <Arduino.h>
 #include "../CanbusMessage.h"
 #include "../../enums/Carstatus.h"
 #include "../../enums/Category.h"
 #include "../../utils.h"
-#include <Arduino.h>
+#include "../../enums/CanbusMessageType.h"
 
 /**
  * message structure:
@@ -23,7 +24,7 @@ class TypedCanbusMessage : public CanbusMessage {
         const Category *category;
         const CanbusMessageType *type;
 
-        TypedCanbusMessage(CanbusMessageType *type, unsigned long id, uint8_t *payload, uint8_t payloadLength);
+        TypedCanbusMessage(const CanbusMessageType *type, unsigned long id, uint8_t *payload, uint8_t payloadLength);
         TypedCanbusMessage();
         virtual ~TypedCanbusMessage() = default;
         
