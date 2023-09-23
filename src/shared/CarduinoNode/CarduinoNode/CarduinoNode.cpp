@@ -16,9 +16,10 @@ CarduinoNode::CarduinoNode(int cs, int interruptPin, char *ssid, char *password)
         Serial.println("Error Initializing MCP2515...");
     can->setMode(MCP_NORMAL);                     // Set operation mode to normal so the MCP2515 sends acks to received data.
     pinMode(interruptPin, INPUT);                            // Configuring pin for /INT input
-    this->otaMode = true;
+
+    this->otaMode = false;
     WiFi.mode(WIFI_OFF);
-    //Serial.println("end CarduinoNode");
+    
     this->executors = new Executors();
 };
 
