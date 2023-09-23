@@ -9,5 +9,6 @@
 
 class AllMessageExecutor : public CarduinoNodeExecutorInterface {
     public:
+        AllMessageExecutor();
         void execute(CarduinoNode *node, CanbusMessage message);
 };
