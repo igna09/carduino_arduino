@@ -6,16 +6,11 @@ TypedCanbusMessage::TypedCanbusMessage(const CanbusMessageType *type, unsigned l
     this->category = (Category*)Category::getValueById(this->categoryId);
     this->type = type;
 
-    Serial.print("TypedCanbusMessage::TypedCanbusMessage this->type->name ");
-    Serial.print(this->type->name);
-    Serial.print(" CanbusMessageType::BOOL->name ");
-    Serial.println(CanbusMessageType::BOOL->name);
-
-    if(this->type->id == CanbusMessageType::BOOL->id) {
+    if(this->type->id == CanbusMessageType::BOOL.id) {
         this->value.boolValue = convertByteArrayToBool(payload, payloadLength);
-    } else if(this->type->id == CanbusMessageType::INT->id) {
+    } else if(this->type->id == CanbusMessageType::INT.id) {
         this->value.intValue = convertByteArrayToInt(payload, payloadLength);
-    } else if(this->type->id == CanbusMessageType::FLOAT->id) {
+    } else if(this->type->id == CanbusMessageType::FLOAT.id) {
         this->value.floatValue = convertByteArrayToFloat(payload, payloadLength);
     }
 };
@@ -35,15 +30,11 @@ bool TypedCanbusMessage::getBoolValue() {
 
 //TODO: check memory leak
 String TypedCanbusMessage::getValueToString() {
-    Serial.print("TypedCanbusMessage::getValueToString ");
-    Serial.print(this->type->name);
-    Serial.print(" ");
-    Serial.println(getIntValue());
-    if(this->type->id == CanbusMessageType::BOOL->id) {
+    if(this->type->id == CanbusMessageType::BOOL.id) {
         return this->getBoolValue() ? "true" : "false";
-    } else if(this->type->id == CanbusMessageType::INT->id) {
+    } else if(this->type->id == CanbusMessageType::INT.id) {
         return String(this->getIntValue());
-    } else if(this->type->id == CanbusMessageType::FLOAT->id) {
+    } else if(this->type->id == CanbusMessageType::FLOAT.id) {
         return String(this->getFloatValue());
     }
     return "";

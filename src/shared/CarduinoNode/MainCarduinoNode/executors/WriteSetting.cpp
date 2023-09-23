@@ -5,7 +5,7 @@ WriteSetting::WriteSetting(const Category *categoryFilter) : CarduinoNodeExecuto
 void WriteSetting::execute(CarduinoNode *node, CanbusMessage message) {
     SettingMessage settingMessage(message);
     
-    if(settingMessage.setting->id == Setting::OTA_MODE->id) {
+    if(settingMessage.setting->id == Setting::OTA_MODE.id) {
         node->otaMode = settingMessage.getBoolValue();
     }
 

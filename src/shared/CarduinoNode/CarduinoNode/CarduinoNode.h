@@ -46,5 +46,5 @@ class CarduinoNode {
         void sendCanbusMessage(CanbusMessage message);
         bool availableCanbusMessages();
 
-        static uint16_t generateId(const Category *category, const Enum *messageEnum);
+        static uint16_t generateId(const Category category, const Enum messageEnum);
 };

@@ -91,9 +91,9 @@ void CarduinoNode::otaShutdown() {
     WiFi.mode(WIFI_OFF);
 };
 
-uint16_t CarduinoNode::generateId(const Category *category, const Enum *messageEnum) {
-    uint16_t id = category->id;
-    id = (id << 8) | messageEnum->id;
+uint16_t CarduinoNode::generateId(const Category category, const Enum messageEnum) {
+    uint16_t id = category.id;
+    id = (id << 8) | messageEnum.id;
     return id;
 }
 
