@@ -37,6 +37,7 @@ class CarduinoNode {
         bool otaMode;
         int interruptPin;
         Executors *executors;
+        bool initializedCan;
 
         CarduinoNode(int cs, int interruptPin, char *ssid, char *password);
 

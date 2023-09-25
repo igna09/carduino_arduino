@@ -54,27 +54,6 @@ void MainCarduinoNode::loop() {
         //TODO: add s management
         manageReceivedUsbMessage(m);
     }
-
-    /**
-     * manage received messages over CANBUS
-    */
-    // TODO: manage mcp2515 not started correctly
-    /*if (availableCanbusMessages()) {
-      // iterate over all pending messages
-      // If either the bus is saturated or the MCU is busy,
-      // both RX buffers may be in use and reading a single
-      // message does not clear the IRQ conditon.
-      while (CAN_MSGAVAIL == can->checkReceive()) {
-        uint8_t len = 0;
-        uint8_t buf[8];
-        long unsigned int id;
-
-        can->readMsgBuf(&id, &len, buf);
-        CanbusMessage m(id, buf, len);
-
-        manageReceivedCanbusMessage(m);
-      }
-   }*/
         
     // TODO: to remove, just for testing purpose
     if(millis() > next) {

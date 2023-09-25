@@ -10,10 +10,13 @@ CarduinoNode::CarduinoNode(int cs, int interruptPin, char *ssid, char *password)
     this->interruptPin = interruptPin;
 
     // Initialize MCP2515 running at 16MHz with a baudrate of 500kb/s and the masks and filters disabled.
-    if(can->begin(MCP_ANY, CAN_500KBPS, MCP_16MHZ) == CAN_OK)
+    if(can->begin(MCP_ANY, CAN_500KBPS, MCP_16MHZ) == CAN_OK) {
         Serial.println("MCP2515 Initialized Successfully!");
-    else
+        this->initializedCan = true;
+    } else {
         Serial.println("Error Initializing MCP2515...");
+        this->initializedCan = false;
+    }
     can->setMode(MCP_NORMAL);                     // Set operation mode to normal so the MCP2515 sends acks to received data.
     pinMode(interruptPin, INPUT);                            // Configuring pin for /INT input
 
@@ -38,7 +41,7 @@ void CarduinoNode::loop() {
         }
     }
 
-    if (availableCanbusMessages()) {
+    if (initializedCan && availableCanbusMessages()) {
       // iterate over all pending messages
       // If either the bus is saturated or the MCU is busy,
       // both RX buffers may be in use and reading a single
