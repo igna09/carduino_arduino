@@ -52,11 +52,9 @@ void CarduinoNode::loop() {
         long unsigned int id;
 
         can->readMsgBuf(&id, &len, buf);
-        CanbusMessage *m = new CanbusMessage(id, buf, len);
 
-        manageReceivedCanbusMessage(m);
-
-        delete m;
+        CanbusMessage m(id, buf, len);
+        manageReceivedCanbusMessage(&m);
       }
     }
 };
