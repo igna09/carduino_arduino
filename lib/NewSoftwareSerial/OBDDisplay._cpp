@@ -11,6 +11,7 @@ Ignore compile warnings.
 // Arduino/Standard Libraries
 #include <Arduino.h>
 //  Third party libraries
+#include "LiquidCrystal.h"
 #include "NewSoftwareSerial.h"
 
 /* --------------------------EDIT THE FOLLOWING TO YOUR LIKING-------------------------------------- */
@@ -259,6 +260,7 @@ bool fuel_per_hour_updated = false;
 #endif
 
 /* Display */
+LiquidCrystal lcd(8, 9, 4, 5, 6, 7); // 16x2 display
 uint32_t display_frame_timestamp = millis();
 
 uint8_t count_digit(int n)
@@ -347,6 +349,443 @@ void decrement_menu(uint8_t &menu_current, uint8_t &menu_current_max)
 //                            DISPLAY CODE
 // --------------------------------------------------------------------------------------------------
 
+void lcd_print(uint8_t x, uint8_t y, String s)
+{
+  lcd.setCursor(x, y);
+  lcd.print(s);
+}
+
+void lcd_print(uint8_t x, uint8_t y, String s, uint8_t width)
+{
+  while (s.length() < width)
+    s += " ";
+  lcd_print(x, y, s);
+}
+
+void lcd_clear(uint8_t x, uint8_t y, uint8_t width = 1)
+{
+  lcd.setCursor(x, y);
+  for (uint8_t i = 0; i < width; i++)
+  {
+    lcd.print(" ");
+  }
+}
+
+void lcd_print(uint8_t x, uint8_t y, int number)
+{
+  lcd.setCursor(x, y);
+  lcd.print(number);
+}
+void lcd_print(uint8_t x, uint8_t y, uint8_t number)
+{
+  lcd_print(x, y, (int)number);
+}
+void lcd_print(uint8_t x, uint8_t y, uint16_t number)
+{
+  lcd_print(x, y, (int)number);
+}
+void lcd_print(uint8_t x, uint8_t y, uint32_t number)
+{
+  lcd_print(x, y, (int)number);
+}
+
+void lcd_print(uint8_t x, uint8_t y, float floating_number, uint8_t width = 0)
+{
+  lcd.setCursor(x, y);
+  lcd.print(floating_number, 1);
+}
+
+void lcd_print_bool(uint8_t x, uint8_t y, bool boolean, uint8_t width = 0)
+{
+  lcd_print(x, y, String(boolean), width);
+}
+
+void lcd_print_cockpit(uint8_t x, uint8_t y, String s, uint8_t width, bool &updated, bool force_update = false)
+{
+  if (updated || force_update)
+  {
+    lcd_clear(x, y, width);
+    lcd_print(x, y, s);
+    updated = false;
+  }
+}
+void lcd_print_cockpit(uint8_t x, uint8_t y, uint16_t number, uint8_t width, bool &updated, bool force_update = false)
+{
+  if ((updated || force_update))
+  {
+    lcd_clear(x, y, width);
+    uint8_t number_length = count_digit(number);
+    if (number_length <= width)
+    {
+      lcd_print(x, y, number);
+    }
+    updated = false;
+  }
+}
+void lcd_print_cockpit_dtc(uint8_t x, uint8_t y, uint16_t number, uint8_t width, bool &updated, bool force_update = false)
+{
+  if ((updated || force_update))
+  {
+    lcd_clear(x, y, width);
+    lcd_print(x, y, number);
+
+    updated = false;
+  }
+}
+void lcd_print_cockpit_float(uint8_t x, uint8_t y, float number, uint8_t width, bool &updated, bool force_update = false)
+{
+  if ((updated || force_update))
+  {
+    lcd_clear(x, y, width);
+    uint8_t number_length = String(number, 1).length();
+    if (number_length <= width)
+    {
+      lcd_print(x, y, number);
+    }
+    updated = false;
+  }
+}
+
+void LCD_display_error_msg(String line_1, String line_2)
+{
+  lcd.clear();
+  lcd_print(0, 0, line_1);
+  lcd_print(0, 1, line_2);
+}
+
+void lcd_show_screen_not_supported(uint8_t screen)
+{
+  lcd_print(0, 0, "Screen", 7);
+  lcd_print(7, 0, screen);
+  lcd_print(0, 1, "not supported!");
+}
+
+void init_statusbar()
+{
+  lcd_print(0, 0, "C:");
+  lcd_print(4, 0, "A:");
+}
+/**
+ * Status bar: "C:Y A:9999*****"
+ */
+void display_statusbar()
+{
+  lcd_print(2, 0, connected);
+  lcd_print(6, 0, obd.available());
+}
+void init_menu_cockpit()
+{
+  switch (addr_selected)
+  {
+  case ADDR_ENGINE:
+    switch (menu_cockpit_screen)
+    {
+    case 0:
+      lcd_print(15, 0, "V");
+      lcd_print(13, 1, "TBa");
+      break;
+    case 1:
+      lcd_print(10, 0, "load");
+      lcd_print(13, 1, "STa");
+      break;
+    case 2:
+      lcd_print(12, 0, "bits");
+      lcd_print(10, 1, "lambda");
+      break;
+    case 3:
+      lcd_print(6, 0, "kmh");
+      lcd_print(8, 1, "mbar");
+      break;
+    case 4:
+      lcd_print(6, 0, "C temp");
+      lcd_print(6, 1, "C temp");
+      break;
+    default:
+      lcd_show_screen_not_supported(menu_cockpit_screen);
+      break;
+    }
+    break;
+  case ADDR_INSTRUMENTS:
+    switch (menu_cockpit_screen)
+    {
+    case 0:
+      lcd_print(4, 0, "KMH");
+      lcd_print(13, 0, "RPM");
+      lcd_print(3, 1, "C");  // Coolant
+      lcd_print(8, 1, "C");  // Oil
+      lcd_print(13, 1, "L"); // Fuel
+      break;
+    case 1:
+      lcd_print(2, 0, "OL");
+      lcd_print(7, 0, "OP");
+      lcd_print(13, 0, "AT");
+      lcd_print(6, 1, "KM");
+      lcd_print(13, 1, "FSR");
+      break;
+    case 2:
+      lcd_print(6, 0, "TIME");
+      lcd_print(7, 1, "L/100km");
+      break;
+    case 3:
+      lcd_print(9, 0, "secs");
+      lcd_print(6, 1, "km");
+      break;
+    case 4:
+      lcd_print(6, 0, "km burned");
+      lcd_print(7, 1, "L/h");
+      break;
+    default:
+      lcd_show_screen_not_supported(menu_cockpit_screen);
+      break;
+    }
+    break;
+  default:
+    // Addr not supported
+    lcd_print(0, 0, "Addr", 5);
+    lcd_print(6, 0, String(addr_selected, HEX), 2);
+    lcd_print(0, 1, "not supported!");
+    break;
+  }
+}
+void init_menu_experimental()
+{
+  lcd_print(0, 0, "G:");
+  lcd_print(0, 1, "S:");
+}
+void init_menu_debug()
+{
+
+  // Addr not supported
+  init_statusbar();
+  lcd_print(9, 0, "BC:");
+  lcd_print(0, 1, "KWP:");
+  lcd_print(7, 1, "FPS:");
+}
+
+void init_menu_dtc()
+{
+  switch (menu_dtc_screen)
+  {
+  case 0:
+    lcd_print(0, 0, "DTC menu addr ");
+    lcd_print(0, 1, "<");
+    lcd_print(5, 1, "Read");
+    lcd_print(15, 1, ">");
+    break;
+  case 1:
+    lcd_print(0, 0, "DTC menu addr ");
+    lcd_print(0, 1, "<");
+    lcd_print(5, 1, "Clear");
+    lcd_print(15, 1, ">");
+    break;
+  case 2:
+  case 3:
+  case 4:
+  case 5:
+  case 6:
+  case 7:
+  case 8:
+  case 9:
+    // "X/ XXXXXX St:   "
+    // "/X XXXXXX St:   "
+    lcd_print(1, 0, "/");
+    lcd_print(10, 0, "St:");
+    lcd_print(0, 1, "/8");
+    lcd_print(10, 1, "St:");
+    break;
+  default:
+
+    break;
+  }
+}
+void init_menu_settings()
+{
+  switch (menu_settings_screen)
+  {
+  case 0:
+    // Exit
+    lcd_print(0, 0, "Exit ECU:");
+    lcd_print(0, 1, "< Press select >");
+    break;
+  case 1:
+    lcd_print(0, 0, "KWP Mode:");
+    lcd_print(0, 1, "<");
+    lcd_print(15, 1, ">");
+    break;
+  default:
+    lcd_show_screen_not_supported(menu_settings_screen);
+    break;
+  }
+}
+void display_menu_cockpit(bool force_update = false)
+{
+  switch (addr_selected)
+  {
+  case ADDR_ENGINE:
+    switch (menu_cockpit_screen)
+    {
+    case 0:
+      lcd_print_cockpit_float(0, 0, voltage, 7, voltage_updated, force_update);
+      lcd_print_cockpit_float(0, 1, tb_angle, 7, tb_angle_updated, force_update);
+      break;
+    case 1:
+      lcd_print_cockpit(0, 0, engine_load, 7, engine_load_updated, force_update);
+      lcd_print_cockpit_float(0, 1, steering_angle, 7, steering_angle_updated, force_update);
+      break;
+    case 2:
+      if (error_bits_updated || force_update)
+      {
+        bits_as_string[0] = exhaust_gas_recirculation_error;
+        bits_as_string[1] = oxygen_sensor_heating_error;
+        bits_as_string[2] = oxgen_sensor_error;
+        bits_as_string[3] = air_conditioning_error;
+        bits_as_string[4] = secondary_air_injection_error;
+        bits_as_string[5] = evaporative_emissions_error;
+        bits_as_string[6] = catalyst_heating_error;
+        bits_as_string[7] = catalytic_converter;
+      }
+
+      lcd_print_cockpit(0, 0, bits_as_string, 7, error_bits_updated, force_update);
+      lcd_print_cockpit(0, 1, lambda_2, 7, lambda_2_updated, force_update);
+      break;
+    case 3:
+      lcd_print_cockpit(0, 0, vehicle_speed, 7, vehicle_speed_updated, force_update);
+      lcd_print_cockpit(0, 1, pressure, 7, pressure_updated, force_update);
+      break;
+    case 4:
+      lcd_print_cockpit(0, 0, temperature_unknown_2, 4, temperature_unknown_2_updated, force_update);
+      lcd_print_cockpit(0, 1, temperature_unknown_3, 4, temperature_unknown_3_updated, force_update);
+      break;
+    default:
+      lcd_show_screen_not_supported(menu_cockpit_screen);
+      break;
+    }
+    break;
+  /*case ADDR_ABS_BRAKES:
+    break;
+  case ADDR_AUTO_HVAC:
+    break;*/
+  case ADDR_INSTRUMENTS:
+    switch (menu_cockpit_screen)
+    {
+    case 0:
+      lcd_print_cockpit(0, 0, vehicle_speed, 3, vehicle_speed_updated, force_update);
+      lcd_print_cockpit(8, 0, engine_rpm, 4, engine_rpm_updated, force_update);
+      lcd_print_cockpit(0, 1, coolant_temp, 3, coolant_temp_updated, force_update);
+      lcd_print_cockpit(5, 1, oil_temp, 3, oil_temp_updated, force_update);
+      lcd_print_cockpit(10, 1, fuel_level, 2, fuel_level_updated, force_update);
+      break;
+    case 1:
+      lcd_print_cockpit(0, 0, oil_level_ok, 1, oil_level_ok_updated, force_update);
+      lcd_print_cockpit(5, 0, oil_pressure_min, 1, oil_pressure_min_updated, force_update);
+      lcd_print_cockpit(10, 0, ambient_temp, 2, ambient_temp_updated, force_update);
+      lcd_print_cockpit(0, 1, odometer, 6, odometer_updated, force_update);
+      lcd_print_cockpit(9, 1, fuel_sensor_resistance, 3, fuel_sensor_resistance_updated, force_update);
+      break;
+    case 2:
+      lcd_print_cockpit(0, 0, time_ecu, 5, time_ecu_updated, force_update);
+      lcd_print_cockpit(0, 1, fuel_per_100km, 6, fuel_per_100km_updated, force_update);
+      break;
+    case 3:
+      lcd_print_cockpit(0, 0, elapsed_seconds_since_start, 8, elapsed_seconds_since_start_updated, force_update);
+      lcd_print_cockpit(0, 1, elpased_km_since_start, 5, elpased_km_since_start_updated, force_update);
+      break;
+    case 4:
+      lcd_print_cockpit(0, 0, fuel_burned_since_start, 5, fuel_burned_since_start_updated, force_update);
+      lcd_print_cockpit(0, 1, fuel_per_hour, 6, fuel_per_hour_updated, force_update);
+      break;
+    default:
+      break;
+    }
+    break;
+  case ADDR_CENTRAL_CONV:
+  default:
+    // Addr not supported
+    break;
+  }
+}
+void display_menu_experimental(bool force_update = false)
+{
+  lcd_print_cockpit(2, 0, group_current, 2, group_current_updated, force_update);
+  lcd_print_cockpit(2, 1, (uint8_t)group_side, 2, group_side_updated, force_update);
+  uint8_t temp_first_pointer = 0;
+  uint8_t temp_second_pointer = 1;
+  if (group_side)
+  {
+    temp_first_pointer = 2;
+    temp_second_pointer = 3;
+  }
+
+  lcd_print_cockpit_float(4, 0, v_temp[temp_first_pointer], 7, k_temp_updated, true);
+  lcd_print_cockpit_float(4, 1, v_temp[temp_second_pointer], 7, k_temp_updated, true);
+  lcd_print_cockpit(11, 0, unit_temp[temp_first_pointer], 7, unit_temp_updated, true);
+  lcd_print_cockpit(11, 1, unit_temp[temp_second_pointer], 7, unit_temp_updated, true);
+}
+void display_menu_debug(bool force_update = false)
+{
+  display_statusbar();
+  lcd_print(13, 0, block_counter);
+  lcd_print(5, 1, kwp_mode);
+  lcd_print(12, 1, (int)(1000 / DISPLAY_FRAME_LENGTH)); // TODO update to be realistic value not theoretical
+}
+void display_menu_dtc(bool force_update = false)
+{
+  switch (menu_dtc_screen)
+  {
+  case 0:
+  case 1:
+    break;
+  case 2:
+  case 3:
+  case 4:
+  case 5:
+  case 6:
+  case 7:
+  case 8:
+  case 9:
+    uint8_t dtc_pointer = menu_dtc_screen - 2;
+    if (dtc_pointer < 0 || dtc_pointer > 7)
+      return;
+    lcd_print_cockpit(0, 0, dtc_pointer + 1, 1, dtc_errors_updated, force_update);
+    lcd_print_cockpit(3, 0, String(dtc_errors[dtc_pointer * 2]), 6, dtc_errors_updated, force_update);
+    lcd_print_cockpit(13, 0, dtc_status_bytes[dtc_pointer * 2], 3, dtc_status_bytes_updated, force_update);
+    lcd_print_cockpit(3, 1, String(dtc_errors[dtc_pointer * 2 + 1]), 6, dtc_errors_updated, force_update);
+    lcd_print_cockpit(13, 1, dtc_status_bytes[dtc_pointer * 2 + 1], 3, dtc_status_bytes_updated, force_update);
+    break;
+  }
+}
+void display_menu_settings(bool force_update = false)
+{
+  switch (menu_settings_screen)
+  {
+  case 0:
+    // Exit
+    break;
+  case 1:
+    // KWP mode
+    if (kwp_mode != kwp_mode_last || force_update)
+    {
+      lcd_clear(4, 1, 7);
+      lcd.setCursor(4, 1);
+      switch (kwp_mode)
+      {
+      case KWP_MODE_ACK:
+        lcd.print("ACK");
+        break;
+      case KWP_MODE_READGROUP:
+        lcd.print("GROUP");
+        break;
+      case KWP_MODE_READSENSORS:
+        lcd.print("SENSOR");
+        break;
+      }
+      kwp_mode_last = kwp_mode;
+    }
+  default:
+    break;
+  }
+}
+
 bool engine_rpm_switch = true;
 bool vehicle_speed_switch = true;
 bool coolant_temp_switch = true;
@@ -430,6 +869,10 @@ void disconnect()
   addr_selected = 0x00;
   screen_current = 0;
   menu_current = 0;
+
+  delay(2222);
+  lcd_print(0, 1, "Disconnected", 16);
+  delay(1222);
 }
 
 /**
@@ -591,6 +1034,13 @@ bool KWP_send_block(uint8_t *s, int size)
         debugstrnumhex(F("MCU: "), data);
         debugstrnumhex(F(" ECU: "), complement);
         debugln(F("ERROR: invalid complement"));
+        lcd_print(0, 1, "ERR: INV COMPL");
+        delay(1333);
+        lcd_print(0, 1, "MCU:", 16);
+        lcd_print(5, 1, String(data, HEX));
+        lcd_print(8, 1, "ECU:");
+        lcd_print(13, 1, String(complement, HEX));
+        delay(2000);
         return false;
       }
     }
@@ -657,6 +1107,8 @@ bool KWP_receive_block(uint8_t s[], int maxsize, int &size, int source = -1, boo
   if (size > maxsize)
   {
     debugln(F(" - KWPReceiveBlock error: Invalid maxsize"));
+    lcd_print(0, 1, "ERR:size>maxsize");
+    delay(2000);
     return false;
   }
   unsigned long timeout = millis() + timeout_to_add;
@@ -671,6 +1123,8 @@ bool KWP_receive_block(uint8_t s[], int maxsize, int &size, int source = -1, boo
       if (data == -1)
       {
         debugln(F(" - KWPReceiveBlock error: (Available=0) or empty buffer!"));
+        lcd_print(0, 1, "ERROR data = -1 ");
+        delay(1700);
         return false;
       }
       s[recvcount] = data;
@@ -719,6 +1173,7 @@ bool KWP_receive_block(uint8_t s[], int maxsize, int &size, int source = -1, boo
       {
         if (source == 1 && (data != 0x0F || data != 0x03) && obd.available())
         {
+          lcd_print(0, 1, "WARN block length");
           debugln(F(" - KWP_receive_block warn: Communication error occured, check block length!"));
           com_error = true;
           size = 6;
@@ -731,6 +1186,8 @@ bool KWP_receive_block(uint8_t s[], int maxsize, int &size, int source = -1, boo
         {
 
           debugln(F(" - KWP_receive_block error: Invalid maxsize2"));
+          lcd_print(0, 1, "ER2:siz2>maxsiz2");
+          delay(2000);
           return false;
         }
       }
@@ -762,6 +1219,11 @@ bool KWP_receive_block(uint8_t s[], int maxsize, int &size, int source = -1, boo
             block_counter = 0; // Reset BC because probably com error occured in init phase. Part of 1200BAUD fix
           else
           {
+
+            lcd_print(0, 1, "ER:block counter");
+            delay(1000);
+            lcd_print(0, 1, "Exp:" + String(data) + " Is:" + String(block_counter) + "         ");
+            delay(2222);
             debugstrnum(F(" - KWP_receive_block error: Invalid block counter. Expected: "), block_counter);
             debugstrnumln(F(" Is: "), data);
             return false;
@@ -791,6 +1253,18 @@ bool KWP_receive_block(uint8_t s[], int maxsize, int &size, int source = -1, boo
       {
         debugln(F("No connection to ECU! Check wiring."));
       }
+
+      if (recvcount == 0)
+      {
+        lcd_print(0, 1, "Nothing received!   ");
+        delay(1222);
+        lcd_print(0, 1, "Check wiring!    ");
+      }
+      else
+      {
+        lcd_print(0, 1, "Timeout");
+      }
+      delay(1222);
       return false;
     }
     temp_iteration_counter++;
@@ -900,6 +1374,9 @@ bool read_connect_blocks(bool initialization_phase = false)
     {
       debug(F(" - Readconnectblocks ERROR: unexpected answer: "));
       debugstrnumhexln(F("should be 0xF6 but is "), s[2]);
+
+      lcd_print(0, 1, "ERR: s[2]!=xF6");
+      delay(2000);
       return false;
     }
     // String text = String((char)s);
@@ -970,6 +1447,7 @@ bool read_sensors(int group)
       debugstrnumhex(F("| "), s[i]);
     }
     debugln();
+    lcd_print(0, 1, "ERR: s[2]!=xE7");
     if (baud_rate != 1200)
     {
       delay(2000);
@@ -1622,6 +2100,13 @@ int8_t read_DTC_codes()
     if (s[2] != 0xFC)
     {
       debugln(F("DTC wrong block title"));
+      lcd.clear();
+      lcd_print(0, 0, "DTC error");
+      lcd_print(0, 1, "block title");
+      delay(1222);
+      lcd.clear();
+      lcd_print(0, 0, "Expect 0xFC");
+      lcd_print(0, 1, "is " + String(s[2], HEX));
       return -1;
     }
 
@@ -1646,8 +2131,7 @@ int8_t read_DTC_codes()
     }
     if (!KWP_send_ACK_block())
     {
-      debugln(F("DTC read error"));
-      debugln(F("Send ACK"));
+      LCD_display_error_msg("DTC read error", "Send ACK");
       return -1;
     }
 
@@ -1702,6 +2186,8 @@ bool delete_DTC_codes()
  */
 bool kwp_exit()
 {
+  lcd.clear();
+  lcd_print(0, 0, "Exiting...");
   debugln(F("Manual KWP exit.."));
   // Perform KWP end output block
   delay(15);
@@ -1713,11 +2199,13 @@ bool kwp_exit()
   if (!KWP_send_block(s, 4))
   {
     debugln(F("KWP exit failed"));
+    lcd_print(0, 1, "error!");
     return false;
   }
   else
   {
     debugln(F("KWP exit succesful"));
+    lcd_print(0, 1, "success!");
   }
   return true;
 }
@@ -1727,10 +2215,23 @@ bool obd_connect()
   debugln(F("Connecting to ECU"));
 
   block_counter = 0;
-  
+
+  lcd.clear();
+  init_statusbar();
+  lcd_print(0, 1, "->PRESS ENTER<-");
+  while (true)
+  {
+    display_statusbar();
+    if (BUTTON_SELECT(analogRead(0)))
+      break;
+  }
+
+  display_statusbar();
   debugln(F("Init "));
+  lcd_print(0, 1, F("Init"), 16);
   obd.begin(baud_rate); // 9600 for 0x01, 10400 for other addresses, 1200 for very old ECU < 1996
   KWP_5baud_init(addr_selected);
+  // display_statusbar();
 
   uint8_t response[3] = {0, 0, 0}; // Response should be (0x55, 0x01, 0x8A)base=16 = (85 1 138)base=2
   int response_size = 3;
@@ -1741,6 +2242,7 @@ bool obd_connect()
     debugstrnumhex(F(" "), response[1]);
     debugstrnumhexln(F(" "), response[2]);
 
+    lcd_print(0, 1, "ECU: " + String((uint8_t)response[0], HEX) + " " + String((uint8_t)response[1], HEX) + " " + String((uint8_t)response[2], HEX), 16);
     delay(ECU_TIMEOUT);
     return false;
   }
@@ -1750,6 +2252,7 @@ bool obd_connect()
     debugstrnumhex(F(" "), response[0]);
     debugstrnumhex(F(" "), response[1]);
     debugstrnumhexln(F(" "), response[2]);
+    lcd_print(0, 1, "ECU: " + String((uint8_t)response[0], HEX) + " " + String((uint8_t)response[1], HEX) + " " + String((uint8_t)response[2], HEX), 16);
     delay(ECU_TIMEOUT);
     return false;
   }
@@ -1765,6 +2268,8 @@ bool obd_connect()
     debugln(F("------"));
     debugln(F("ECU connection failed"));
     debugln(F("------"));
+    display_statusbar();
+    lcd_print(0, 1, "Read connect ERR");
     return false;
   }
   debugln(F(" "));
@@ -1773,9 +2278,48 @@ bool obd_connect()
   debugln(F("------"));
 
   connected = true;
+  display_statusbar();
+  lcd_print(1, 1, F("ECU connected"), 16);
+  // display_statusbar();
   return true;
 }
 
+void connect_helper_bool_display(String first_line, String left_string, String right_string)
+{
+  lcd.clear();
+  lcd_print(0, 0, first_line);
+  lcd_print(0, 1, left_string);
+  lcd_print(10, 1, right_string);
+}
+void connect_helper_bool(int8_t &userinput_value, uint8_t &config_value, uint8_t left_value, uint8_t right_value)
+{
+  while (userinput_value == -1)
+  {
+    int user_input = analogRead(0);
+    if (BUTTON_RIGHT(user_input))
+    {
+      // Right button
+      userinput_value = right_value;
+    }
+    else if (BUTTON_LEFT(user_input))
+    {
+      // Left button
+      userinput_value = left_value;
+    }
+  }
+
+  if (userinput_value == left_value)
+  {
+    lcd_clear(8, 1, 8);
+    config_value = left_value;
+  }
+  else if (userinput_value == right_value)
+  {
+    lcd_clear(0, 1, 8);
+    config_value = right_value;
+  }
+  delay(350);
+}
 /**
  * Perform user setup before connecting to ECU
  */
@@ -1796,10 +2340,65 @@ bool connect()
     userinput_simulation_mode = simulation_mode_active;
   }
 
-  simulation_mode_active = AUTO_SETUP_SIMULATION_MODE_ACTIVE;
-  baud_rate = AUTO_SETUP_BAUD_RATE;
-  addr_selected = AUTO_SETUP_ADDRESS;
+  if (!auto_setup)
+  {
+    connect_helper_bool_display("Connect mode", "<- ECU", "SIM ->");
+    connect_helper_bool(userinput_simulation_mode, simulation_mode_active, 0, 1);
 
+    lcd.clear();
+    lcd_print(0, 0, "<--   Baud:  -->");
+    lcd_print(2, 1, "-> " + String(userinput_baudrate), 10);
+    bool pressed_enter = false;
+    while (!pressed_enter)
+    {
+      int user_input = analogRead(0);
+      if (BUTTON_RIGHT(user_input))
+      {
+        // Right button
+        if (userinput_baudrate_pointer >= 4)
+        {
+          userinput_baudrate_pointer = 0;
+        }
+        else
+          userinput_baudrate_pointer++;
+        // userinput_baudrate_last = userinput_baudrate;
+        userinput_baudrate = supported_baud_rates[userinput_baudrate_pointer];
+        lcd_print(2, 1, "-> " + String(userinput_baudrate), 10);
+        delay(333);
+      }
+      else if (BUTTON_LEFT(user_input))
+      {
+        // Left button
+        if (userinput_baudrate_pointer <= 0)
+        {
+          userinput_baudrate_pointer = 4;
+        }
+        else
+          userinput_baudrate_pointer--;
+        // userinput_baudrate_last = userinput_baudrate;
+        userinput_baudrate = supported_baud_rates[userinput_baudrate_pointer];
+        lcd_print(2, 1, "-> " + String(userinput_baudrate), 10);
+        delay(333);
+      }
+      else if (BUTTON_SELECT(user_input))
+      {
+        // Enter button
+        pressed_enter = true;
+      }
+      delay(10);
+    }
+    baud_rate = userinput_baudrate;
+    delay(555);
+
+    connect_helper_bool_display("ECU address:", "<-- 01", "17 -->");
+    connect_helper_bool(userinput_ecu_address, addr_selected, ADDR_ENGINE, ADDR_INSTRUMENTS);
+  }
+  else
+  {
+    simulation_mode_active = AUTO_SETUP_SIMULATION_MODE_ACTIVE;
+    baud_rate = AUTO_SETUP_BAUD_RATE;
+    addr_selected = AUTO_SETUP_ADDRESS;
+  }
   debugln(F("Saved configuration: "));
   debugstrnumln(F("--- SIMULATION "), simulation_mode_active);
   debugstrnumln(F("--- baud "), baud_rate);
@@ -1812,6 +2411,8 @@ bool connect()
     disconnect();
     return false;
   }
+  if (simulation_mode_active)
+    connected = true;
   connect_time_start = millis();
   menu_switch = true;
   return true;
@@ -1829,19 +2430,37 @@ void setup()
   Serial.begin(9600);
 #endif
 
+  // Display
+  lcd.begin(DISPLAY_MAX_X, DISPLAY_MAX_Y);
+
   // Pins
   pinMode(pin_tx, OUTPUT); // TX white
   digitalWrite(pin_tx, HIGH);
 
-  reset_dtc_status_errors_array();
+  // Startup animation
+  lcd.clear();
+  lcd_print(0, 0, "O B D");
+  lcd_print(1, 1, "D I S P L A Y");
 
-  // Check connection
-  if (!connect())
-    return;
+  delay(222);
+  uint32_t setup_start_time = millis();
+  while (millis() - setup_start_time < 777) // active auto setup
+    if (BUTTON_SELECT(analogRead(0)))
+    {
+      auto_setup = true;
+      break;
+    }
+
+  reset_dtc_status_errors_array();
 }
 
 void loop()
 {
+
+  // Check connection
+  if (!connected && !connect())
+    return;
+
   // Update values
   if (!simulation_mode_active)
   {
@@ -1887,7 +2506,6 @@ void loop()
 
   compute_values();
 
-  /*
   // Button input
   bool button_pressed = false;
   if (millis() > endTime)
@@ -2063,5 +2681,60 @@ void loop()
     {
       endTime = millis() + button_timeout;
     }
-  }*/
+  }
+
+  // Perform menu switch or update values on current menu
+  if (menu_switch || menu_screen_switch)
+  {
+    lcd.clear();
+    switch (menu)
+    {
+    case 0:
+      init_menu_cockpit();
+      display_menu_cockpit(true);
+      break;
+    case 1:
+      init_menu_experimental();
+      display_menu_experimental(true);
+      break;
+    case 2:
+      init_menu_debug();
+      display_menu_debug(true);
+      break;
+    case 3:
+      init_menu_dtc();
+      display_menu_dtc(true);
+      break;
+    case 4:
+      init_menu_settings();
+      display_menu_settings(true);
+      break;
+    }
+    menu_switch = false;
+    menu_screen_switch = false;
+  }
+
+  // Display current menu and screen
+  if ((millis() >= display_frame_timestamp))
+  {
+    switch (menu)
+    {
+    case 0:
+      display_menu_cockpit();
+      break;
+    case 1:
+      display_menu_experimental();
+      break;
+    case 2:
+      display_menu_debug();
+      break;
+    case 3:
+      display_menu_dtc(); // Fix later
+      break;
+    case 4:
+      display_menu_settings();
+      break;
+    }
+    display_frame_timestamp = millis() + DISPLAY_FRAME_LENGTH;
+  }
 }
