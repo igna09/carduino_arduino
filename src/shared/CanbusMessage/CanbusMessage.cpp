@@ -1,6 +1,6 @@
 #include "CanbusMessage.h"
 
-CanbusMessage::CanbusMessage(unsigned long id, uint8_t *payload, uint8_t payloadLength) {
+CanbusMessage::CanbusMessage(uint16_t id, uint8_t *payload, uint8_t payloadLength) {
     this->id = id;
     this->payload = payload;
     this->payloadLength = payloadLength;

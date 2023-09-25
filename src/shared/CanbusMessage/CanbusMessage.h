@@ -13,14 +13,14 @@
 
 class CanbusMessage {
     public:
-        unsigned long id;
+        uint16_t id;
         uint8_t *payload;
         uint8_t payloadLength;
         uint8_t categoryId;
         uint8_t messageId;
 
         CanbusMessage();
-        CanbusMessage(unsigned long id, uint8_t *payload, uint8_t payloadLength);
+        CanbusMessage(uint16_t id, uint8_t *payload, uint8_t payloadLength);
         virtual ~CanbusMessage() = default;
 
         virtual String toSerialString() {
