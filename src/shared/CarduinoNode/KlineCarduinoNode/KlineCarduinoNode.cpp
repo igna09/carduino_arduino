@@ -1531,12 +1531,8 @@ bool KlineCarduinoNode::connect()
   debugstrnumln(F("Connect attempt: "), connection_attempts_counter);
 
   // Startup configuration // 0 = false, 1 = true, -1 = undefined for booleans as int8_t
-  int8_t userinput_simulation_mode = -1;
-  uint16_t userinput_baudrate = 9600;
-  uint8_t userinput_baudrate_pointer = 3; // for default 9600
   uint16_t supported_baud_rates_size = 5;
   uint16_t supported_baud_rates[supported_baud_rates_size] = {1200, 2400, 4800, 9600, 10400};
-  int8_t userinput_ecu_address = -1; // 1 or 17
 
   simulation_mode_active = AUTO_SETUP_SIMULATION_MODE_ACTIVE;
   baud_rate = AUTO_SETUP_BAUD_RATE;
