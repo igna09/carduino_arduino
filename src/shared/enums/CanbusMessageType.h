@@ -20,6 +20,15 @@ class CanbusMessageType : public Enum {
             return nullptr;
         }
 
+        static const Enum* getValueByName(char *n) {
+            for(uint8_t i = 0; i < getSize(); i++) {
+                if(strcmp(CanbusMessageType::values[i]->name, n) == 0) {
+                    return CanbusMessageType::values[i];
+                }
+            }
+            return nullptr;
+        }
+
         static uint8_t getSize() {
             return CanbusMessageType::index;
         }

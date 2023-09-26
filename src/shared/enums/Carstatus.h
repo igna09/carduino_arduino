@@ -38,6 +38,15 @@ class Carstatus : public Enum {
             return nullptr;
         }
 
+        static const Enum* getValueByName(char *n) {
+            for(uint8_t i = 0; i < getSize(); i++) {
+                if(strcmp(Carstatus::values[i]->name, n) == 0) {
+                    return Carstatus::values[i];
+                }
+            }
+            return nullptr;
+        }
+
         static uint8_t getSize() {
             return Carstatus::index;
         }

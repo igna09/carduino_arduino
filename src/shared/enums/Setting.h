@@ -26,6 +26,15 @@ class Setting : public Enum {
             return nullptr;
         }
 
+        static const Enum* getValueByName(char *n) {
+            for(uint8_t i = 0; i < getSize(); i++) {
+                if(strcmp(Setting::values[i]->name, n) == 0) {
+                    return Setting::values[i];
+                }
+            }
+            return nullptr;
+        }
+
         static uint8_t getSize() {
             return Setting::index;
         }

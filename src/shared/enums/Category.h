@@ -21,6 +21,15 @@ class Category : public Enum {
             return nullptr;
         }
 
+        static const Enum* getValueByName(char *n) {
+            for(uint8_t i = 0; i < getSize(); i++) {
+                if(strcmp(Category::values[i]->name, n) == 0) {
+                    return Category::values[i];
+                }
+            }
+            return nullptr;
+        }
+
         static uint8_t getSize() {
             return Category::index;
         }

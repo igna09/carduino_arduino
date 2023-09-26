@@ -6,8 +6,6 @@ MainCarduinoNode::MainCarduinoNode(int cs, int interruptPin, char *ssid, char *p
     this->aht = new Adafruit_AHTX0();
     this->aht->begin();
 
-    //TODO: verify i can use only one callback
-
     LuminanceCallback<void(void)>::func = std::bind(&MainCarduinoNode::luminanceCallback, this);
     luminanceTask = new Task(1000, TASK_FOREVER, static_cast<TaskCallback>(LuminanceCallback<void(void)>::callback), scheduler, true);
 
@@ -52,19 +50,17 @@ void MainCarduinoNode::loop() {
     */
     if(Serial.available() > 0) {
         String s = Serial.readStringUntil('\n');
+        String s0 = s.substring(0, s.indexOf(";"));
+        Category *c = (Category*)Category::getValueByName((char*)s0.c_str());
+        String s1 = s.substring(s.indexOf(";"));
+        String s3 = s1.substring(0,s1.indexOf("-"));
+        const CategoryToEnums *cte = CategoryToEnums::getValueByCategory(c);
+        cte->enumNameToCategoryFunction((char*)s3.c_str());
+
         CanbusMessage m;
         //TODO: add s management
         manageReceivedUsbMessage(m);
     }
-        
-    /*// TODO: to remove, just for testing purpose
-    if(millis() > next) {
-        next = random((1 * 1000),(2 * 1000)) + millis();
-        
-        uint8_t payload[] = {0x00, 0x00, 0x00, 0x10, 0x02};
-        CanbusMessage m(generateId(Category::CAR_STATUS, Carstatus::INTERNAL_TEMPERATURE), payload, 5);
-        manageReceivedCanbusMessage(&m);
-    }*/
 }
 
 // void MainCarduinoNode::manageReceivedCanbusMessage(CanbusMessage message) {

@@ -51,6 +51,15 @@
         "streambuf": "cpp",
         "cinttypes": "cpp",
         "typeinfo": "cpp",
-        "variant": "cpp"
+        "variant": "cpp",
+        "condition_variable": "cpp",
+        "executor": "cpp",
+        "netfwd": "cpp",
+        "future": "cpp",
+        "iostream": "cpp",
+        "istream": "cpp",
+        "mutex": "cpp",
+        "stop_token": "cpp",
+        "thread": "cpp"
     }
 }

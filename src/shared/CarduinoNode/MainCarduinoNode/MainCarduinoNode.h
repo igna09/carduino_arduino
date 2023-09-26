@@ -9,6 +9,7 @@
 #include "../CarduinoNode/CarduinoNode.h"
 #include "executors/CarstatusExecutor.h"
 #include "executors/AllMessageExecutor.h"
+#include "../../CategoryToEnums.h"
 
 class MainCarduinoNode : public CarduinoNode {
     public:
