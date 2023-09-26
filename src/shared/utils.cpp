@@ -20,10 +20,10 @@ void convertFloatToByteArray(uint8_t *bytes, float v) {
     int integerPart, decimalPart;
 
     integerPart = floor(v);
-    integerByteConverter.value = integerPart;
     uint8_t integerPartByteArray[4];
-    cloneByteArray(integerByteConverter.array, integerPartByteArray, 4);
+	convertIntegerToByteArray(integerPartByteArray, integerPart);
 
+    resetArray(integerByteConverter.array, 4);
     decimalPart = v * pow(10,2) - integerPart * pow(10,2);
     decimalByteConverter.value = decimalPart;
     uint8_t decimalPartByteArray[1];
@@ -37,11 +37,11 @@ void convertFloatToByteArray(uint8_t *bytes, float v) {
 }
 
 void convertIntegerToByteArray(uint8_t *bytes, uint32_t v) {
+	resetArray(integerByteConverter.array, 4);
 	integerByteConverter.value = v;
-	// for(int i=0; i < 4; i++){
-	//   integerByteConverter.array[4 - i - 1] = bytes[i]; //reverse the byte order here.
-	// }
-	cloneByteArray(integerByteConverter.array, bytes, 4);
+	for(int i=0; i < 4; i++){
+	  bytes[4 - i - 1] = integerByteConverter.array[i]; //reverse the byte order here.
+	}
 }
 
 void convertBoolToByteArray(uint8_t *bytes, bool v) {
