@@ -2,6 +2,7 @@
 
 #include "Enum.h"
 #include "CanbusMessageType.h"
+#include "../utils.h"
 
 class Carstatus : public Enum {
     public:
@@ -21,6 +22,12 @@ class Carstatus : public Enum {
         CanbusMessageType type;
 
         Carstatus() : Enum() {};
+
+        uint16_t getMessageId() {
+            uint16_t id = Category::CAR_STATUS.id;
+            id = (id << 8) | this->id;
+            return id;
+        };
 
         static const Enum* getValueById(uint8_t id) {
             for(uint8_t i = 0; i < getSize(); i++) {

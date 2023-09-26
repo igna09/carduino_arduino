@@ -15,6 +15,39 @@ TypedCanbusMessage::TypedCanbusMessage(const CanbusMessageType *type, unsigned l
     }
 };
 
+TypedCanbusMessage::TypedCanbusMessage(unsigned long id, int value) : CanbusMessage(id, nullptr, 4) {
+    uint8_t bytes[4];
+    convertIntegerToByteArray(bytes, value);
+    this->payload = bytes;
+
+    this->category = (Category*)Category::getValueById(this->categoryId);
+    this->type = &CanbusMessageType::INT;
+
+    this->value.boolValue = value;
+};
+
+TypedCanbusMessage::TypedCanbusMessage(unsigned long id, float value) : CanbusMessage(id, nullptr, 5) {
+    uint8_t bytes[5];
+    convertIntegerToByteArray(bytes, value);
+    this->payload = bytes;
+
+    this->category = (Category*)Category::getValueById(this->categoryId);
+    this->type = &CanbusMessageType::FLOAT;
+
+    this->value.boolValue = value;
+};
+
+TypedCanbusMessage::TypedCanbusMessage(unsigned long id, bool value) : CanbusMessage(id, nullptr, 1) {
+    uint8_t bytes[1];
+    convertBoolToByteArray(bytes, value);
+    this->payload = bytes;
+    
+    this->category = (Category*)Category::getValueById(this->categoryId);
+    this->type = &CanbusMessageType::BOOL;
+
+    this->value.boolValue = value;
+};
+
 
 int TypedCanbusMessage::getIntValue() {
     return this->value.intValue;
@@ -28,7 +61,6 @@ bool TypedCanbusMessage::getBoolValue() {
     return this->value.boolValue;
 };
 
-//TODO: check memory leak
 String TypedCanbusMessage::getValueToString() {
     if(this->type->id == CanbusMessageType::BOOL.id) {
         return this->getBoolValue() ? "true" : "false";

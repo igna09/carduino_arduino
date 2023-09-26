@@ -25,6 +25,9 @@ class TypedCanbusMessage : public CanbusMessage {
         const CanbusMessageType *type;
 
         TypedCanbusMessage(const CanbusMessageType *type, unsigned long id, uint8_t *payload, uint8_t payloadLength);
+        TypedCanbusMessage(unsigned long id, int value);
+        TypedCanbusMessage(unsigned long id, bool value);
+        TypedCanbusMessage(unsigned long id, float value);
         TypedCanbusMessage();
         virtual ~TypedCanbusMessage() = default;
         

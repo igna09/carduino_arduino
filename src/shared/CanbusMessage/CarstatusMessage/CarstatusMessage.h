@@ -10,5 +10,9 @@ class CarstatusMessage : public TypedCanbusMessage {
         const Carstatus *carstatus;
 
         CarstatusMessage(const CanbusMessageType*,  CanbusMessage*);
+        CarstatusMessage(const Carstatus *carstatus, int value);
+        CarstatusMessage(const Carstatus *carstatus, float value);
+        CarstatusMessage(const Carstatus *carstatus, bool value);
+
         String toSerialString() override;
 };

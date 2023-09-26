@@ -12,7 +12,7 @@ MainCarduinoNode::MainCarduinoNode(int cs, int interruptPin, char *ssid, char *p
     luminanceTask = new Task(1000, TASK_FOREVER, static_cast<TaskCallback>(LuminanceCallback<void(void)>::callback), scheduler, true);
 
     TemperatureCallback<void(void)>::func = std::bind(&MainCarduinoNode::temperatureCallback, this);
-    temperatureTask = new Task(1000, TASK_FOREVER, static_cast<TaskCallback>(TemperatureCallback<void(void)>::callback), scheduler, false);
+    temperatureTask = new Task(1000, TASK_FOREVER, static_cast<TaskCallback>(TemperatureCallback<void(void)>::callback), scheduler, true);
 
     this->scheduler->startNow();
 
@@ -28,9 +28,7 @@ void MainCarduinoNode::luminanceCallback() {
     // 0 --> 1000 lux
     int lux = microamps * 2;
     
-    uint8_t bytes[4];
-    convertIntegerToByteArray(bytes, lux);
-    CanbusMessage m(generateId(Category::CAR_STATUS, Carstatus::INTERNAL_LUMINANCE), bytes, 4);
+    CarstatusMessage m(&Carstatus::INTERNAL_LUMINANCE, lux);
     sendCanbusMessage(m);
 };
 
@@ -38,9 +36,7 @@ void MainCarduinoNode::temperatureCallback() {
     sensors_event_t humidity, temp;
     this->aht->getEvent(&humidity, &temp);// populate temp and humidity objects with fresh data
     
-    uint8_t bytes[5];
-    convertFloatToByteArray(bytes, temp.temperature);
-    CanbusMessage m(generateId(Category::CAR_STATUS, Carstatus::INTERNAL_TEMPERATURE), bytes, 5);
+    CarstatusMessage m(&Carstatus::INTERNAL_TEMPERATURE, temp.temperature);
     sendCanbusMessage(m);
 };
 
