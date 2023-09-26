@@ -12,11 +12,12 @@ MainCarduinoNode::MainCarduinoNode(int cs, int interruptPin, char *ssid, char *p
     luminanceTask = new Task(1000, TASK_FOREVER, static_cast<TaskCallback>(LuminanceCallback<void(void)>::callback), scheduler, true);
 
     TemperatureCallback<void(void)>::func = std::bind(&MainCarduinoNode::temperatureCallback, this);
-    temperatureTask = new Task(1000, TASK_FOREVER, static_cast<TaskCallback>(TemperatureCallback<void(void)>::callback), scheduler, true);
+    temperatureTask = new Task(1000, TASK_FOREVER, static_cast<TaskCallback>(TemperatureCallback<void(void)>::callback), scheduler, false);
 
     this->scheduler->startNow();
 
     this->executors->addExecutor(new CarstatusExecutor());
+    // this->executors->addExecutor(new AllMessageExecutor());
     // this->executors->addExecutor(new WriteSettingExecutor());
 };
 
@@ -24,27 +25,22 @@ void MainCarduinoNode::luminanceCallback() {
     float volts = analogRead(A0) * 3.3 / 1024.0;
     float amps = volts / 10000.0; // across 10,000 Ohms
     float microamps = amps * 1000000;
-    float lux = microamps * 2.0;
-
-    Serial.print("MainCarduinoNode::luminanceCallback ");
-    Serial.println(lux);
+    // 0 --> 1000 lux
+    int lux = microamps * 2;
     
-    uint8_t bytes[5];
-    convertFloatToByteArray(bytes, lux);
-    CanbusMessage m(generateId(Category::READ_SETTINGS, Carstatus::INTERNAL_TEMPERATURE), bytes, 5);
+    uint8_t bytes[4];
+    convertIntegerToByteArray(bytes, lux);
+    CanbusMessage m(generateId(Category::CAR_STATUS, Carstatus::INTERNAL_LUMINANCE), bytes, 4);
     sendCanbusMessage(m);
 };
 
 void MainCarduinoNode::temperatureCallback() {
     sensors_event_t humidity, temp;
     this->aht->getEvent(&humidity, &temp);// populate temp and humidity objects with fresh data
-
-    Serial.print("MainCarduinoNode::temperatureCallback ");
-    Serial.println(temp.temperature);
     
     uint8_t bytes[5];
     convertFloatToByteArray(bytes, temp.temperature);
-    CanbusMessage m(generateId(Category::READ_SETTINGS, Carstatus::INTERNAL_TEMPERATURE), bytes, 5);
+    CanbusMessage m(generateId(Category::CAR_STATUS, Carstatus::INTERNAL_TEMPERATURE), bytes, 5);
     sendCanbusMessage(m);
 };
 

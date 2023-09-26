@@ -8,6 +8,7 @@
 #include "../../callbacks/LuminanceCallback.h"
 #include "../CarduinoNode/CarduinoNode.h"
 #include "executors/CarstatusExecutor.h"
+#include "executors/AllMessageExecutor.h"
 
 class MainCarduinoNode : public CarduinoNode {
     public:

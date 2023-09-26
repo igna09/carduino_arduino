@@ -21,7 +21,7 @@ void convertFloatToByteArray(uint8_t *bytes, float v) {
 
     integerPart = floor(v);
     uint8_t integerPartByteArray[4];
-	convertIntegerToByteArray(integerPartByteArray, integerPart);
+	  convertIntegerToByteArray(integerPartByteArray, integerPart);
 
     resetArray(integerByteConverter.array, 4);
     decimalPart = v * pow(10,2) - integerPart * pow(10,2);

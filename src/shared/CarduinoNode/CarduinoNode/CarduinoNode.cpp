@@ -17,7 +17,7 @@ CarduinoNode::CarduinoNode(int cs, int interruptPin, char *ssid, char *password)
         Serial.println("Error Initializing MCP2515...");
         this->initializedCan = false;
     }
-    can->setMode(MCP_NORMAL);                     // Set operation mode to normal so the MCP2515 sends acks to received data.
+    can->setMode(MCP_LOOPBACK);                     // Set operation mode to normal so the MCP2515 sends acks to received data.
     pinMode(interruptPin, INPUT);                            // Configuring pin for /INT input
 
     this->otaMode = false;
@@ -100,7 +100,8 @@ uint16_t CarduinoNode::generateId(const Category category, const Enum messageEnu
 }
 
 bool CarduinoNode::availableCanbusMessages() {
-    return digitalRead(this->interruptPin) == LOW;
+    uint8_t v = digitalRead(this->interruptPin);
+    return v == LOW;
 }
 
 void CarduinoNode::sendCanbusMessage(CanbusMessage message) {
