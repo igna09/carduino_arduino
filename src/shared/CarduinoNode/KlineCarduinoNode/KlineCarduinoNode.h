@@ -4,10 +4,10 @@
 #include "../CarduinoNode/CarduinoNode.h"
 #include <SoftwareSerial.h>
 #include "KLineKWP1281Lib.h"
-// #include "configuration.h"
-// #include "communication.h"
 #include "KlineEcuEnum.h"
-#include "EcuToRead.h"
+#include "ValueToReadEnum.h"
+#include "../../enums/CanbusMessageType.h"
+#include "../../CanbusMessage/CarstatusMessage/CarstatusMessage.h"
 
 class KlineCarduinoNode : CarduinoNode {
     public:
@@ -20,5 +20,4 @@ class KlineCarduinoNode : CarduinoNode {
 		SoftwareSerial *softwareSerial;
 		uint8_t pin_rx;
     	uint8_t pin_tx;
-		EcusToRead ecusToRead;
 };

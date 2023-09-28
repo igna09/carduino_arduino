@@ -2,6 +2,8 @@
 
 #include "../../enums/Enum.h"
 
+#define KLINE_ECU_ENUM_SIZE 2
+
 class KlineEcuEnum : public Enum {
     public:
         static const KlineEcuEnum INSTRUMENT;
@@ -52,7 +54,7 @@ class KlineEcuEnum : public Enum {
 };
 
 //const Enum* Enum::values [] = {&Category::CAR_STATUS, &Category::READ_SETTINGS};
-inline const Enum* KlineEcuEnum::values [2] = { 0 };
+inline const Enum* KlineEcuEnum::values [KLINE_ECU_ENUM_SIZE] = { 0 };
 inline uint8_t KlineEcuEnum::index = 0;
 inline const KlineEcuEnum KlineEcuEnum::ENGINE = KlineEcuEnum(0x00, "ENGINE", 0x01, 9600);
 inline const KlineEcuEnum KlineEcuEnum::INSTRUMENT = KlineEcuEnum(0x01, "INSTRUMENT", 0x17, 10400);
