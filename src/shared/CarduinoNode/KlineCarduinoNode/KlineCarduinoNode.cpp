@@ -23,11 +23,14 @@ KlineCarduinoNode::KlineCarduinoNode(uint8_t pin_rx, uint8_t pin_tx, int cs, int
 	};
 	
     this->kLine = new KLineKWP1281Lib(beginFunction, endFunction, sendFunction, receiveFunction, pin_tx, true);
+
+	this->scheduler = new Scheduler();
+
+    KlineCallback<void(void)>::func = std::bind(&KlineCarduinoNode::readValues, this);
+    readValuesTask = new Task(1000, TASK_FOREVER, static_cast<TaskCallback>(KlineCallback<void(void)>::callback), scheduler, true);
 };
 
-void KlineCarduinoNode::loop() {
-	CarduinoNode::loop();
-
+void KlineCarduinoNode::readValues() {
 	for(uint8_t ecuIndex = 0; ecuIndex < KlineEcuEnum::getSize(); ecuIndex++) { // iterate over all ECUs declared in KlineEcuEnum.h
 		KlineEcuEnum *klineEcuEnum = (KlineEcuEnum*) KlineEcuEnum::getValues()[ecuIndex];
 		const ValueToReadEnum** valuesToReadEnumByEcu = ValueToReadEnum::getValuesByEcu(*klineEcuEnum);
