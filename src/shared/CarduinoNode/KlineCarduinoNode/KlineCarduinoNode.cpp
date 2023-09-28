@@ -79,28 +79,23 @@ void KlineCarduinoNode::loop() {
 		for(uint8_t blockIndex = 0; blockIndex < ecuToRead.size; blockIndex++) {
 			BlockToRead blockToRead = ecuToRead.blocksToRead[blockIndex];
 
-			for(uint8_t valueIndex = 0; valueIndex < blockToRead.size; valueIndex++) {
-				ValueToRead valueToRead = blockToRead.valuesToRead[valueIndex];
+			uint8_t measurements[3 * 4]; //buffer to store the measurements; each measurement takes 3 bytes; one block contains 4 measurements
+			uint8_t amount_of_measurements = 0;
+			switch (kLine->readGroup(amount_of_measurements, blockToRead.block, measurements, sizeof(measurements))) {
+				case KLineKWP1281Lib::ERROR:
+					Serial.println("Error reading measurements!");
+					break;
+				
+				case KLineKWP1281Lib::FAIL:
+					Serial.print("Block ");
+					Serial.print(blockToRead.block);
+					Serial.println(" does not exist!");
+					break;
+				
+				case KLineKWP1281Lib::SUCCESS:
+					for(uint8_t valueIndex = 0; valueIndex < blockToRead.size; valueIndex++) {
+						ValueToRead valueToRead = blockToRead.valuesToRead[valueIndex];
 
-				uint8_t measurements[3 * 4]; //buffer to store the measurements; each measurement takes 3 bytes; one block contains 4 measurements
-				uint8_t amount_of_measurements = 0;
-				switch (kLine->readGroup(amount_of_measurements, blockToRead.block, measurements, sizeof(measurements))) {
-					case KLineKWP1281Lib::ERROR:
-						Serial.println("Error reading measurements!");
-						break;
-					
-					case KLineKWP1281Lib::FAIL:
-						Serial.print("Block ");
-						Serial.print(blockToRead.block);
-						Serial.println(" does not exist!");
-						break;
-					
-					case KLineKWP1281Lib::SUCCESS:
-						//Will hold the measurement's units
-						char units_string[16];
-						
-						//Display the selected measurement.
-						
 						/*
 							The getMeasurementType() function can return:
 							*KLineKWP1281Lib::UNKNOWN - index out of range (measurement doesn't exist in block)
@@ -115,6 +110,8 @@ void KlineCarduinoNode::loop() {
 							
 							//Units string containing text
 							case KLineKWP1281Lib::UNITS:
+								//Will hold the measurement's units
+								char units_string[16];
 								valueToRead.charCallback(KLineKWP1281Lib::getMeasurementUnits(valueToRead.valueToReadEnum.value, amount_of_measurements, measurements, sizeof(measurements), units_string, sizeof(units_string)));
 								break;
 							
@@ -123,8 +120,8 @@ void KlineCarduinoNode::loop() {
 								Serial.println("N/A");
 								break;
 						}
-						break;
-				}
+					}
+					break;
 			}
 		}
 	}
