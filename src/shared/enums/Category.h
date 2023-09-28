@@ -2,6 +2,8 @@
 
 #include "Enum.h"
 
+#define CATEGORY_SIZE 4
+
 class ExecutorInterface; //forward declaration, needed to avoid circular dependency
 class Category : public Enum {
     public:
@@ -49,7 +51,7 @@ class Category : public Enum {
 };
 
 //const Enum* Enum::values [] = {&Category::CAR_STATUS, &Category::READ_SETTINGS};
-inline const Enum* Category::values [4] = { 0 };
+inline const Enum* Category::values [CATEGORY_SIZE] = { 0 };
 inline uint8_t Category::index = 0;
 inline const Category Category::CAR_STATUS = Category(0x00, "CAR_STATUS");
 inline const Category Category::READ_SETTINGS = Category(0x01, "READ_SETTINGS");

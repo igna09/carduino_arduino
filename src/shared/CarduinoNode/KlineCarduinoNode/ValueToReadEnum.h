@@ -5,6 +5,8 @@
 #include "KlineEcuEnum.h"
 #include "../../enums/Carstatus.h"
 
+#define VALUE_TO_READ_ENUM_SIZE 2
+
 class ValueToReadEnum : Enum {
     public:
         static const ValueToReadEnum SPEED;
@@ -73,7 +75,7 @@ class ValueToReadEnum : Enum {
 
 inline const ValueToReadEnum** ValueToReadEnum::valuesPerEcu[KLINE_ECU_ENUM_SIZE] = { 0 };
 inline int ValueToReadEnum::indexesPerEcu[KLINE_ECU_ENUM_SIZE] = { 0 };
-inline const Enum* ValueToReadEnum::values[2] = { 0 };
+inline const Enum* ValueToReadEnum::values[VALUE_TO_READ_ENUM_SIZE] = { 0 };
 inline uint8_t ValueToReadEnum::index = 0;
 inline const ValueToReadEnum ValueToReadEnum::SPEED = ValueToReadEnum(0x00, "SPEED", KlineEcuEnum::INSTRUMENT, 1, 0, Carstatus::SPEED);
 inline const ValueToReadEnum ValueToReadEnum::RPM = ValueToReadEnum(0x01, "RPM", KlineEcuEnum::ENGINE, 1, 0, Carstatus::ENGINE_RPM);

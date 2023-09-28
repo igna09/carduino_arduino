@@ -2,6 +2,8 @@
 
 #include "Enum.h"
 
+#define CANBUS_MESSAGE_TYPE_SIZE 4
+
 class CanbusMessageType : public Enum {
     public:
         static const CanbusMessageType INT;
@@ -48,7 +50,7 @@ class CanbusMessageType : public Enum {
         };
 };
 
-inline const Enum* CanbusMessageType::values [4] = { 0 };
+inline const Enum* CanbusMessageType::values [CANBUS_MESSAGE_TYPE_SIZE] = { 0 };
 inline uint8_t CanbusMessageType::index = 0;
 inline const CanbusMessageType CanbusMessageType::INT = CanbusMessageType(0x00, "INT");
 inline const CanbusMessageType CanbusMessageType::FLOAT = CanbusMessageType(0x01, "FLOAT");

@@ -4,6 +4,8 @@
 #include "CanbusMessageType.h"
 #include "../utils.h"
 
+#define CARSTATUS_SIZE 12
+
 class Carstatus : public Enum {
     public:
         static const Carstatus EXTERNAL_TEMPERATURE;
@@ -67,7 +69,7 @@ class Carstatus : public Enum {
         };
 };
 
-inline const Enum* Carstatus::values [12] = { 0 };
+inline const Enum* Carstatus::values [CARSTATUS_SIZE] = { 0 };
 inline uint8_t Carstatus::index = 0;
 inline const Carstatus Carstatus::EXTERNAL_TEMPERATURE = Carstatus(0x00, "EXTERNAL_TEMPERATURE", CanbusMessageType::FLOAT);
 inline const Carstatus Carstatus::INTERNAL_TEMPERATURE = Carstatus(0x01, "INTERNAL_TEMPERATURE", CanbusMessageType::FLOAT);

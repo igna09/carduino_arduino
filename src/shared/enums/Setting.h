@@ -3,6 +3,8 @@
 #include "Enum.h"
 #include "CanbusMessageType.h"
 
+#define SETTING_SIZE 2
+
 class Setting : public Enum {
     public:
         static const Setting AUTO_CLOSE_REARVIEW_MIRRORS;
@@ -51,7 +53,7 @@ class Setting : public Enum {
 };
 
 //const Enum* Enum::values [] = {&Category::CAR_STATUS, &Category::READ_SETTINGS};
-inline const Enum* Setting::values [2] = { 0 };
+inline const Enum* Setting::values [SETTING_SIZE] = { 0 };
 inline uint8_t Setting::index = 0;
 inline const Setting Setting::AUTO_CLOSE_REARVIEW_MIRRORS = Setting(0x00, "AUTO_CLOSE_REARVIEW_MIRRORS", CanbusMessageType::BOOL);
 inline const Setting Setting::OTA_MODE = Setting(0x01, "OTA_MODE", CanbusMessageType::BOOL);
