@@ -4,8 +4,8 @@
 #include <Adafruit_AHTX0.h>
 #include <functional>
 #include "shared/enums/CanbusMessageType.h"
-#include "../../callbacks/TemperatureCallback.h"
-#include "../../callbacks/LuminanceCallback.h"
+#include "callbacks/TemperatureCallback.h"
+#include "callbacks/LuminanceCallback.h"
 #include "../CarduinoNode/CarduinoNode.h"
 #include "executors/CarstatusExecutor.h"
 #include "executors/AllMessageExecutor.h"
