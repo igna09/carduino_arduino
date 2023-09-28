@@ -13,9 +13,8 @@ KlineCarduinoNode *klineCarduinoNode;
 
 void setup(void) {
   Serial.begin(115200);
-  randomSeed(analogRead(0));
 
-  klineCarduinoNode = new KlineCarduinoNode(0,0,"SSID_MAIN_CARDUINO_NODE","pwd12345");
+  klineCarduinoNode = new KlineCarduinoNode(D2, D1, D8, D0, "SSID_MAIN_CARDUINO_NODE", "pwd12345");
 }
 
 void loop(void) {

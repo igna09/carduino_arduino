@@ -65,11 +65,11 @@ void CarduinoNode::manageReceivedCanbusMessage(CanbusMessage *message) {
 
 void CarduinoNode::sendByteCanbus(uint16_t messageId, int len, uint8_t buf[]) {
     byte sndStat = can->sendMsgBuf(messageId, 0, len, buf);
-    if(sndStat == CAN_OK){
+    /*if(sndStat == CAN_OK){
         Serial.println("Message Sent Successfully!");
     } else {
         Serial.println("Error Sending Message...");
-    }
+    }*/
 };
 
 void CarduinoNode::otaStartup() {

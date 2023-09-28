@@ -125,3 +125,8 @@ void printFreeHeap(const char label[]) {
     Serial.print(" - ");
     Serial.println(label);
 }
+
+// class Carstatus;
+// Enum* getCarstatusEnum(char *name) {
+// 	return Carstatus::getValueByName(name);
+// }

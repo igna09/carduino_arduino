@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Arduino.h>
+#include "enums/Enum.h"
 
 union IntegerByteConverter;
 
@@ -32,3 +33,5 @@ extern void convertSerialMessagetoArduino(String msg);
 extern String convertByteArrayToString(uint8_t bytes[], uint8_t size);
 
 void printFreeHeap(const char label[]);
+
+// Enum* getCarstatusEnum(char[]);
