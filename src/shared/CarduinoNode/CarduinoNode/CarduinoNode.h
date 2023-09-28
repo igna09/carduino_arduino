@@ -39,7 +39,7 @@ class CarduinoNode {
         Executors *executors;
         bool initializedCan;
 
-        CarduinoNode(int cs, int interruptPin, char *ssid, char *password);
+        CarduinoNode(int cs, int interruptPin, const char *ssid, const char *password);
 
         void loop();
         void manageReceivedCanbusMessage(CanbusMessage *message);

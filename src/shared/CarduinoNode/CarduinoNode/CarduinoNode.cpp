@@ -1,7 +1,7 @@
 #include "CarduinoNode.h"
 #include "../../executors/Executors.h"
 
-CarduinoNode::CarduinoNode(int cs, int interruptPin, char *ssid, char *password) {
+CarduinoNode::CarduinoNode(int cs, int interruptPin, const char *ssid, const char *password) {
     //Serial.println("start CarduinoNode");
     this->can = new MCP_CAN(cs);
     this->server = new ESP8266WebServer(80);

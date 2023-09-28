@@ -1,6 +1,6 @@
 #include "KlineCarduinoNode.h"
 
-KlineCarduinoNode::KlineCarduinoNode(uint8_t pin_rx, uint8_t pin_tx, int cs, int interruptPin, char *ssid,  char *password) : CarduinoNode(cs, interruptPin, ssid,  password) {
+KlineCarduinoNode::KlineCarduinoNode(uint8_t pin_rx, uint8_t pin_tx, int cs, int interruptPin, const char *ssid, const char *password) : CarduinoNode(cs, interruptPin, ssid,  password) {
     this->pin_rx = pin_rx;
     this->pin_tx = pin_tx;
 	this->softwareSerial = new SoftwareSerial(pin_rx, pin_tx);
