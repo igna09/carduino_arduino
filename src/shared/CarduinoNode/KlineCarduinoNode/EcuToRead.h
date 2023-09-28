@@ -6,10 +6,10 @@
 
 class ValueToReadEnum : Enum {
     public:
+        static const ValueToReadEnum VALUE_TO_READ_0;
         static const ValueToReadEnum VALUE_TO_READ_1;
         static const ValueToReadEnum VALUE_TO_READ_2;
         static const ValueToReadEnum VALUE_TO_READ_3;
-        static const ValueToReadEnum VALUE_TO_READ_4;
 
         uint8_t value;
 
@@ -55,10 +55,10 @@ class ValueToReadEnum : Enum {
 
 inline const Enum* ValueToReadEnum::values [4] = { 0 };
 inline uint8_t ValueToReadEnum::index = 0;
-inline const ValueToReadEnum ValueToReadEnum::VALUE_TO_READ_1 = ValueToReadEnum(0x00, "VALUE_TO_READ_1", 0);
-inline const ValueToReadEnum ValueToReadEnum::VALUE_TO_READ_2 = ValueToReadEnum(0x01, "VALUE_TO_READ_2", 1);
-inline const ValueToReadEnum ValueToReadEnum::VALUE_TO_READ_3 = ValueToReadEnum(0x02, "VALUE_TO_READ_3", 2);
-inline const ValueToReadEnum ValueToReadEnum::VALUE_TO_READ_4 = ValueToReadEnum(0x03, "VALUE_TO_READ_4", 3);
+inline const ValueToReadEnum ValueToReadEnum::VALUE_TO_READ_0 = ValueToReadEnum(0x00, "VALUE_TO_READ_0", 0);
+inline const ValueToReadEnum ValueToReadEnum::VALUE_TO_READ_1 = ValueToReadEnum(0x01, "VALUE_TO_READ_1", 1);
+inline const ValueToReadEnum ValueToReadEnum::VALUE_TO_READ_2 = ValueToReadEnum(0x02, "VALUE_TO_READ_2", 2);
+inline const ValueToReadEnum ValueToReadEnum::VALUE_TO_READ_3 = ValueToReadEnum(0x03, "VALUE_TO_READ_3", 3);
 
 class ValueToRead {
     public:
