@@ -2,8 +2,8 @@
 
 #include <Arduino.h>
 #include "../../enums/Enum.h"
-#include "KlineEcuEnum.h"
 #include "../../enums/Carstatus.h"
+#include "KlineEcuEnum.h"
 
 #define VALUE_TO_READ_ENUM_SIZE 2
 
@@ -37,14 +37,6 @@ class ValueToReadEnum : Enum {
             return nullptr;
         }
 
-        static uint8_t getSizeByEcu(KlineEcuEnum ecu) {
-            return ValueToReadEnum::indexesPerEcu[ecu.id];
-        }
-
-        static const ValueToReadEnum** getValuesByEcu(KlineEcuEnum ecu) {
-            return ValueToReadEnum::valuesPerEcu[ecu.id];
-        }
-
         static uint8_t getSize() {
             return ValueToReadEnum::index;
         }
@@ -53,8 +45,100 @@ class ValueToReadEnum : Enum {
             return ValueToReadEnum::values;
         }
 
+        static uint8_t getBlockValuesByEcuSize(KlineEcuEnum ecu) {
+            return getBlockValuesByEcuSize((ValueToReadEnum**)ValueToReadEnum::values, VALUE_TO_READ_ENUM_SIZE, ecu);
+        }
+
+        static uint8_t getBlockValuesByEcuSize(ValueToReadEnum** src, uint8_t srcSize, KlineEcuEnum ecu) {
+            uint8_t a[255]; // are possible 255 blocks for each ecu
+
+            for(uint8_t i = 0; i < srcSize; i++) {
+                ValueToReadEnum *v = (ValueToReadEnum*) ValueToReadEnum::values[i];
+                if(v->klineEcuEnum.id == ecu.id) {
+                    a[v->group]++;
+                }
+            }
+
+            uint8_t counter = 0;
+            for(uint8_t i = 0; i < 255; i++) {
+                if(a[i] > 0) {
+                    counter++;
+                }
+            }
+
+            return counter;
+        }
+
+        static uint8_t* getBlockValuesByEcu(ValueToReadEnum** src, uint8_t srcSize, KlineEcuEnum ecu) {
+            uint8_t sizeByEcu = getBlockValuesByEcuSize(ecu);
+            uint8_t counter = 0;
+            uint8_t* arrayValues = new uint8_t[sizeByEcu];
+
+            for(uint8_t i = 0; i < srcSize; i++) {
+                ValueToReadEnum *v = src[i];
+                if(v->klineEcuEnum.id == ecu.id) {
+                    arrayValues[counter] = v->group;
+                    counter++;
+                }
+            }
+
+            return arrayValues;
+        }
+
+        static uint8_t* getBlockValuesByEcu(KlineEcuEnum ecu) {
+            return getBlockValuesByEcu((ValueToReadEnum**)ValueToReadEnum::values, VALUE_TO_READ_ENUM_SIZE, ecu);
+        }
+        
+        static uint8_t getValuesByEcuBlockSize(ValueToReadEnum** src, uint8_t srcSize, KlineEcuEnum ecu, uint8_t block) {
+            uint8_t counter = 0;
+
+            for(uint8_t i = 0; i < srcSize; i++) {
+                ValueToReadEnum *v = (ValueToReadEnum*) src[i];
+                if(v->klineEcuEnum.id == ecu.id && v->group == block) {
+                    counter++;
+                }
+            }
+            
+            return counter;
+        }
+        
+        static uint8_t getValuesByEcuBlockSize(KlineEcuEnum ecu, uint8_t block) {
+            return getValuesByEcuBlockSize((ValueToReadEnum**)ValueToReadEnum::values, VALUE_TO_READ_ENUM_SIZE, ecu, block);
+        }
+        
+        static ValueToReadEnum** getValuesByEcuBlock(ValueToReadEnum** src, uint8_t srcSize, KlineEcuEnum ecu, uint8_t block) {
+            uint8_t sizeByEcuBlock = getValuesByEcuBlockSize(src, srcSize, ecu, block);
+            uint8_t counter = 0;
+            ValueToReadEnum** arrayValues = new ValueToReadEnum*[sizeByEcuBlock];
+
+            for(uint8_t i = 0; i < srcSize; i++) {
+                ValueToReadEnum *v = (ValueToReadEnum*) src[i];
+                if(v->klineEcuEnum.id == ecu.id && v->group == block) {
+                    arrayValues[counter] = v;
+                    counter++;
+                }
+            }
+            
+            return arrayValues;
+        }
+        
+        static ValueToReadEnum** getValuesByEcuBlock(KlineEcuEnum ecu, uint8_t block) {
+            uint8_t sizeByEcuBlock = getValuesByEcuBlockSize(ecu, block);
+            uint8_t counter = 0;
+            ValueToReadEnum** arrayValues = new ValueToReadEnum*[sizeByEcuBlock];
+
+            for(uint8_t i = 0; i < VALUE_TO_READ_ENUM_SIZE; i++) {
+                ValueToReadEnum *v = (ValueToReadEnum*) ValueToReadEnum::values[i];
+                if(v->klineEcuEnum.id == ecu.id && v->group == block) {
+                    arrayValues[counter] = v;
+                    counter++;
+                }
+            }
+            
+            return arrayValues;
+        }
+
     private:
-        static const ValueToReadEnum** valuesPerEcu[];
         static  int indexesPerEcu[];
         static const Enum* values[];
         static uint8_t index;
@@ -67,14 +151,9 @@ class ValueToReadEnum : Enum {
             
             ValueToReadEnum::values[ValueToReadEnum::index] = this;
             ValueToReadEnum::index++;
-
-            ValueToReadEnum::valuesPerEcu[ecu.id][ValueToReadEnum::indexesPerEcu[ecu.id]] = this;
-            ValueToReadEnum::indexesPerEcu[ecu.id]++;
         };
 };
 
-inline const ValueToReadEnum** ValueToReadEnum::valuesPerEcu[KLINE_ECU_ENUM_SIZE] = { 0 };
-inline int ValueToReadEnum::indexesPerEcu[KLINE_ECU_ENUM_SIZE] = { 0 };
 inline const Enum* ValueToReadEnum::values[VALUE_TO_READ_ENUM_SIZE] = { 0 };
 inline uint8_t ValueToReadEnum::index = 0;
 inline const ValueToReadEnum ValueToReadEnum::SPEED = ValueToReadEnum(0x00, "SPEED", KlineEcuEnum::INSTRUMENT, 1, 0, Carstatus::SPEED);
