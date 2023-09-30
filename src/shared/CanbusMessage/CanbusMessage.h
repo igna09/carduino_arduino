@@ -20,9 +20,9 @@ class CanbusMessage {
         uint8_t messageId;
 
         CanbusMessage();
-        CanbusMessage(CanbusMessage *m);
+        CanbusMessage(CanbusMessage &m);
         CanbusMessage(uint16_t id, uint8_t *payload, uint8_t payloadLength);
-        virtual ~CanbusMessage() = default;
+        virtual ~CanbusMessage();
 
         virtual String toSerialString() {
             return "";

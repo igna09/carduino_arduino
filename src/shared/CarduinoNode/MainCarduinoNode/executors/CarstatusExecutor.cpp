@@ -8,7 +8,9 @@ void CarstatusExecutor::execute(CarduinoNode *node, CanbusMessage *message) {
     const Carstatus *c = (Carstatus*)Carstatus::getValueById(message->messageId);
     const CanbusMessageType t = c->type;
 
-    CarstatusMessage carstatusMessage(&t, message);
+    CarstatusMessage *carstatusMessage = new CarstatusMessage(&t, message);
 
-    ((MainCarduinoNode*)node)->sendSerialMessage(&carstatusMessage);
+    ((MainCarduinoNode*)node)->sendSerialMessage(carstatusMessage);
+
+    delete carstatusMessage;
 }

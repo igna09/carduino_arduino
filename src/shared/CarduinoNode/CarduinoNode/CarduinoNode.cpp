@@ -54,8 +54,9 @@ void CarduinoNode::loop() {
 
         // printUint8Array("CarduinoNode::loop", buf, len);
 
-        CanbusMessage m(id, buf, len);
-        manageReceivedCanbusMessage(&m);
+        CanbusMessage *m = new CanbusMessage(id, buf, len);
+        manageReceivedCanbusMessage(m);
+        delete m;
       }
     }
 };

@@ -28,7 +28,7 @@ KlineCarduinoNode::KlineCarduinoNode(uint8_t pin_rx, uint8_t pin_tx, int cs, int
 
     KlineCallback<void(void)>::func = std::bind(&KlineCarduinoNode::readValues, this);
 	// TODO: change to true
-    readValuesTask = new Task(1000, TASK_FOREVER, static_cast<TaskCallback>(KlineCallback<void(void)>::callback), scheduler, false);
+    readValuesTask = new Task(1000, TASK_FOREVER, static_cast<TaskCallback>(KlineCallback<void(void)>::callback), scheduler, true);
 };
 
 void KlineCarduinoNode::readValues() {

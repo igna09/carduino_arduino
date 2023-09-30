@@ -30,7 +30,7 @@ class TypedCanbusMessage : public CanbusMessage {
         TypedCanbusMessage(unsigned long id, bool value);
         TypedCanbusMessage(unsigned long id, float value);
         TypedCanbusMessage();
-        virtual ~TypedCanbusMessage();
+        virtual ~TypedCanbusMessage() = default;
         
         // void setValue(bool b);
         // void setValue(int i);

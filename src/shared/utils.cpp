@@ -16,6 +16,13 @@ void cloneByteArray (uint8_t from[], uint8_t to[], int len) {
   }
 }
 
+uint8_t floatBytes[5];
+
+uint8_t* convertFloatToByteArray(float v) {
+    convertFloatToByteArray(floatBytes, v);
+    return floatBytes;
+}
+
 void convertFloatToByteArray(uint8_t *bytes, float v) {
     int integerPart, decimalPart;
 
@@ -36,6 +43,13 @@ void convertFloatToByteArray(uint8_t *bytes, float v) {
     bytes[4] = decimalPartByteArray[0];
 }
 
+uint8_t integerBytes[4];
+
+uint8_t* convertIntegerToByteArray(int v) {
+	convertIntegerToByteArray(integerBytes, v);
+	return integerBytes;
+}
+
 void convertIntegerToByteArray(uint8_t *bytes, uint32_t v) {
 	resetArray(integerByteConverter.array, 4);
 	integerByteConverter.value = v;
@@ -43,6 +57,13 @@ void convertIntegerToByteArray(uint8_t *bytes, uint32_t v) {
 	  bytes[4 - i - 1] = integerByteConverter.array[i]; //reverse the byte order here.
 	}
   // printUint8Array("loop", m.payload, m.payloadLength);
+}
+
+uint8_t boolBytes[1];
+
+uint8_t* convertBoolToByteArray(bool v) {
+	convertBoolToByteArray(boolBytes, v);
+	return boolBytes;
 }
 
 void convertBoolToByteArray(uint8_t *bytes, bool v) {

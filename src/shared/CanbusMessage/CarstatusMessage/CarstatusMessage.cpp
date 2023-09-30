@@ -1,6 +1,6 @@
 #include "CarstatusMessage.h"
 
-CarstatusMessage::CarstatusMessage(const CanbusMessageType *type, CanbusMessage *canbusMessage) : TypedCanbusMessage(type, canbusMessage->id, canbusMessage->payload, canbusMessage->payloadLength) {
+CarstatusMessage::CarstatusMessage(const CanbusMessageType *type, CanbusMessage *canbusMessage) : TypedCanbusMessage(type, canbusMessage) {
     this->carstatus = (Carstatus*) Carstatus::getValueById(canbusMessage->messageId);
 };
 

@@ -32,6 +32,12 @@ extern void convertSerialMessagetoArduino(String msg);
 
 extern String convertByteArrayToString(uint8_t bytes[], uint8_t size);
 
-void printFreeHeap(const char label[]);
+extern void printFreeHeap(const char label[]);
 
-void printUint8Array(const char label[], uint8_t *array, uint8_t size);
+extern void printUint8Array(const char label[], uint8_t *array, uint8_t size);
+
+extern uint8_t* convertFloatToByteArray(float v);
+
+extern uint8_t* convertIntegerToByteArray(int v);
+
+extern uint8_t* convertBoolToByteArray(bool v);
