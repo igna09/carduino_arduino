@@ -27,7 +27,7 @@ void MainCarduinoNode::luminanceCallback() {
     int lux = microamps * 2;
     
     CarstatusMessage m(&Carstatus::INTERNAL_LUMINANCE, lux);
-    sendCanbusMessage(m);
+    sendCanbusMessage(&m);
 };
 
 void MainCarduinoNode::temperatureCallback() {
@@ -35,7 +35,7 @@ void MainCarduinoNode::temperatureCallback() {
     this->aht->getEvent(&humidity, &temp);// populate temp and humidity objects with fresh data
     
     CarstatusMessage m(&Carstatus::INTERNAL_TEMPERATURE, temp.temperature);
-    sendCanbusMessage(m);
+    sendCanbusMessage(&m);
 };
 
 unsigned long int next = 0;

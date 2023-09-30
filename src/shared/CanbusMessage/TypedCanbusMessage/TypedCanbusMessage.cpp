@@ -16,29 +16,29 @@ TypedCanbusMessage::TypedCanbusMessage(const CanbusMessageType *type, unsigned l
 };
 
 TypedCanbusMessage::TypedCanbusMessage(unsigned long id, int value) : CanbusMessage(id, nullptr, 4) {
-    uint8_t bytes[4];
+    uint8_t *bytes = new uint8_t[4];
     convertIntegerToByteArray(bytes, value);
     this->payload = bytes;
 
     this->category = (Category*)Category::getValueById(this->categoryId);
     this->type = &CanbusMessageType::INT;
 
-    this->value.boolValue = value;
+    this->value.intValue = value;
 };
 
 TypedCanbusMessage::TypedCanbusMessage(unsigned long id, float value) : CanbusMessage(id, nullptr, 5) {
-    uint8_t bytes[5];
-    convertIntegerToByteArray(bytes, value);
+    uint8_t *bytes = new uint8_t[5];
+    convertFloatToByteArray(bytes, value);
     this->payload = bytes;
 
     this->category = (Category*)Category::getValueById(this->categoryId);
     this->type = &CanbusMessageType::FLOAT;
 
-    this->value.boolValue = value;
+    this->value.floatValue = value;
 };
 
 TypedCanbusMessage::TypedCanbusMessage(unsigned long id, bool value) : CanbusMessage(id, nullptr, 1) {
-    uint8_t bytes[1];
+    uint8_t *bytes = new uint8_t[1];
     convertBoolToByteArray(bytes, value);
     this->payload = bytes;
     
@@ -48,6 +48,22 @@ TypedCanbusMessage::TypedCanbusMessage(unsigned long id, bool value) : CanbusMes
     this->value.boolValue = value;
 };
 
+TypedCanbusMessage::TypedCanbusMessage(const CanbusMessageType *type, CanbusMessage *message) : CanbusMessage(message) {
+    this->category = (Category*)Category::getValueById(this->categoryId);
+    this->type = type;
+
+    if(this->type->id == CanbusMessageType::BOOL.id) {
+        this->value.boolValue = convertByteArrayToBool(payload, payloadLength);
+    } else if(this->type->id == CanbusMessageType::INT.id) {
+        this->value.intValue = convertByteArrayToInt(payload, payloadLength);
+    } else if(this->type->id == CanbusMessageType::FLOAT.id) {
+        this->value.floatValue = convertByteArrayToFloat(payload, payloadLength);
+    }
+};
+
+TypedCanbusMessage::~TypedCanbusMessage() {
+    delete[] payload;
+}
 
 int TypedCanbusMessage::getIntValue() {
     return this->value.intValue;

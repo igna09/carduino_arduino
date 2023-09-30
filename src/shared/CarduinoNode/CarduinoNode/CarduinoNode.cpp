@@ -2,7 +2,6 @@
 #include "../../executors/Executors.h"
 
 CarduinoNode::CarduinoNode(int cs, int interruptPin, const char *ssid, const char *password) {
-    //Serial.println("start CarduinoNode");
     this->can = new MCP_CAN(cs);
     this->server = new ESP8266WebServer(80);
     this->ssid = ssid;
@@ -10,14 +9,14 @@ CarduinoNode::CarduinoNode(int cs, int interruptPin, const char *ssid, const cha
     this->interruptPin = interruptPin;
 
     // Initialize MCP2515 running at 16MHz with a baudrate of 500kb/s and the masks and filters disabled.
-    if(can->begin(MCP_ANY, CAN_500KBPS, MCP_16MHZ) == CAN_OK) {
+    if(can->begin(MCP_ANY, CAN_500KBPS, MCP_8MHZ) == CAN_OK) {
         Serial.println("MCP2515 Initialized Successfully!");
         this->initializedCan = true;
     } else {
         Serial.println("Error Initializing MCP2515...");
         this->initializedCan = false;
     }
-    can->setMode(MCP_LOOPBACK);                     // Set operation mode to normal so the MCP2515 sends acks to received data.
+    can->setMode(MCP_NORMAL);                     // Set operation mode to normal so the MCP2515 sends acks to received data.
     pinMode(interruptPin, INPUT);                            // Configuring pin for /INT input
 
     this->otaMode = false;
@@ -53,6 +52,8 @@ void CarduinoNode::loop() {
 
         can->readMsgBuf(&id, &len, buf);
 
+        // printUint8Array("CarduinoNode::loop", buf, len);
+
         CanbusMessage m(id, buf, len);
         manageReceivedCanbusMessage(&m);
       }
@@ -60,16 +61,18 @@ void CarduinoNode::loop() {
 };
 
 void CarduinoNode::manageReceivedCanbusMessage(CanbusMessage *message) {
+    printFreeHeap("before CarduinoNode::manageReceivedCanbusMessage");
     this->executors->execute(this, message);
+    printFreeHeap("after CarduinoNode::manageReceivedCanbusMessage");
 };
 
-void CarduinoNode::sendByteCanbus(uint16_t messageId, int len, uint8_t buf[]) {
+void CarduinoNode::sendByteCanbus(uint16_t messageId, int len, uint8_t *buf) {
     byte sndStat = can->sendMsgBuf(messageId, 0, len, buf);
-    /*if(sndStat == CAN_OK){
+    if(sndStat == CAN_OK){
         Serial.println("Message Sent Successfully!");
     } else {
         Serial.println("Error Sending Message...");
-    }*/
+    }
 };
 
 void CarduinoNode::otaStartup() {
@@ -101,9 +104,12 @@ uint16_t CarduinoNode::generateId(const Category category, const Enum messageEnu
 
 bool CarduinoNode::availableCanbusMessages() {
     uint8_t v = digitalRead(this->interruptPin);
+    // Serial.print("CarduinoNode::availableCanbusMessages ");
+    // Serial.println(v);
     return v == LOW;
 }
 
-void CarduinoNode::sendCanbusMessage(CanbusMessage message) {
-    sendByteCanbus(message.id, message.payloadLength, message.payload);
+void CarduinoNode::sendCanbusMessage(CanbusMessage *message) {
+	// printUint8Array("loop", m.payload, m.payloadLength);
+    sendByteCanbus(message->id, message->payloadLength, message->payload);
 }

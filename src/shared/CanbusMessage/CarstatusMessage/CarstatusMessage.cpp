@@ -16,6 +16,8 @@ CarstatusMessage::CarstatusMessage(const Carstatus *carstatus, float value) : Ty
     this->carstatus = carstatus;
 };
 
+CarstatusMessage::CarstatusMessage() : TypedCanbusMessage() {};
+
 String CarstatusMessage::toSerialString() {
     String s = "";
     s += this->category->name;

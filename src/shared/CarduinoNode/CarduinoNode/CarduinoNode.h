@@ -6,7 +6,7 @@
 #include <ESP8266WebServer.h>
 #include <ESP2SOTA.h>
 
-#include <mcp_can.h>
+#include "mcp_can.h"
 #include <SPI.h>
 
 #include "../../utils.h"
@@ -44,7 +44,7 @@ class CarduinoNode {
         void loop();
         void manageReceivedCanbusMessage(CanbusMessage *message);
         void sendByteCanbus(uint16_t messageId, int len, uint8_t buf[]);
-        void sendCanbusMessage(CanbusMessage message);
+        void sendCanbusMessage(CanbusMessage *message);
         bool availableCanbusMessages();
 
         static uint16_t generateId(const Category category, const Enum messageEnum);

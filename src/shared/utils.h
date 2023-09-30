@@ -34,4 +34,4 @@ extern String convertByteArrayToString(uint8_t bytes[], uint8_t size);
 
 void printFreeHeap(const char label[]);
 
-// Enum* getCarstatusEnum(char[]);
+void printUint8Array(const char label[], uint8_t *array, uint8_t size);

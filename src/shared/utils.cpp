@@ -42,6 +42,7 @@ void convertIntegerToByteArray(uint8_t *bytes, uint32_t v) {
 	for(int i=0; i < 4; i++){
 	  bytes[4 - i - 1] = integerByteConverter.array[i]; //reverse the byte order here.
 	}
+  // printUint8Array("loop", m.payload, m.payloadLength);
 }
 
 void convertBoolToByteArray(uint8_t *bytes, bool v) {
@@ -126,7 +127,15 @@ void printFreeHeap(const char label[]) {
     Serial.println(label);
 }
 
-// class Carstatus;
-// Enum* getCarstatusEnum(char *name) {
-// 	return Carstatus::getValueByName(name);
-// }
+void printUint8Array(const char label[], uint8_t *array, uint8_t size) {
+  Serial.print(label);
+  Serial.print(" ");
+  for(int i=0; i < size; i++){
+      Serial.print(" 0x");
+      if(array[i] < 10){
+          Serial.print("0");
+      }
+      Serial.print(array[i], HEX);
+  }
+  Serial.println();
+}

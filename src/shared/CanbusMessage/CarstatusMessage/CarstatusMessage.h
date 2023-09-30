@@ -13,6 +13,8 @@ class CarstatusMessage : public TypedCanbusMessage {
         CarstatusMessage(const Carstatus *carstatus, int value);
         CarstatusMessage(const Carstatus *carstatus, float value);
         CarstatusMessage(const Carstatus *carstatus, bool value);
+        CarstatusMessage();
+        // virtual ~CarstatusMessage() = default;
 
         String toSerialString() override;
 };

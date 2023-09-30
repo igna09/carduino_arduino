@@ -27,6 +27,7 @@ KlineCarduinoNode::KlineCarduinoNode(uint8_t pin_rx, uint8_t pin_tx, int cs, int
 	this->scheduler = new Scheduler();
 
     KlineCallback<void(void)>::func = std::bind(&KlineCarduinoNode::readValues, this);
+	// TODO: change to true
     readValuesTask = new Task(1000, TASK_FOREVER, static_cast<TaskCallback>(KlineCallback<void(void)>::callback), scheduler, false);
 };
 
@@ -74,13 +75,15 @@ void KlineCarduinoNode::readValues() {
 								case KLineKWP1281Lib::VALUE: {
 									float value = KLineKWP1281Lib::getMeasurementValue(valueToReadEnum->groupIndex, amount_of_measurements, measurements, sizeof(measurements));
 
+									CarstatusMessage c;
 									if(valueToReadEnum->carstatus.type.id == CanbusMessageType::INT.id) {
-										sendCanbusMessage(CarstatusMessage(&valueToReadEnum->carstatus, int(value)));
+										c = CarstatusMessage(&valueToReadEnum->carstatus, int(value));
 									} else if(valueToReadEnum->carstatus.type.id == CanbusMessageType::FLOAT.id) {
-										sendCanbusMessage(CarstatusMessage(&valueToReadEnum->carstatus, value));
+										c = CarstatusMessage(&valueToReadEnum->carstatus, value);
 									} else if(valueToReadEnum->carstatus.type.id == CanbusMessageType::BOOL.id) {
-										sendCanbusMessage(CarstatusMessage(&valueToReadEnum->carstatus, value == 1));
+										c = CarstatusMessage(&valueToReadEnum->carstatus, value == 1);
 									}
+									sendCanbusMessage(&c);
 									break;
 								}
 								
