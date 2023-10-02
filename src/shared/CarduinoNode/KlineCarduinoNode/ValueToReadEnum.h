@@ -11,6 +11,7 @@ class ValueToReadEnum : Enum {
     public:
         static const ValueToReadEnum SPEED;
         static const ValueToReadEnum RPM;
+        static const ValueToReadEnum ENGINE_WATER_COOLING_TEMPERATURE;
         
         KlineEcuEnum klineEcuEnum;
         uint8_t group;
@@ -51,6 +52,10 @@ class ValueToReadEnum : Enum {
 
         static uint8_t getBlockValuesByEcuSize(ValueToReadEnum** src, uint8_t srcSize, KlineEcuEnum ecu) {
             uint8_t a[255]; // are possible 255 blocks for each ecu
+
+            for(uint8_t i = 0; i < 255; i++) {
+                a[i] = 0;
+            }
 
             for(uint8_t i = 0; i < srcSize; i++) {
                 ValueToReadEnum *v = (ValueToReadEnum*) ValueToReadEnum::values[i];
@@ -156,5 +161,6 @@ class ValueToReadEnum : Enum {
 
 inline const Enum* ValueToReadEnum::values[VALUE_TO_READ_ENUM_SIZE] = { 0 };
 inline uint8_t ValueToReadEnum::index = 0;
-inline const ValueToReadEnum ValueToReadEnum::SPEED = ValueToReadEnum(0x00, "SPEED", KlineEcuEnum::INSTRUMENT, 1, 0, Carstatus::SPEED);
+// inline const ValueToReadEnum ValueToReadEnum::SPEED = ValueToReadEnum(0x00, "SPEED", KlineEcuEnum::ENGINE, 1, 1, Carstatus::ENGINE_RPM);
 inline const ValueToReadEnum ValueToReadEnum::RPM = ValueToReadEnum(0x01, "RPM", KlineEcuEnum::ENGINE, 1, 0, Carstatus::ENGINE_RPM);
+inline const ValueToReadEnum ValueToReadEnum::ENGINE_WATER_COOLING_TEMPERATURE = ValueToReadEnum(0x01, "ENGINE_WATER_COOLING_TEMPERATURE", KlineEcuEnum::ENGINE, 2, 3, Carstatus::ENGINE_WATER_COOLING_TEMPERATURE);

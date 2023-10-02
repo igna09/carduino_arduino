@@ -20,9 +20,7 @@ void setup(void) {
 // unsigned long lastSent = millis();
 
 void loop(void) {
-	printFreeHeap("loop");
   	klineCarduinoNode->loop();
-	printFreeHeap("loop");
 	// if(millis() > lastSent + 2000) {
 	// 	lastSent = millis();
 	// 	float v = 45.7;

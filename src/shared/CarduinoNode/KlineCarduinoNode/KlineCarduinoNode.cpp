@@ -39,13 +39,13 @@ void KlineCarduinoNode::readValues() {
 		uint8_t blockValuesByEcuSize = ValueToReadEnum::getBlockValuesByEcuSize(*klineEcuEnum);
 		if(blockValuesByEcuSize > 0) {
 			uint8_t* blockValuesByEcu = ValueToReadEnum::getBlockValuesByEcu(*klineEcuEnum);
+				
+			kLine->connect(klineEcuEnum->address, klineEcuEnum->baud); // connect here to avoid connection to ecus that won't read any value
 
 			for(uint8_t blockValuesByEcuIndex = 0; blockValuesByEcuIndex < blockValuesByEcuSize; blockValuesByEcuIndex++) {
 				uint8_t block = blockValuesByEcu[blockValuesByEcuIndex];
 				uint8_t valuesByEcuBlockSize = ValueToReadEnum::getValuesByEcuBlockSize(*klineEcuEnum, block);
 				ValueToReadEnum** valuesByEcuBlock = ValueToReadEnum::getValuesByEcuBlock(*klineEcuEnum, block);
-				
-				kLine->connect(klineEcuEnum->address, klineEcuEnum->address); // connect here to avoid connection to ecus that won't read any value
 
 				for(uint8_t valuesByEcuBlockIndex = 0; valuesByEcuBlockIndex < valuesByEcuBlockSize; valuesByEcuBlockIndex++) {
 					ValueToReadEnum *valueToReadEnum = valuesByEcuBlock[valuesByEcuBlockIndex];
@@ -74,16 +74,18 @@ void KlineCarduinoNode::readValues() {
 								//Value and units
 								case KLineKWP1281Lib::VALUE: {
 									float value = KLineKWP1281Lib::getMeasurementValue(valueToReadEnum->groupIndex, amount_of_measurements, measurements, sizeof(measurements));
-
-									CarstatusMessage c;
+									Serial.print("read ");
+									Serial.println(value);
+									CarstatusMessage *c = nullptr;
 									if(valueToReadEnum->carstatus.type.id == CanbusMessageType::INT.id) {
-										c = CarstatusMessage(&valueToReadEnum->carstatus, int(value));
+										c = new CarstatusMessage(&valueToReadEnum->carstatus, int(value));
 									} else if(valueToReadEnum->carstatus.type.id == CanbusMessageType::FLOAT.id) {
-										c = CarstatusMessage(&valueToReadEnum->carstatus, value);
+										c = new CarstatusMessage(&valueToReadEnum->carstatus, value);
 									} else if(valueToReadEnum->carstatus.type.id == CanbusMessageType::BOOL.id) {
-										c = CarstatusMessage(&valueToReadEnum->carstatus, value == 1);
+										c = new CarstatusMessage(&valueToReadEnum->carstatus, value == 1);
 									}
-									sendCanbusMessage(&c);
+									sendCanbusMessage(c);
+									delete c;
 									break;
 								}
 								
@@ -101,13 +103,11 @@ void KlineCarduinoNode::readValues() {
 									break;
 								}
 							}
-						}
-						break;
+							break;
+					}
 				}
-			
 				delete[] valuesByEcuBlock;
 			}
-
 			delete[] blockValuesByEcu;
 		}
 	}
