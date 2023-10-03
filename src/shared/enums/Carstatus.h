@@ -4,7 +4,9 @@
 #include "CanbusMessageType.h"
 #include "../utils.h"
 
-#define CARSTATUS_SIZE 12
+// TODO: add unit of measurement (even if not used)
+
+#define CARSTATUS_SIZE 14
 
 class Carstatus : public Enum {
     public:
@@ -20,6 +22,8 @@ class Carstatus : public Enum {
         static const Carstatus TRIP_DURATION;
         static const Carstatus TRIP_AVERAGE_SPEED;
         static const Carstatus TRIP_MAX_SPEED;
+        static const Carstatus INJECTED_QUANTITY;
+        static const Carstatus FUEL_CONSUMPTION;
 
         CanbusMessageType type;
 
@@ -83,3 +87,5 @@ inline const Carstatus Carstatus::ENGINE_RPM = Carstatus(0x08, "ENGINE_RPM", Can
 inline const Carstatus Carstatus::TRIP_DURATION = Carstatus(0x09, "TRIP_DURATION", CanbusMessageType::STRING);
 inline const Carstatus Carstatus::TRIP_AVERAGE_SPEED = Carstatus(0x0A, "TRIP_AVERAGE_SPEED", CanbusMessageType::INT);
 inline const Carstatus Carstatus::TRIP_MAX_SPEED = Carstatus(0x0B, "TRIP_MAX_SPEED", CanbusMessageType::INT);
+inline const Carstatus Carstatus::INJECTED_QUANTITY = Carstatus(0x0C, "INJECTED_QUANTITY", CanbusMessageType::FLOAT);
+inline const Carstatus Carstatus::FUEL_CONSUMPTION = Carstatus(0x0D, "FUEL_CONSUMPTION", CanbusMessageType::FLOAT);

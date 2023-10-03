@@ -41,3 +41,9 @@ extern uint8_t* convertFloatToByteArray(float v);
 extern uint8_t* convertIntegerToByteArray(int v);
 
 extern uint8_t* convertBoolToByteArray(bool v);
+
+extern void startElapsedTime();
+
+extern unsigned long stopElapsedTime();
+
+extern void printElapsedTime(char *s);

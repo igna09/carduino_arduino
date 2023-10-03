@@ -9,8 +9,7 @@ String SettingMessage::toSerialString() {
     s += this->category->name;
     s += ";";
     s += this->setting->name;
-    s += "-";
-    s += this->getValueToString();
     s += ";";
+    s += this->getValueToString();
     return s;
 };

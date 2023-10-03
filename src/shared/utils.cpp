@@ -160,3 +160,20 @@ void printUint8Array(const char label[], uint8_t *array, uint8_t size) {
   }
   Serial.println();
 }
+
+unsigned long elapsed = 0;
+
+void startElapsedTime() {
+  elapsed = millis();
+};
+
+unsigned long stopElapsedTime() {
+  return millis() - elapsed;
+};
+
+void printElapsedTime(char *s) {
+  unsigned long t = stopElapsedTime();
+  Serial.print(s);
+  Serial.print(" ");
+  Serial.println(t);
+}

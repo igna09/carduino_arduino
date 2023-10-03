@@ -23,8 +23,7 @@ String CarstatusMessage::toSerialString() {
     s += this->category->name;
     s += ";";
     s += this->carstatus->name;
-    s += "-";
-    s += this->getValueToString();
     s += ";";
+    s += this->getValueToString();
     return s;
 };
