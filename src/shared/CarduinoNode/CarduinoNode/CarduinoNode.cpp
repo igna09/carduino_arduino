@@ -52,28 +52,28 @@ void CarduinoNode::loop() {
 
         can->readMsgBuf(&id, &len, buf);
 
-        // printUint8Array("CarduinoNode::loop", buf, len);
+        if(len > 0) {
+            // printUint8Array("CarduinoNode::loop", buf, len);
 
-        CanbusMessage *m = new CanbusMessage(id, buf, len);
-        manageReceivedCanbusMessage(m);
-        delete m;
+            CanbusMessage *m = new CanbusMessage(id, buf, len);
+            manageReceivedCanbusMessage(m);
+            delete m;
+        }
       }
     }
 };
 
 void CarduinoNode::manageReceivedCanbusMessage(CanbusMessage *message) {
-    printFreeHeap("before CarduinoNode::manageReceivedCanbusMessage");
     this->executors->execute(this, message);
-    printFreeHeap("after CarduinoNode::manageReceivedCanbusMessage");
 };
 
 void CarduinoNode::sendByteCanbus(uint16_t messageId, int len, uint8_t *buf) {
     byte sndStat = can->sendMsgBuf(messageId, 0, len, buf);
-    if(sndStat == CAN_OK){
+    /* if(sndStat == CAN_OK){
         Serial.println("Message Sent Successfully!");
     } else {
         Serial.println("Error Sending Message...");
-    }
+    }*/
 };
 
 void CarduinoNode::otaStartup() {
