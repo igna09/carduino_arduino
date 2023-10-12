@@ -4,7 +4,7 @@
 
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
-#include <ESP2SOTA.h>
+#include "ESP2SOTA.h"
 
 #include "mcp_can.h"
 #include <SPI.h>
