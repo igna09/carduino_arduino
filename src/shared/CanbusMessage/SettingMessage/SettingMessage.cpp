@@ -11,5 +11,6 @@ String SettingMessage::toSerialString() {
     s += this->setting->name;
     s += ";";
     s += this->getValueToString();
+    s += ";";
     return s;
 };

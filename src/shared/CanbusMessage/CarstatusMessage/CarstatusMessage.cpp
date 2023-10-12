@@ -25,5 +25,6 @@ String CarstatusMessage::toSerialString() {
     s += this->carstatus->name;
     s += ";";
     s += this->getValueToString();
+    s += ";";
     return s;
 };
