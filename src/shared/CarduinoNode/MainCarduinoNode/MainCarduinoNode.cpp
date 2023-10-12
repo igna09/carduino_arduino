@@ -7,10 +7,10 @@ MainCarduinoNode::MainCarduinoNode(int cs, int interruptPin, char *ssid, char *p
     this->aht->begin();
 
     LuminanceCallback<void(void)>::func = std::bind(&MainCarduinoNode::luminanceCallback, this);
-    luminanceTask = new Task(1000, TASK_FOREVER, static_cast<TaskCallback>(LuminanceCallback<void(void)>::callback), scheduler, false);
+    luminanceTask = new Task(1000, TASK_FOREVER, static_cast<TaskCallback>(LuminanceCallback<void(void)>::callback), scheduler, true);
 
     TemperatureCallback<void(void)>::func = std::bind(&MainCarduinoNode::temperatureCallback, this);
-    temperatureTask = new Task(1000, TASK_FOREVER, static_cast<TaskCallback>(TemperatureCallback<void(void)>::callback), scheduler, false);
+    temperatureTask = new Task(30000, TASK_FOREVER, static_cast<TaskCallback>(TemperatureCallback<void(void)>::callback), scheduler, true);
 
     this->scheduler->startNow();
 
@@ -28,6 +28,7 @@ void MainCarduinoNode::luminanceCallback() {
     
     CarstatusMessage m(&Carstatus::INTERNAL_LUMINANCE, lux);
     sendCanbusMessage(&m);
+    sendSerialMessage(&m);
 };
 
 void MainCarduinoNode::temperatureCallback() {
@@ -36,6 +37,7 @@ void MainCarduinoNode::temperatureCallback() {
     
     CarstatusMessage m(&Carstatus::INTERNAL_TEMPERATURE, temp.temperature);
     sendCanbusMessage(&m);
+    sendSerialMessage(&m);
 };
 
 unsigned long int next = 0;
