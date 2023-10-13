@@ -1,5 +1,6 @@
 #include "CarduinoNode.h"
-#include "../../executors/Executors.h"
+#include "../../executors/Executors.h" // include here to avoid circular dependency
+#include "WriteOtaSetting.h" // include here to avoid circular dependency
 
 CarduinoNode::CarduinoNode(int cs, int interruptPin, const char *ssid, const char *password) {
     this->can = new MCP_CAN(cs);
@@ -23,6 +24,7 @@ CarduinoNode::CarduinoNode(int cs, int interruptPin, const char *ssid, const cha
     WiFi.mode(WIFI_OFF);
     
     this->canExecutors = new Executors();
+    this->canExecutors->addExecutor(new WriteOtaSetting());
 };
 
 void CarduinoNode::loop() {
