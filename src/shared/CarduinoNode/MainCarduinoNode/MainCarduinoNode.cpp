@@ -1,5 +1,4 @@
 #include "MainCarduinoNode.h"
-#include "../../executors/Executors.h"
 
 MainCarduinoNode::MainCarduinoNode(int cs, int interruptPin, char *ssid, char *password) : CarduinoNode(cs, interruptPin, ssid, password) {
     this->scheduler = new Scheduler();
@@ -14,9 +13,12 @@ MainCarduinoNode::MainCarduinoNode(int cs, int interruptPin, char *ssid, char *p
 
     this->scheduler->startNow();
 
-    this->executors->addExecutor(new CarstatusExecutor());
-    // this->executors->addExecutor(new AllMessageExecutor());
-    // this->executors->addExecutor(new WriteSettingExecutor());
+    this->canExecutors->addExecutor(new CarstatusExecutor());
+    // this->canExecutors->addExecutor(new AllMessageExecutor());
+    // this->canExecutors->addExecutor(new WriteSettingExecutor());
+
+    this->usbExecutors = new Executors();
+    this->usbExecutors->addExecutor(new WriteSetting());
 };
 
 void MainCarduinoNode::luminanceCallback() {
@@ -52,23 +54,31 @@ void MainCarduinoNode::loop() {
     */
     if(Serial.available() > 0) {
         String s = Serial.readStringUntil('\n');
-        String s0 = s.substring(0, s.indexOf(";"));
-        Category *c = (Category*)Category::getValueByName((char*)s0.c_str());
-        String s1 = s.substring(s.indexOf(";"));
-        String s3 = s1.substring(0,s1.indexOf("-"));
-        const CategoryToEnums *cte = CategoryToEnums::getValueByCategory(c);
-        cte->enumNameToCategoryFunction((char*)s3.c_str());
+        SplittedUsbMessage *splittedUsbMessage = splitReceivedUsbMessage(s);
 
-        CanbusMessage m;
-        //TODO: add s management
-        manageReceivedUsbMessage(m);
+        if(splittedUsbMessage->isValid) {
+            const Category *c = (const Category*) Category::getValueByName((char*) splittedUsbMessage->messages[0].c_str());
+            const TypedEnum *typedEnumMessage = (const TypedEnum*) c->getEnumFromNameFunction((char*) splittedUsbMessage->messages[1].c_str());
+
+            CanbusMessage *canbusMessage = nullptr;
+            if(typedEnumMessage->type->id == CanbusMessageType::BOOL.id) {
+                canbusMessage = new CanbusMessage(generateId(*c, *typedEnumMessage), convertValueToByteArray(splittedUsbMessage->messages[2].equals("true")), 1);
+            } else if(typedEnumMessage->type->id == CanbusMessageType::INT.id) {
+                canbusMessage = new CanbusMessage(generateId(*c, *typedEnumMessage), convertValueToByteArray((int) splittedUsbMessage->messages[2].toInt()), 4);
+            } else if(typedEnumMessage->type->id == CanbusMessageType::FLOAT.id) {
+                canbusMessage = new CanbusMessage(generateId(*c, *typedEnumMessage), convertValueToByteArray(splittedUsbMessage->messages[2].toFloat()), 5);
+            }
+
+            if(canbusMessage != nullptr) {
+                usbExecutors->execute(this, canbusMessage);
+
+                delete canbusMessage;
+            }
+        }
+
+        delete splittedUsbMessage;
     }
 }
-
-// void MainCarduinoNode::manageReceivedCanbusMessage(CanbusMessage message) {
-//     CarduinoNode::manageReceivedCanbusMessage(message);
-//     this->sendSerialMessage(message);
-// }
 
 void MainCarduinoNode::manageReceivedUsbMessage(CanbusMessage message) {
     sendByteCanbus(message.id, message.payloadLength, message.payload);
@@ -76,4 +86,21 @@ void MainCarduinoNode::manageReceivedUsbMessage(CanbusMessage message) {
 
 void MainCarduinoNode::sendSerialMessage(CanbusMessage *message) {
     Serial.println(message->toSerialString());
+}
+
+SplittedUsbMessage* MainCarduinoNode::splitReceivedUsbMessage(String message) {
+    SplittedUsbMessage *splittedUsbMessage = new SplittedUsbMessage();
+
+    int i;
+    splittedUsbMessage->isValid = true;
+    for(i = 0; i < 3 && splittedUsbMessage->isValid; i++) {
+        if(message.indexOf(";") >= 0) {
+            splittedUsbMessage->messages[i] = message.substring(0, message.indexOf(";"));
+            message = message.substring(message.indexOf(";") + 1);
+        } else {
+            splittedUsbMessage->isValid = false;
+        }
+    }
+
+    return splittedUsbMessage;
 }

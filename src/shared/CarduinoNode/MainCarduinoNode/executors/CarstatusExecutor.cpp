@@ -3,10 +3,9 @@
 
 CarstatusExecutor::CarstatusExecutor() : CarduinoNodeExecutorInterface(&Category::CAR_STATUS) {}
 
-//TODO: check memory leak
 void CarstatusExecutor::execute(CarduinoNode *node, CanbusMessage *message) {
     const Carstatus *c = (Carstatus*)Carstatus::getValueById(message->messageId);
-    const CanbusMessageType t = c->type;
+    const CanbusMessageType t = *c->type;
 
     CarstatusMessage *carstatusMessage = new CarstatusMessage(&t, message);
 

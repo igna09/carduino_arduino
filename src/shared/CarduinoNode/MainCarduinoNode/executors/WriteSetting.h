@@ -11,6 +11,21 @@
 
 class WriteSetting : public CarduinoNodeExecutorInterface {
     public:
-        WriteSetting(const Category *categoryFilter);
-        void execute(CarduinoNode *node, CanbusMessage message);
+        WriteSetting() : CarduinoNodeExecutorInterface(&Category::WRITE_SETTING) {};
+
+        void execute(CarduinoNode *node, CanbusMessage *message) {
+            SettingMessage *settingMessage = new SettingMessage(*message);
+            
+            if(settingMessage->setting->id == Setting::OTA_MODE.id) {
+                if(settingMessage->getBoolValue()) {
+                    node->otaStartup();
+                } else {
+                    node->otaShutdown();
+                }
+            }
+
+            node->sendCanbusMessage(message);
+
+            delete settingMessage;
+        };
 };

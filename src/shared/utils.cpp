@@ -18,7 +18,7 @@ void cloneByteArray (uint8_t from[], uint8_t to[], int len) {
 
 uint8_t floatBytes[5];
 
-uint8_t* convertFloatToByteArray(float v) {
+uint8_t* convertValueToByteArray(float v) {
     convertFloatToByteArray(floatBytes, v);
     return floatBytes;
 }
@@ -45,7 +45,7 @@ void convertFloatToByteArray(uint8_t *bytes, float v) {
 
 uint8_t integerBytes[4];
 
-uint8_t* convertIntegerToByteArray(int v) {
+uint8_t* convertValueToByteArray(int v) {
 	convertIntegerToByteArray(integerBytes, v);
 	return integerBytes;
 }
@@ -61,7 +61,7 @@ void convertIntegerToByteArray(uint8_t *bytes, uint32_t v) {
 
 uint8_t boolBytes[1];
 
-uint8_t* convertBoolToByteArray(bool v) {
+uint8_t* convertValueToByteArray(bool v) {
 	convertBoolToByteArray(boolBytes, v);
 	return boolBytes;
 }
@@ -176,4 +176,16 @@ void printElapsedTime(char *s) {
   Serial.print(s);
   Serial.print(" ");
   Serial.println(t);
-}
+};
+
+uint8_t getByteArraySize(int value) {
+  return 4;
+};
+
+uint8_t getByteArraySize(bool value) {
+  return 1;
+};
+
+uint8_t getByteArraySize(float value) {
+  return 5;
+};

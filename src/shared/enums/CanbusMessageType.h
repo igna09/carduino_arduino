@@ -39,15 +39,14 @@ class CanbusMessageType : public Enum {
             return CanbusMessageType::values;
         }
 
-
-    private:
-        static const Enum* values[];
-        static uint8_t index;
-
         CanbusMessageType(uint8_t id, const char *name) : Enum(id, name) {
             CanbusMessageType::values[CanbusMessageType::index] = this;
             CanbusMessageType::index++;
         };
+
+    private:
+        static const Enum* values[];
+        static uint8_t index;
 };
 
 inline const Enum* CanbusMessageType::values [CANBUS_MESSAGE_TYPE_SIZE] = { 0 };

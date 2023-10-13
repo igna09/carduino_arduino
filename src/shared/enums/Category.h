@@ -1,16 +1,21 @@
 #pragma once
 
 #include "Enum.h"
+#include "Carstatus.h"
+#include "Setting.h"
 
 #define CATEGORY_SIZE 4
 
 class ExecutorInterface; //forward declaration, needed to avoid circular dependency
+//class Carstatus;
 class Category : public Enum {
     public:
         static const Category CAR_STATUS;
         static const Category READ_SETTINGS;
         static const Category MEDIA_CONTROL;
         static const Category WRITE_SETTING;
+
+        std::function<const TypedEnum*(char*)> getEnumFromNameFunction;
 
         Category() : Enum() {};
 
@@ -48,6 +53,13 @@ class Category : public Enum {
             Category::values[Category::index] = this;
             Category::index++;
         };
+
+        Category(uint8_t id, const char *name, std::function<const TypedEnum*(char*)> convertCallback) : Enum(id, name) {
+            this->getEnumFromNameFunction = convertCallback;
+
+            Category::values[Category::index] = this;
+            Category::index++;
+        };
 };
 
 //const Enum* Enum::values [] = {&Category::CAR_STATUS, &Category::READ_SETTINGS};
@@ -56,4 +68,4 @@ inline uint8_t Category::index = 0;
 inline const Category Category::CAR_STATUS = Category(0x00, "CAR_STATUS");
 inline const Category Category::READ_SETTINGS = Category(0x01, "READ_SETTINGS");
 inline const Category Category::MEDIA_CONTROL = Category(0x02, "MEDIA_CONTROL");
-inline const Category Category::WRITE_SETTING = Category(0x03, "WRITE_SETTING");
+inline const Category Category::WRITE_SETTING = Category(0x03, "WRITE_SETTING", Setting::getValueByName);

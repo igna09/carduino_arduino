@@ -22,22 +22,12 @@ CarduinoNode::CarduinoNode(int cs, int interruptPin, const char *ssid, const cha
     this->otaMode = false;
     WiFi.mode(WIFI_OFF);
     
-    this->executors = new Executors();
+    this->canExecutors = new Executors();
 };
 
 void CarduinoNode::loop() {
     if(otaMode) {
-        if(WiFi.getMode() != WIFI_AP) {
-            this->otaStartup();
-            delay(2000);
-        } else {
-            /* HANDLE UPDATE REQUESTS */
-            this->server->handleClient();
-        }
-    } else {
-        if(WiFi.getMode() != WIFI_OFF) {
-            this->otaShutdown();
-        }
+        this->server->handleClient();
     }
 
     if (initializedCan && availableCanbusMessages()) {
@@ -64,7 +54,7 @@ void CarduinoNode::loop() {
 };
 
 void CarduinoNode::manageReceivedCanbusMessage(CanbusMessage *message) {
-    this->executors->execute(this, message);
+    this->canExecutors->execute(this, message);
 };
 
 void CarduinoNode::sendByteCanbus(uint16_t messageId, int len, uint8_t *buf) {
@@ -83,8 +73,8 @@ void CarduinoNode::otaStartup() {
     IPAddress NMask = IPAddress (255, 255, 255, 0);
     WiFi.softAPConfig(IP, IP, NMask);
     IPAddress myIP = WiFi.softAPIP();
-    Serial.print("AP IP address: ");
-    Serial.println(myIP);
+    //Serial.print("AP IP address: ");
+    //Serial.println(myIP);
 
     /* INITIALIZE ESP2SOTA LIBRARY */
     ESP2SOTA.begin(server);

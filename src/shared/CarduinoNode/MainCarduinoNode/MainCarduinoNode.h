@@ -3,13 +3,21 @@
 #include <TaskSchedulerDeclarations.h>
 #include <Adafruit_AHTX0.h>
 #include <functional>
+#include "shared/enums/Setting.h"
 #include "shared/enums/CanbusMessageType.h"
+#include "shared/enums/TypedEnum.h"
 #include "callbacks/TemperatureCallback.h"
 #include "callbacks/LuminanceCallback.h"
 #include "../CarduinoNode/CarduinoNode.h"
 #include "executors/CarstatusExecutor.h"
 #include "executors/AllMessageExecutor.h"
-#include "../../CategoryToEnums.h"
+#include "executors/WriteSetting.h"
+#include "../../executors/Executors.h"
+
+struct SplittedUsbMessage {
+    bool isValid;
+    String messages[3];
+};
 
 class MainCarduinoNode : public CarduinoNode {
     public:
@@ -18,6 +26,7 @@ class MainCarduinoNode : public CarduinoNode {
         Scheduler *runner;
         Task *temperatureTask;
         Task *luminanceTask;
+        Executors *usbExecutors;
 
         MainCarduinoNode(int cs, int interruptPin, char *ssid,  char *password);
 
@@ -27,4 +36,5 @@ class MainCarduinoNode : public CarduinoNode {
         void manageReceivedUsbMessage(CanbusMessage message);
         void loop();
         void sendSerialMessage(CanbusMessage *message);
+        SplittedUsbMessage* splitReceivedUsbMessage(String message);
 };

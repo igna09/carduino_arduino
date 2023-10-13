@@ -1,25 +1,16 @@
 #pragma once
 
-#include "Enum.h"
+#include "TypedEnum.h"
 #include "CanbusMessageType.h"
 
 #define SETTING_SIZE 2
 
-class Setting : public Enum {
+class Setting : public TypedEnum {
     public:
         static const Setting AUTO_CLOSE_REARVIEW_MIRRORS;
         static const Setting OTA_MODE;
-        
-        CanbusMessageType type;
 
-        Setting(uint8_t id, const char *name, CanbusMessageType type) : Enum(id, name) {
-            this->type = type;
-            
-            Setting::values[Setting::index] = this;
-            Setting::index++;
-        };
-
-        static const Enum* getValueById(uint8_t id) {
+        static const TypedEnum* getValueById(uint8_t id) {
             for(uint8_t i = 0; i < getSize(); i++) {
                 if(Setting::values[i]->id == id) {
                     return Setting::values[i];
@@ -28,7 +19,7 @@ class Setting : public Enum {
             return nullptr;
         }
 
-        static const Enum* getValueByName(char *n) {
+        static const TypedEnum* getValueByName(char *n) {
             for(uint8_t i = 0; i < getSize(); i++) {
                 if(strcmp(Setting::values[i]->name, n) == 0) {
                     return Setting::values[i];
@@ -41,19 +32,23 @@ class Setting : public Enum {
             return Setting::index;
         }
 
-        static const Enum** getValues() {
+        static const TypedEnum** getValues() {
             return Setting::values;
         }
 
     private:
-        static const Enum* values[];
+        static const TypedEnum* values[];
         static uint8_t index;
+
         
-        Setting(uint8_t id, const char *name, const CanbusMessageType *type);
+        
+        Setting(uint8_t id, const char *name, const CanbusMessageType *type) : TypedEnum(id, name, type) {
+            Setting::values[Setting::index] = this;
+            Setting::index++;
+        };
 };
 
-//const Enum* Enum::values [] = {&Category::CAR_STATUS, &Category::READ_SETTINGS};
-inline const Enum* Setting::values [SETTING_SIZE] = { 0 };
+inline const TypedEnum* Setting::values [SETTING_SIZE] = { 0 };
 inline uint8_t Setting::index = 0;
-inline const Setting Setting::AUTO_CLOSE_REARVIEW_MIRRORS = Setting(0x00, "AUTO_CLOSE_REARVIEW_MIRRORS", CanbusMessageType::BOOL);
-inline const Setting Setting::OTA_MODE = Setting(0x01, "OTA_MODE", CanbusMessageType::BOOL);
+inline const Setting Setting::AUTO_CLOSE_REARVIEW_MIRRORS = Setting(0x00, "AUTO_CLOSE_REARVIEW_MIRRORS", &CanbusMessageType::BOOL);
+inline const Setting Setting::OTA_MODE = Setting(0x01, "OTA_MODE", &CanbusMessageType::BOOL);

@@ -1,6 +1,6 @@
 #include "SettingMessage.h"
 
-SettingMessage::SettingMessage(CanbusMessage canbusMessage) : TypedCanbusMessage((CanbusMessageType*)CanbusMessageType::getValueById(canbusMessage.messageId), id, payload, payloadLength) {
+SettingMessage::SettingMessage(CanbusMessage canbusMessage) : TypedCanbusMessage(((Setting*) Setting::getValueById(canbusMessage.messageId))->type, canbusMessage.id, canbusMessage.payload, canbusMessage.payloadLength) {
     this->setting = (Setting*) Setting::getValueById(canbusMessage.messageId);
 };
 

@@ -36,11 +36,17 @@ extern void printFreeHeap(const char label[]);
 
 extern void printUint8Array(const char label[], uint8_t *array, uint8_t size);
 
-extern uint8_t* convertFloatToByteArray(float v);
+extern uint8_t* convertValueToByteArray(float v);
 
-extern uint8_t* convertIntegerToByteArray(int v);
+extern uint8_t* convertValueToByteArray(int v);
 
-extern uint8_t* convertBoolToByteArray(bool v);
+extern uint8_t* convertValueToByteArray(bool v);
+
+extern uint8_t getByteArraySize(float v);
+
+extern uint8_t getByteArraySize(int v);
+
+extern uint8_t getByteArraySize(bool v);
 
 extern void startElapsedTime();
 

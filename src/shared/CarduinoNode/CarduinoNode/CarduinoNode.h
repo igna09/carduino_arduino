@@ -26,8 +26,6 @@
 class Executors; // forward declaration to avoid circular dependency
 class CarduinoNode {
     private:
-        void otaStartup();
-        void otaShutdown();
 
     public:
         MCP_CAN *can;
@@ -36,7 +34,7 @@ class CarduinoNode {
         String password;
         bool otaMode;
         int interruptPin;
-        Executors *executors;
+        Executors *canExecutors;
         bool initializedCan;
 
         CarduinoNode(int cs, int interruptPin, const char *ssid, const char *password);
@@ -46,6 +44,8 @@ class CarduinoNode {
         void sendByteCanbus(uint16_t messageId, int len, uint8_t buf[]);
         void sendCanbusMessage(CanbusMessage *message);
         bool availableCanbusMessages();
+        void otaStartup();
+        void otaShutdown();
 
         static uint16_t generateId(const Category category, const Enum messageEnum);
 };

@@ -77,11 +77,11 @@ void KlineCarduinoNode::readValues() {
 									Serial.print("read ");
 									Serial.println(value);
 									CarstatusMessage *c = nullptr;
-									if(valueToReadEnum->carstatus.type.id == CanbusMessageType::INT.id) {
+									if(valueToReadEnum->carstatus.type->id == CanbusMessageType::INT.id) {
 										c = new CarstatusMessage(&valueToReadEnum->carstatus, int(value));
-									} else if(valueToReadEnum->carstatus.type.id == CanbusMessageType::FLOAT.id) {
+									} else if(valueToReadEnum->carstatus.type->id == CanbusMessageType::FLOAT.id) {
 										c = new CarstatusMessage(&valueToReadEnum->carstatus, value);
-									} else if(valueToReadEnum->carstatus.type.id == CanbusMessageType::BOOL.id) {
+									} else if(valueToReadEnum->carstatus.type->id == CanbusMessageType::BOOL.id) {
 										c = new CarstatusMessage(&valueToReadEnum->carstatus, value == 1);
 									}
 									sendCanbusMessage(c);
