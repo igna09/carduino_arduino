@@ -50,6 +50,42 @@ class ValueToReadEnum : Enum {
             return ValueToReadEnum::values;
         }
 
+        static KlineEcuEnum** getEcusToRead() {
+            KlineEcuEnum **values = new KlineEcuEnum*[VALUE_TO_READ_ENUM_SIZE];
+            uint8_t valuesIndex = 0;
+            for(uint8_t i = 0; i < VALUE_TO_READ_ENUM_SIZE; i++) {
+                bool present = false;
+                for(uint8 j = 0; j < valuesIndex && !present; j++) {
+                    present = values[j]->id == ((ValueToReadEnum*) ValueToReadEnum::getValues()[i])->klineEcuEnum.id;
+                }
+                if(!present) {
+                    values[valuesIndex] = &((ValueToReadEnum*) ValueToReadEnum::getValues()[i])->klineEcuEnum;
+                    valuesIndex++;
+                }
+            }
+
+            return values;
+        }
+
+        static uint8_t getEcusToReadSize() {
+            KlineEcuEnum **values = new KlineEcuEnum*[VALUE_TO_READ_ENUM_SIZE];
+            uint8_t valuesIndex = 0;
+            for(uint8_t i = 0; i < VALUE_TO_READ_ENUM_SIZE; i++) {
+                bool present = false;
+                for(uint8 j = 0; j < valuesIndex && !present; j++) {
+                    present = values[j]->id == ((ValueToReadEnum*) ValueToReadEnum::getValues()[i])->klineEcuEnum.id;
+                }
+                if(!present) {
+                    values[valuesIndex] = &((ValueToReadEnum*) ValueToReadEnum::getValues()[i])->klineEcuEnum;
+                    valuesIndex++;
+                }
+            }
+
+            delete values;
+
+            return valuesIndex;
+        }
+
         static uint8_t getBlockValuesByEcuSize(KlineEcuEnum ecu) {
             return getBlockValuesByEcuSize((ValueToReadEnum**)ValueToReadEnum::values, VALUE_TO_READ_ENUM_SIZE, ecu);
         }
@@ -81,7 +117,7 @@ class ValueToReadEnum : Enum {
         static uint8_t* getBlockValuesByEcu(ValueToReadEnum** src, uint8_t srcSize, KlineEcuEnum ecu) {
             uint8_t sizeByEcu = getBlockValuesByEcuSize(ecu);
             uint8_t counter = 0;
-            uint8_t* arrayValues = new uint8_t[sizeByEcu];
+            uint8_t *arrayValues = new uint8_t[sizeByEcu];
 
             for(uint8_t i = 0; i < srcSize; i++) {
                 ValueToReadEnum *v = src[i];

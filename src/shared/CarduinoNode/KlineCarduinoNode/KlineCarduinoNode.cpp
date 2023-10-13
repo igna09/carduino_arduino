@@ -23,6 +23,7 @@ KlineCarduinoNode::KlineCarduinoNode(uint8_t pin_rx, uint8_t pin_tx, int cs, int
 	};
 	
     this->kLine = new KLineKWP1281Lib(beginFunction, endFunction, sendFunction, receiveFunction, pin_tx, true);
+	this->lastConnectedEcu = nullptr;
 
 	this->scheduler = new Scheduler();
 
@@ -33,15 +34,19 @@ KlineCarduinoNode::KlineCarduinoNode(uint8_t pin_rx, uint8_t pin_tx, int cs, int
 
 void KlineCarduinoNode::readValues() {
 	if(!this->otaMode) {
-		for(uint8_t ecuIndex = 0; ecuIndex < KlineEcuEnum::getSize(); ecuIndex++) { // iterate over all ECUs declared in KlineEcuEnum.h
-			KlineEcuEnum *klineEcuEnum = (KlineEcuEnum*) KlineEcuEnum::getValues()[ecuIndex];
-			// ValueToReadEnum** valuesToReadEnumByEcu = ValueToReadEnum::getValuesByEcu(*klineEcuEnum);
-			// uint8_t ecuSize = ValueToReadEnum::getSizeByEcu(*klineEcuEnum);
+		uint8_t ecusToReadSize = ValueToReadEnum::getEcusToReadSize();
+		KlineEcuEnum **ecusToRead = ValueToReadEnum::getEcusToRead();
+
+		for(uint8_t ecuIndex = 0; ecuIndex < ecusToReadSize; ecuIndex++) { // iterate over all ECUs used in ValueToReadEnum.h
+			KlineEcuEnum *klineEcuEnum = ecusToRead[ecuIndex];
 			uint8_t blockValuesByEcuSize = ValueToReadEnum::getBlockValuesByEcuSize(*klineEcuEnum);
 			if(blockValuesByEcuSize > 0) {
 				uint8_t* blockValuesByEcu = ValueToReadEnum::getBlockValuesByEcu(*klineEcuEnum);
-					
-				kLine->connect(klineEcuEnum->address, klineEcuEnum->baud); // connect here to avoid connection to ecus that won't read any value
+
+				if(lastConnectedEcu == nullptr || (lastConnectedEcu != nullptr && lastConnectedEcu->id != klineEcuEnum->id)) {
+					kLine->connect(klineEcuEnum->address, klineEcuEnum->baud); // connect here to avoid connection to ecus that won't read any value
+					lastConnectedEcu = klineEcuEnum;
+				}
 
 				for(uint8_t blockValuesByEcuIndex = 0; blockValuesByEcuIndex < blockValuesByEcuSize; blockValuesByEcuIndex++) {
 					uint8_t block = blockValuesByEcu[blockValuesByEcuIndex];
@@ -112,6 +117,8 @@ void KlineCarduinoNode::readValues() {
 				delete[] blockValuesByEcu;
 			}
 		}
+		
+		delete ecusToRead;
 	}
 };
 
