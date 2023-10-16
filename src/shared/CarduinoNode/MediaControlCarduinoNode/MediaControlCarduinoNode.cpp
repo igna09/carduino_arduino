@@ -22,4 +22,5 @@ void MediaControlCarduinoNode::sendMediaControlMessage(const MediaControl *media
 
 void MediaControlCarduinoNode::loop () {
 	CarduinoNode::loop();
+	versatileEncoder->ReadEncoder();
 };

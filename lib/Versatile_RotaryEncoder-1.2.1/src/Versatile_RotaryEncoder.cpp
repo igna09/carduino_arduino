@@ -19,8 +19,8 @@ Versatile_RotaryEncoder::Versatile_RotaryEncoder(uint8_t clk, uint8_t dt, uint8_
     pin_sw = sw;
 
     // Set encoder pins as inputs
-    pinMode(pin_clk, INPUT);
-    pinMode(pin_dt, INPUT);
+    pinMode(pin_clk, INPUT_PULLUP);
+    pinMode(pin_dt, INPUT_PULLUP);
     pinMode(pin_sw, INPUT_PULLUP);
 }
 

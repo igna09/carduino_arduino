@@ -1,27 +1,29 @@
 #include <Arduino.h>
-#include "shared/CarduinoNode/KlineCarduinoNode/ValueToReadEnum.h"
-#include "shared/utils.h"
+#include "Versatile_RotaryEncoder.h"
+
+Versatile_RotaryEncoder *versatileEncoder;
 
 void setup()
 {
   Serial.begin(115200);
+
+  versatileEncoder = new Versatile_RotaryEncoder(D1, D2, RX);
+
+  versatileEncoder->setHandleRotate([](uint8_t rotation){
+		if(rotation == 255) { // clockwise
+			Serial.println("vol up");
+		} else if (rotation == 1) { //counter clockwise
+			Serial.println("vol down");
+		}
+	});
+	versatileEncoder->setHandlePressRelease([](){
+			Serial.println("play pause");
+	});
 }
 
 void loop()
 {
-  printFreeHeap("test::loop");
-
-  uint8_t ecusToReadSize = ValueToReadEnum::getEcusToReadSize();
-  Serial.println(ecusToReadSize);
-
-  KlineEcuEnum **ecusToRead = ValueToReadEnum::getEcusToRead();
-  for(uint8_t i = 0; i < ecusToReadSize; i++) {
-    Serial.println(ecusToRead[i]->name);
-  }
-
-  delete ecusToRead;
-
-  delay(1000);
+  versatileEncoder->ReadEncoder();
 }
 
 /*********************************************************************************************************
