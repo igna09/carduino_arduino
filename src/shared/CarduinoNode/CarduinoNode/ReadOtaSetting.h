@@ -8,21 +8,12 @@
 #include "shared/CanbusMessage/SettingMessage/SettingMessage.h"
 #include "shared/enums/Category.h"
 
-class WriteOtaSetting : public CarduinoNodeExecutorInterface {
+class ReadOtaSetting : public CarduinoNodeExecutorInterface {
     public:
-        WriteOtaSetting() : CarduinoNodeExecutorInterface(&Category::READ_SETTINGS) {};
+        ReadOtaSetting() : CarduinoNodeExecutorInterface(&Category::READ_SETTINGS) {};
 
         void execute(CarduinoNode *node, CanbusMessage *message) {
-            SettingMessage *settingMessage = new SettingMessage(*message);
-            
-            if(settingMessage->setting->id == Setting::OTA_MODE.id) {
-                if(settingMessage->getBoolValue()) {
-                    node->otaStartup();
-                } else {
-                    node->otaShutdown();
-                }
-            }
-
-            delete settingMessage;
+            TypedCanbusMessage typedCanbusMessage = TypedCanbusMessage(node->generateId(Category::READ_SETTINGS, Setting::OTA_MODE), node->otaMode);
+            node->sendCanbusMessage(typedCanbusMessage);
         };
 };
