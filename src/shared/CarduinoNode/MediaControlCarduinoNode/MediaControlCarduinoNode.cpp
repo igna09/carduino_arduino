@@ -13,6 +13,9 @@ MediaControlCarduinoNode::MediaControlCarduinoNode(uint8_t clk, uint8_t dt, uint
 	versatileEncoder->setHandlePressRelease([this](){
 		this->sendMediaControlMessage(&MediaControl::PLAY_PAUSE);
 	});
+	versatileEncoder->setHandleLongPressRelease([this](){
+		this->sendMediaControlMessage(&MediaControl::NEXT);
+	});
 };
 
 void MediaControlCarduinoNode::sendMediaControlMessage(const MediaControl *mediaControl) {
