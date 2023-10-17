@@ -40,9 +40,12 @@ class Versatile_RotaryEncoder {
         uint8_t read_interval_duration = 1; // by default reads the encoder each 1ms
         uint8_t short_press_duration = 50; // debounce duration to avoid noise triggering
         uint16_t long_press_duration = 1000;
+        uint8_t double_press_duration = 125; // max interval between double presses
         uint32_t last_encoder_read = 0;
         uint32_t last_switch;
         uint32_t last_switchdown;
+        uint32_t last_switchup;
+        bool check_double_press = false;
         
         Rotary rotary = stopped;
         Button button = released;
@@ -57,6 +60,8 @@ class Versatile_RotaryEncoder {
         functionHandleButton handleLongPressRelease = nullptr;
         functionHandleButton handlePressRotateRelease = nullptr;
         functionHandleButton handleHeldRotateRelease = nullptr;
+        functionHandleButton handleDoublePressRelease = nullptr;
+
     public:
         Versatile_RotaryEncoder(uint8_t clk, uint8_t dt, uint8_t sw);
         bool ReadEncoder();
@@ -78,6 +83,7 @@ class Versatile_RotaryEncoder {
         void setHandleLongPressRelease(functionHandleButton function_handler);
         void setHandlePressRotateRelease(functionHandleButton function_handler);
         void setHandleHeldRotateRelease(functionHandleButton function_handler);
+        void setHandleDoublePressRelease(functionHandleButton function_handler);
 };
 
 #endif // VERSATILE_ROTARYENCODER_H_INCLUDED

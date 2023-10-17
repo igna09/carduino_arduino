@@ -13,7 +13,6 @@
 #include "Versatile_RotaryEncoder.h"
 
 Versatile_RotaryEncoder::Versatile_RotaryEncoder(uint8_t clk, uint8_t dt, uint8_t sw) {
-    
     pin_clk = clk;
     pin_dt = dt;
     pin_sw = sw;
@@ -96,6 +95,7 @@ bool Versatile_RotaryEncoder::ReadEncoder() {
                     button = holdup;
                 else
                     button = switchup;
+                    last_switchup = millis();
                 break;
             case 0b110:
                 buttonBits = 0b100;
@@ -147,9 +147,14 @@ bool Versatile_RotaryEncoder::ReadEncoder() {
             switch (button) {
                 case switchup:
                     encoder = release;
-                    if (handlePressRelease != nullptr) {
-                        handlePressRelease();
-                        handled_functions = true;
+                    if(check_double_press && millis() <= (last_switchup + double_press_duration)) {
+                        check_double_press = false;
+                        if (handleDoublePressRelease != nullptr) {
+                            handleDoublePressRelease();
+                            handled_functions = true;
+                        }
+                    } else {
+                        check_double_press = true;
                     }
                     break;
                 case holddown:
@@ -203,6 +208,15 @@ bool Versatile_RotaryEncoder::ReadEncoder() {
                     // do nothing
                     break;
             }
+        }
+    }
+
+    if (check_double_press && millis() > (last_switchup + double_press_duration)) {
+        check_double_press = false;
+        
+        if (handlePressRelease != nullptr) {
+            handlePressRelease();
+            handled_functions = true;
         }
     }
 
@@ -281,4 +295,8 @@ void Versatile_RotaryEncoder::setHandlePressRotateRelease(functionHandleButton f
 
 void Versatile_RotaryEncoder::setHandleHeldRotateRelease(functionHandleButton function_handler) {
     handleHeldRotateRelease = function_handler;
+}
+
+void Versatile_RotaryEncoder::setHandleDoublePressRelease(functionHandleButton function_handler) {
+    handleDoublePressRelease = function_handler;
 }
