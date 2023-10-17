@@ -10,7 +10,7 @@
 
 class WriteOtaSetting : public CarduinoNodeExecutorInterface {
     public:
-        WriteOtaSetting() : CarduinoNodeExecutorInterface(&Category::WRITE_SETTING) {};
+        WriteOtaSetting() : CarduinoNodeExecutorInterface(&Category::READ_SETTINGS) {};
 
         void execute(CarduinoNode *node, CanbusMessage *message) {
             SettingMessage *settingMessage = new SettingMessage(*message);
