@@ -91,11 +91,14 @@ bool Versatile_RotaryEncoder::ReadEncoder() {
                 break;
             case 0b001:
                 buttonBits = 0b011;
-                if (button == held || button == holddown)
+                if (button == held || button == holddown) {
                     button = holdup;
-                else
+                } else {
                     button = switchup;
-                    last_switchup = millis();
+                    if(!check_double_press) {
+                        last_switchup = millis();
+                    }
+                }
                 break;
             case 0b110:
                 buttonBits = 0b100;
@@ -147,7 +150,7 @@ bool Versatile_RotaryEncoder::ReadEncoder() {
             switch (button) {
                 case switchup:
                     encoder = release;
-                    if(check_double_press && millis() <= (last_switchup + double_press_duration)) {
+                    if(check_double_press && (millis() - last_switchup < double_press_duration)) {
                         check_double_press = false;
                         if (handleDoublePressRelease != nullptr) {
                             handleDoublePressRelease();
@@ -211,7 +214,7 @@ bool Versatile_RotaryEncoder::ReadEncoder() {
         }
     }
 
-    if (check_double_press && millis() > (last_switchup + double_press_duration)) {
+    if (check_double_press && (millis() - last_switchup > (uint32_t)double_press_duration)) {
         check_double_press = false;
         
         if (handlePressRelease != nullptr) {
@@ -237,6 +240,10 @@ void Versatile_RotaryEncoder::setShortPressDuration (uint8_t duration) {
 
 void Versatile_RotaryEncoder::setLongPressDuration (uint16_t duration) {
     long_press_duration = duration;
+}
+
+void Versatile_RotaryEncoder::setDoublePressDuration (uint16_t duration) {
+    double_press_duration = duration;
 }
 
 Versatile_RotaryEncoder::Rotary Versatile_RotaryEncoder::getRotary () {

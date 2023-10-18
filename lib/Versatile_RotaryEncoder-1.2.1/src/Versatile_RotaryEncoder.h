@@ -13,6 +13,8 @@
 #ifndef VERSATILE_ROTARYENCODER_H_INCLUDED
 #define VERSATILE_ROTARYENCODER_H_INCLUDED
 
+#define USE_STD_FUNCTION
+
 #include <Arduino.h>
 
 class Versatile_RotaryEncoder {
@@ -20,12 +22,12 @@ class Versatile_RotaryEncoder {
         enum Encoder : uint8_t {inactive, release, press, hold, rotate, pressrotate, heldrotate};
         enum Button : uint8_t {released, holdup, switchup, switchdown, pressed, holddown, held};
         enum Rotary : int8_t {left = -1, stopped, right}; // Don't change these values, other functions are dependent on them
-        #ifndef USE_STD_FUNCTION
-        using functionHandleRotary = void (*)(int8_t rotation);
-        using functionHandleButton = void (*)();
-        #else
+        #if defined(USE_STD_FUNCTION)
         using functionHandleRotary = std::function<void(int8_t)>;
         using functionHandleButton = std::function<void()>;
+        #else
+        using functionHandleRotary = void (*)(int8_t rotation);
+        using functionHandleButton = void (*)();
         #endif
     private:
         uint8_t pin_clk = 0;
@@ -40,7 +42,7 @@ class Versatile_RotaryEncoder {
         uint8_t read_interval_duration = 1; // by default reads the encoder each 1ms
         uint8_t short_press_duration = 50; // debounce duration to avoid noise triggering
         uint16_t long_press_duration = 1000;
-        uint8_t double_press_duration = 125; // max interval between double presses
+        uint16_t double_press_duration = 250; // max interval between double presses
         uint32_t last_encoder_read = 0;
         uint32_t last_switch;
         uint32_t last_switchdown;
@@ -69,6 +71,7 @@ class Versatile_RotaryEncoder {
         void setReadIntervalDuration(uint8_t duration);
         void setShortPressDuration(uint8_t duration);
         void setLongPressDuration(uint16_t duration);
+        void setDoublePressDuration(uint16_t duration);
         Rotary getRotary();
         Button getButton();
         Encoder getEncoder();
