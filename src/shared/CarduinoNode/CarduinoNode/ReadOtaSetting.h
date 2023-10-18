@@ -14,6 +14,6 @@ class ReadOtaSetting : public CarduinoNodeExecutorInterface {
 
         void execute(CarduinoNode *node, CanbusMessage *message) {
             TypedCanbusMessage typedCanbusMessage = TypedCanbusMessage(node->generateId(Category::READ_SETTINGS, Setting::OTA_MODE), node->otaMode);
-            node->sendCanbusMessage(typedCanbusMessage);
+            node->sendCanbusMessage(&typedCanbusMessage);
         };
 };

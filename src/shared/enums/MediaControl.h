@@ -9,6 +9,7 @@ class MediaControl : public Enum {
         static const MediaControl VOLUME_UP;
         static const MediaControl VOLUME_DOWN;
         static const MediaControl PLAY_PAUSE;
+        static const MediaControl NEXT;
 
         MediaControl() : Enum() {};
 

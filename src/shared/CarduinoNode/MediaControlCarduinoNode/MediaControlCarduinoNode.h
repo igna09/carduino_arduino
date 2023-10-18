@@ -1,7 +1,5 @@
 #pragma once
 
-#define USE_STD_FUNCTION
-
 #include <Arduino.h>
 #include "shared/CarduinoNode/CarduinoNode/CarduinoNode.h"
 #include "Versatile_RotaryEncoder.h"
