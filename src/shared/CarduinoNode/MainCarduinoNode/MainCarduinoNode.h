@@ -12,7 +12,8 @@
 #include "executors/CarstatusExecutor.h"
 #include "executors/AllMessageExecutor.h"
 #include "executors/WriteSetting.h"
-#include "../../executors/Executors.h"
+#include "executors/MediaControlExecutor.h"
+#include "shared/executors/Executors.h"
 
 struct SplittedUsbMessage {
     bool isValid;

@@ -1,6 +1,6 @@
 #include "MediaControlMessage.h"
 
-MediaControlMessage::MediaControlMessage(const MediaControl *mediaControl) : TypedCanbusMessage(((MediaControl*) mediaControl)->getMessageId(), 0) {
+MediaControlMessage::MediaControlMessage(const MediaControl *mediaControl) : TypedCanbusMessage(CarduinoNode::generateId(Category::MEDIA_CONTROL, *mediaControl), 0) {
     this->mediaControl = mediaControl;
 };
 

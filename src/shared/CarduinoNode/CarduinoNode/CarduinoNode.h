@@ -4,7 +4,7 @@
 
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
-#include "ESP2SOTA.h"
+#include <ESP8266HTTPUpdateServer.h>
 
 #include "mcp_can.h"
 #include <SPI.h>
@@ -37,6 +37,7 @@ class CarduinoNode {
         int interruptPin;
         Executors *canExecutors;
         bool initializedCan;
+        ESP8266HTTPUpdateServer *httpUpdater;
 
         CarduinoNode(int cs, int interruptPin, const char *ssid, const char *password);
 

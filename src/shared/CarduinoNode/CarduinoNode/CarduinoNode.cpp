@@ -8,6 +8,7 @@ CarduinoNode::CarduinoNode(int cs, int interruptPin, const char *ssid, const cha
     this->ssid = ssid;
     this->password = password;
     this->interruptPin = interruptPin;
+    this->httpUpdater = new ESP8266HTTPUpdateServer();
 
     // Initialize MCP2515 running at 16MHz with a baudrate of 500kb/s and the masks and filters disabled.
     if(can->begin(MCP_ANY, CAN_500KBPS, MCP_8MHZ) == CAN_OK) {
@@ -70,23 +71,24 @@ void CarduinoNode::sendByteCanbus(uint16_t messageId, int len, uint8_t *buf) {
 
 void CarduinoNode::otaStartup() {
     WiFi.softAP(this->ssid, this->password);
-    delay(250);
-    IPAddress IP = IPAddress (10, 10, 10, 1);
+    delay(150);
+    IPAddress IP = IPAddress (10, 10, 10, 10);
     IPAddress NMask = IPAddress (255, 255, 255, 0);
     WiFi.softAPConfig(IP, IP, NMask);
-    IPAddress myIP = WiFi.softAPIP();
-    //Serial.print("AP IP address: ");
-    //Serial.println(myIP);
 
-    /* INITIALIZE ESP2SOTA LIBRARY */
-    ESP2SOTA.begin(server);
+    httpUpdater->setup(this->server);
     this->server->begin();
+
+    this->otaMode = true;
 };
 
 void CarduinoNode::otaShutdown() {
     this->server->stop();
+
     WiFi.softAPdisconnect(true);
     WiFi.mode(WIFI_OFF);
+
+    this->otaMode = false;
 };
 
 uint16_t CarduinoNode::generateId(const Category category, const Enum messageEnum) {

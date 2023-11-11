@@ -7,6 +7,7 @@
 #include "../../../executors/CarduinoNodeExecutorInterface.h"
 #include "../../../CanbusMessage/CarstatusMessage/CarstatusMessage.h"
 #include "../../../enums/Category.h"
+#include "../../../enums/Setting.h"
 
 class CarstatusExecutor : public CarduinoNodeExecutorInterface {
     public:

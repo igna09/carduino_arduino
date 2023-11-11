@@ -14,6 +14,7 @@ MainCarduinoNode::MainCarduinoNode(int cs, int interruptPin, char *ssid, char *p
     this->scheduler->startNow();
 
     this->canExecutors->addExecutor(new CarstatusExecutor());
+    this->canExecutors->addExecutor(new MediaControlExecutor());
     // this->canExecutors->addExecutor(new AllMessageExecutor());
     // this->canExecutors->addExecutor(new WriteSettingExecutor());
 
