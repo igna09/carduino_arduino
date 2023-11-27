@@ -80,8 +80,10 @@ void KlineCarduinoNode::readValues() {
 									//Value and units
 									case KLineKWP1281Lib::VALUE: {
 										float value = KLineKWP1281Lib::getMeasurementValue(valueToReadEnum->groupIndex, amount_of_measurements, measurements, sizeof(measurements));
+										
 										Serial.print("read ");
 										Serial.println(value);
+
 										CarstatusMessage *c = nullptr;
 										if(valueToReadEnum->carstatus.type->id == CanbusMessageType::INT.id) {
 											c = new CarstatusMessage(&valueToReadEnum->carstatus, int(value));
@@ -92,6 +94,18 @@ void KlineCarduinoNode::readValues() {
 										}
 										sendCanbusMessage(c);
 										delete c;
+
+										for(uint8_t i = 0; i < KLINE_READ_VALUE_SIZE; i++) {
+											if(strcmp(KlineValueRead::values[i]->name, valueToReadEnum->name) == 0) {
+												if(KlineValueRead::values[i]->valueToReadEnum->carstatus.type->id == CanbusMessageType::INT.id) {
+													KlineValueRead::values[i]->value.intValue = int(value);
+												} else if(KlineValueRead::values[i]->valueToReadEnum->carstatus.type->id == CanbusMessageType::FLOAT.id) {
+													KlineValueRead::values[i]->value.floatValue = value;
+												} else if(KlineValueRead::values[i]->valueToReadEnum->carstatus.type->id == CanbusMessageType::BOOL.id) {
+													KlineValueRead::values[i]->value.boolValue = value == 1;
+												}
+											}
+										}
 										break;
 									}
 									
@@ -115,6 +129,10 @@ void KlineCarduinoNode::readValues() {
 					delete[] valuesByEcuBlock;
 				}
 				delete[] blockValuesByEcu;
+
+				CarstatusMessage *c = new CarstatusMessage(&ValueToReadEnum::FUEL_CONSUMPTION.carstatus, KlineValueRead::SPEED->intValue * KlineValueRead::FUEL_CONSUMPTION->floatValue);
+				sendCanbusMessage(c);
+				delete c;
 			}
 		}
 		
