@@ -130,7 +130,7 @@ void KlineCarduinoNode::readValues() {
 				}
 				delete[] blockValuesByEcu;
 
-				CarstatusMessage *c = new CarstatusMessage(&ValueToReadEnum::FUEL_CONSUMPTION.carstatus, KlineValueRead::SPEED->intValue * KlineValueRead::FUEL_CONSUMPTION->floatValue);
+				CarstatusMessage *c = new CarstatusMessage(&ValueToReadEnum::FUEL_CONSUMPTION.carstatus, KlineValueRead::SPEED->intValue / KlineValueRead::FUEL_CONSUMPTION->floatValue);
 				sendCanbusMessage(c);
 				delete c;
 			}
