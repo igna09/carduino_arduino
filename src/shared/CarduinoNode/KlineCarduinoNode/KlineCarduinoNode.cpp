@@ -84,28 +84,39 @@ void KlineCarduinoNode::readValues() {
 										Serial.print("read ");
 										Serial.println(value);
 
-										CarstatusMessage *c = nullptr;
-										if(valueToReadEnum->carstatus.type->id == CanbusMessageType::INT.id) {
-											c = new CarstatusMessage(&valueToReadEnum->carstatus, int(value));
-										} else if(valueToReadEnum->carstatus.type->id == CanbusMessageType::FLOAT.id) {
-											c = new CarstatusMessage(&valueToReadEnum->carstatus, value);
-										} else if(valueToReadEnum->carstatus.type->id == CanbusMessageType::BOOL.id) {
-											c = new CarstatusMessage(&valueToReadEnum->carstatus, value == 1);
-										}
-										sendCanbusMessage(c);
-										delete c;
-
-										for(uint8_t i = 0; i < KLINE_READ_VALUE_SIZE; i++) {
-											if(strcmp(KlineValueRead::values[i]->name, valueToReadEnum->name) == 0) {
-												if(KlineValueRead::values[i]->valueToReadEnum->carstatus.type->id == CanbusMessageType::INT.id) {
-													KlineValueRead::values[i]->value.intValue = int(value);
-												} else if(KlineValueRead::values[i]->valueToReadEnum->carstatus.type->id == CanbusMessageType::FLOAT.id) {
-													KlineValueRead::values[i]->value.floatValue = value;
-												} else if(KlineValueRead::values[i]->valueToReadEnum->carstatus.type->id == CanbusMessageType::BOOL.id) {
-													KlineValueRead::values[i]->value.boolValue = value == 1;
-												}
+										if(valueToReadEnum->send) {
+											CarstatusMessage *c = nullptr;
+											if(valueToReadEnum->carstatus.type->id == CanbusMessageType::INT.id) {
+												c = new CarstatusMessage(&valueToReadEnum->carstatus, int(value));
+											} else if(valueToReadEnum->carstatus.type->id == CanbusMessageType::FLOAT.id) {
+												c = new CarstatusMessage(&valueToReadEnum->carstatus, value);
+											} else if(valueToReadEnum->carstatus.type->id == CanbusMessageType::BOOL.id) {
+												c = new CarstatusMessage(&valueToReadEnum->carstatus, value == 1);
 											}
+											sendCanbusMessage(c);
+											delete c;
 										}
+
+										if(valueToReadEnum->carstatus.type->id == CanbusMessageType::INT.id) {
+											valueToReadEnum->lastReadValue.intValue = int(value);
+										} else if(valueToReadEnum->carstatus.type->id == CanbusMessageType::FLOAT.id) {
+											valueToReadEnum->lastReadValue.floatValue = value;
+										} else if(valueToReadEnum->carstatus.type->id == CanbusMessageType::BOOL.id) {
+											valueToReadEnum->lastReadValue.boolValue = value == 1;
+										}
+
+										// for(uint8_t i = 0; i < KLINE_READ_VALUE_SIZE; i++) {
+										// 	KlineValueToKeep *klineValueToKeep = (KlineValueToKeep*) KlineValueToKeep::getValues()[i];
+										// 	if(strcmp(klineValueToKeep->name, valueToReadEnum->name) == 0) {
+										// 		if(klineValueToKeep->valueToReadEnum.carstatus.type->id == CanbusMessageType::INT.id) {
+										// 			klineValueToKeep->value.intValue = int(value);
+										// 		} else if(klineValueToKeep->valueToReadEnum.carstatus.type->id == CanbusMessageType::FLOAT.id) {
+										// 			klineValueToKeep->value.floatValue = value;
+										// 		} else if(klineValueToKeep->valueToReadEnum.carstatus.type->id == CanbusMessageType::BOOL.id) {
+										// 			klineValueToKeep->value.boolValue = value == 1;
+										// 		}
+										// 	}
+										// }
 										break;
 									}
 									
@@ -130,7 +141,7 @@ void KlineCarduinoNode::readValues() {
 				}
 				delete[] blockValuesByEcu;
 
-				CarstatusMessage *c = new CarstatusMessage(&ValueToReadEnum::FUEL_CONSUMPTION.carstatus, KlineValueRead::SPEED->intValue / KlineValueRead::FUEL_CONSUMPTION->floatValue);
+				CarstatusMessage *c = new CarstatusMessage(&Carstatus::FUEL_CONSUMPTION, ValueToReadEnum::SPEED.lastReadValue.intValue / ValueToReadEnum::FUEL_CONSUMPTION.lastReadValue.floatValue);
 				sendCanbusMessage(c);
 				delete c;
 			}

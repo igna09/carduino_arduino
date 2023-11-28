@@ -2,13 +2,7 @@
 
 #include <Arduino.h>
 #include "../../enums/CanbusMessageType.h"
-
-union ValueType
-{
-    int intValue;
-    float floatValue;
-    bool boolValue;
-};
+#include "../../SharedDefinitions.h"
 
 class ValueTypedBase
 {

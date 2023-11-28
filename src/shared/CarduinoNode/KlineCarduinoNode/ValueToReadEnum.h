@@ -4,10 +4,13 @@
 #include "../../enums/Enum.h"
 #include "../../enums/Carstatus.h"
 #include "KlineEcuEnum.h"
+#include "../../SharedDefinitions.h"
 
-#define VALUE_TO_READ_ENUM_SIZE 6
+#define VALUE_TO_READ_ENUM_SIZE 7
 
-class ValueToReadEnum : Enum {
+union ValueType;
+
+class ValueToReadEnum : public Enum {
     public:
         static const ValueToReadEnum INJECTED_QUANTITY;
         static const ValueToReadEnum ENGINE_RPM;
@@ -21,6 +24,8 @@ class ValueToReadEnum : Enum {
         uint8_t group;
         uint8_t groupIndex;
         Carstatus carstatus;
+        bool send;
+        ValueType lastReadValue;
         
         ValueToReadEnum() : Enum() {};
 
@@ -188,11 +193,12 @@ class ValueToReadEnum : Enum {
         static const Enum* values[];
         static uint8_t index;
 
-        ValueToReadEnum(uint8_t id, const char *name, KlineEcuEnum ecu, uint8_t group, uint8_t groupIndex, Carstatus carstatus) : Enum(id, name) {
+        ValueToReadEnum(uint8_t id, const char *name, KlineEcuEnum ecu, uint8_t group, uint8_t groupIndex, Carstatus carstatus, bool send) : Enum(id, name) {
             this->klineEcuEnum = ecu;
             this->group = group;
             this->groupIndex = groupIndex;
             this->carstatus = carstatus;
+            this->send = send;
             
             ValueToReadEnum::values[ValueToReadEnum::index] = this;
             ValueToReadEnum::index++;
@@ -201,11 +207,11 @@ class ValueToReadEnum : Enum {
 
 inline const Enum* ValueToReadEnum::values[VALUE_TO_READ_ENUM_SIZE] = { 0 };
 inline uint8_t ValueToReadEnum::index = 0;
-inline const ValueToReadEnum ValueToReadEnum::INJECTED_QUANTITY = ValueToReadEnum(0x00, "INJECTED_QUANTITY", KlineEcuEnum::ENGINE, 15, 1, Carstatus::INJECTED_QUANTITY);
-inline const ValueToReadEnum ValueToReadEnum::ENGINE_RPM = ValueToReadEnum(0x01, "ENGINE_RPM", KlineEcuEnum::ENGINE, 1, 0, Carstatus::ENGINE_RPM);
-inline const ValueToReadEnum ValueToReadEnum::ENGINE_WATER_COOLING_TEMPERATURE = ValueToReadEnum(0x02, "ENGINE_WATER_COOLING_TEMPERATURE", KlineEcuEnum::ENGINE, 2, 3, Carstatus::ENGINE_WATER_COOLING_TEMPERATURE);
-inline const ValueToReadEnum ValueToReadEnum::SPEED = ValueToReadEnum(0x03, "SPEED", KlineEcuEnum::ENGINE, 6, 0, Carstatus::SPEED);
+inline const ValueToReadEnum ValueToReadEnum::INJECTED_QUANTITY = ValueToReadEnum(0x00, "INJECTED_QUANTITY", KlineEcuEnum::ENGINE, 15, 1, Carstatus::INJECTED_QUANTITY, true);
+inline const ValueToReadEnum ValueToReadEnum::ENGINE_RPM = ValueToReadEnum(0x01, "ENGINE_RPM", KlineEcuEnum::ENGINE, 1, 0, Carstatus::ENGINE_RPM, true);
+inline const ValueToReadEnum ValueToReadEnum::ENGINE_WATER_COOLING_TEMPERATURE = ValueToReadEnum(0x02, "ENGINE_WATER_COOLING_TEMPERATURE", KlineEcuEnum::ENGINE, 2, 3, Carstatus::ENGINE_WATER_COOLING_TEMPERATURE, true);
+inline const ValueToReadEnum ValueToReadEnum::SPEED = ValueToReadEnum(0x03, "SPEED", KlineEcuEnum::ENGINE, 6, 0, Carstatus::SPEED, true);
 //inline const ValueToReadEnum ValueToReadEnum::AMBIENT_TEMPERATURE = ValueToReadEnum(0x04, "AMBIENT_TEMPERATURE", KlineEcuEnum::ENGINE, 7, 0, Carstatus::EXTERNAL_TEMPERATURE); // fuel temp
-inline const ValueToReadEnum ValueToReadEnum::AMBIENT_TEMPERATURE = ValueToReadEnum(0x04, "AMBIENT_TEMPERATURE", KlineEcuEnum::ENGINE, 7, 2, Carstatus::EXTERNAL_TEMPERATURE); // intake temp
-inline const ValueToReadEnum ValueToReadEnum::INTAKE_PRESSURE = ValueToReadEnum(0x05, "INTAKE_PRESSURE", KlineEcuEnum::ENGINE, 11, 2, Carstatus::ENGINE_INTAKE_MANIFOLD_PRESSURE);
-//inline const ValueToReadEnum ValueToReadEnum::FUEL_CONSUMPTION = ValueToReadEnum(0x06, "FUEL_CONSUMPTION", KlineEcuEnum::ENGINE, 15, 2, Carstatus::FUEL_CONSUMPTION);
+inline const ValueToReadEnum ValueToReadEnum::AMBIENT_TEMPERATURE = ValueToReadEnum(0x04, "AMBIENT_TEMPERATURE", KlineEcuEnum::ENGINE, 7, 2, Carstatus::EXTERNAL_TEMPERATURE, true); // intake temp
+inline const ValueToReadEnum ValueToReadEnum::INTAKE_PRESSURE = ValueToReadEnum(0x05, "INTAKE_PRESSURE", KlineEcuEnum::ENGINE, 11, 2, Carstatus::ENGINE_INTAKE_MANIFOLD_PRESSURE, true);
+inline const ValueToReadEnum ValueToReadEnum::FUEL_CONSUMPTION = ValueToReadEnum(0x06, "FUEL_CONSUMPTION", KlineEcuEnum::ENGINE, 15, 2, Carstatus::FUEL_CONSUMPTION, false);
