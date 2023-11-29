@@ -2,19 +2,15 @@
 
 #include <Arduino.h>
 #include "shared/CanbusMessage/CanbusMessage.h"
-#include "CarduinoNode.h"
+#include "shared/CarduinoNode/CarduinoNode/CarduinoNode.h"
 #include "shared/executors/CarduinoNodeExecutorInterface.h"
 #include "shared/enums/Setting.h"
 #include "shared/CanbusMessage/SettingMessage/SettingMessage.h"
 #include "shared/enums/Category.h"
 
-/**
- * TODO: move this executor to MainCarduinoNode
-*/
-
-class ReadOtaSetting : public CarduinoNodeExecutorInterface {
+class ReadSettingExecutor : public CarduinoNodeExecutorInterface {
     public:
-        ReadOtaSetting() : CarduinoNodeExecutorInterface(&Category::READ_SETTINGS) {};
+        ReadSettingExecutor() : CarduinoNodeExecutorInterface(&Category::READ_SETTINGS) {};
 
         void execute(CarduinoNode *node, CanbusMessage *message) {
             TypedCanbusMessage typedCanbusMessage = TypedCanbusMessage(node->generateId(Category::READ_SETTINGS, Setting::OTA_MODE), node->otaMode);
