@@ -8,6 +8,10 @@
 #include "shared/CanbusMessage/SettingMessage/SettingMessage.h"
 #include "shared/enums/Category.h"
 
+/**
+ * TODO: move this executor to MainCarduinoNode
+*/
+
 class ReadOtaSetting : public CarduinoNodeExecutorInterface {
     public:
         ReadOtaSetting() : CarduinoNodeExecutorInterface(&Category::READ_SETTINGS) {};
