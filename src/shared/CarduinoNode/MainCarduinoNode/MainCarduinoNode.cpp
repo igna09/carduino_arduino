@@ -89,6 +89,7 @@ void MainCarduinoNode::manageReceivedUsbMessage(CanbusMessage message) {
 
 void MainCarduinoNode::sendSerialMessage(CanbusMessage *message) {
     Serial.println(message->toSerialString());
+    Serial.flush();
 }
 
 SplittedUsbMessage* MainCarduinoNode::splitReceivedUsbMessage(String message) {
