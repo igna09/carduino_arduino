@@ -6,7 +6,7 @@
 
 // TODO: add unit of measurement (even if not used)
 
-#define CARSTATUS_SIZE 14
+#define CARSTATUS_SIZE 15
 
 class Carstatus : public TypedEnum {
     public:
@@ -24,6 +24,7 @@ class Carstatus : public TypedEnum {
         static const Carstatus TRIP_MAX_SPEED;
         static const Carstatus INJECTED_QUANTITY;
         static const Carstatus FUEL_CONSUMPTION;
+        static const Carstatus BATTERY_VOLTAGE;
 
         Carstatus() : TypedEnum() {};
 
@@ -87,3 +88,4 @@ inline const Carstatus Carstatus::TRIP_AVERAGE_SPEED = Carstatus(0x0A, "TRIP_AVE
 inline const Carstatus Carstatus::TRIP_MAX_SPEED = Carstatus(0x0B, "TRIP_MAX_SPEED", &CanbusMessageType::INT);
 inline const Carstatus Carstatus::INJECTED_QUANTITY = Carstatus(0x0C, "INJECTED_QUANTITY", &CanbusMessageType::FLOAT);
 inline const Carstatus Carstatus::FUEL_CONSUMPTION = Carstatus(0x0D, "FUEL_CONSUMPTION", &CanbusMessageType::FLOAT);
+inline const Carstatus Carstatus::BATTERY_VOLTAGE = Carstatus(0x0D, "BATTERY:VOLTAGE", &CanbusMessageType::FLOAT);
