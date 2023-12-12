@@ -57,13 +57,26 @@ void MainCarduinoNode::loop() {
     */
     if(Serial.available() > 0) {
         String s = Serial.readStringUntil('\n');
-        SplittedUsbMessage *splittedUsbMessage = splitReceivedUsbMessage(s);
+        handleReceivedSerialMessage(s);
+    }
 
-        if(splittedUsbMessage->isValid) {
-            const Category *c = (const Category*) Category::getValueByName((char*) splittedUsbMessage->messages[0].c_str());
+    /*if(millis() > 5000 && !mockReceived) {
+        mockReceived = true;
+        handleReceivedSerialMessage("READ_SETTINGS;OTA_MODE;false;");
+    }*/
+}
+
+void MainCarduinoNode::handleReceivedSerialMessage(String receivedMessage) {
+    SplittedUsbMessage *splittedUsbMessage = splitReceivedUsbMessage(receivedMessage);
+
+    if(splittedUsbMessage->isValid) {
+        const Category *c = (const Category*) Category::getValueByName((char*) splittedUsbMessage->messages[0].c_str());
+
+        CanbusMessage *canbusMessage = nullptr;
+        // TODO: replace with a factory
+        if(c->getEnumFromNameFunction != nullptr) {
             const TypedEnum *typedEnumMessage = (const TypedEnum*) c->getEnumFromNameFunction((char*) splittedUsbMessage->messages[1].c_str());
 
-            CanbusMessage *canbusMessage = nullptr;
             if(typedEnumMessage->type->id == CanbusMessageType::BOOL.id) {
                 canbusMessage = new CanbusMessage(generateId(*c, *typedEnumMessage), convertValueToByteArray(splittedUsbMessage->messages[2].equals("true")), 1);
             } else if(typedEnumMessage->type->id == CanbusMessageType::INT.id) {
@@ -71,16 +84,17 @@ void MainCarduinoNode::loop() {
             } else if(typedEnumMessage->type->id == CanbusMessageType::FLOAT.id) {
                 canbusMessage = new CanbusMessage(generateId(*c, *typedEnumMessage), convertValueToByteArray(splittedUsbMessage->messages[2].toFloat()), 5);
             }
-
-            if(canbusMessage != nullptr) {
-                usbExecutors->execute(this, canbusMessage);
-
-                delete canbusMessage;
-            }
+        } else {
+            canbusMessage = new CanbusMessage(generateId(*c, 0), {}, 0);
         }
 
-        delete splittedUsbMessage;
+        if(canbusMessage != nullptr) {
+            usbExecutors->execute(this, canbusMessage);
+            delete canbusMessage;
+        }
     }
+
+    delete splittedUsbMessage;
 }
 
 void MainCarduinoNode::manageReceivedUsbMessage(CanbusMessage message) {

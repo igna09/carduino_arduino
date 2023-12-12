@@ -3,6 +3,7 @@
 #include <Arduino.h>
 #include "shared/CanbusMessage/CanbusMessage.h"
 #include "shared/CarduinoNode/CarduinoNode/CarduinoNode.h"
+#include "shared/CarduinoNode/MainCarduinoNode/MainCarduinoNode.h"
 #include "shared/executors/CarduinoNodeExecutorInterface.h"
 #include "shared/enums/Setting.h"
 #include "shared/CanbusMessage/SettingMessage/SettingMessage.h"
@@ -10,10 +11,6 @@
 
 class ReadSettingExecutor : public CarduinoNodeExecutorInterface {
     public:
-        ReadSettingExecutor() : CarduinoNodeExecutorInterface(&Category::READ_SETTINGS) {};
-
-        void execute(CarduinoNode *node, CanbusMessage *message) {
-            TypedCanbusMessage typedCanbusMessage = TypedCanbusMessage(node->generateId(Category::READ_SETTINGS, Setting::OTA_MODE), node->otaMode);
-            node->sendCanbusMessage(&typedCanbusMessage);
-        };
+        ReadSettingExecutor();
+        void execute(CarduinoNode *node, CanbusMessage *message);
 };

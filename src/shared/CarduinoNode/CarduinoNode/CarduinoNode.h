@@ -50,4 +50,5 @@ class CarduinoNode {
         void otaShutdown();
 
         static uint16_t generateId(const Category category, const Enum messageEnum);
+        static uint16_t generateId(const Category category, uint8_t messageId);
 };

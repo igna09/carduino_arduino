@@ -39,4 +39,5 @@ class MainCarduinoNode : public CarduinoNode {
         void loop();
         void sendSerialMessage(CanbusMessage *message);
         SplittedUsbMessage* splitReceivedUsbMessage(String message);
+        void handleReceivedSerialMessage(String message);
 };

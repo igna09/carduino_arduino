@@ -92,8 +92,12 @@ void CarduinoNode::otaShutdown() {
 };
 
 uint16_t CarduinoNode::generateId(const Category category, const Enum messageEnum) {
+    return generateId(category, messageEnum.id);
+}
+
+uint16_t CarduinoNode::generateId(const Category category, uint8_t messageId) {
     uint16_t id = category.id;
-    id = (id << 8) | messageEnum.id;
+    id = (id << 8) | messageId;
     return id;
 }
 

@@ -6,8 +6,6 @@
 
 #define CATEGORY_SIZE 4
 
-class ExecutorInterface; //forward declaration, needed to avoid circular dependency
-//class Carstatus;
 class Category : public Enum {
     public:
         static const Category CAR_STATUS;
