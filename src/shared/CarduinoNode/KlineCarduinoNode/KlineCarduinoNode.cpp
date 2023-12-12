@@ -29,6 +29,9 @@ KlineCarduinoNode::KlineCarduinoNode(uint8_t pin_rx, uint8_t pin_tx, int cs, int
 
     KlineCallback<void(void)>::func = std::bind(&KlineCarduinoNode::readValues, this);
     readValuesTask = new Task(500, TASK_FOREVER, static_cast<TaskCallback>(KlineCallback<void(void)>::callback), scheduler, true);
+
+	this->afterReadExecutors = new AfterReadExecutors();
+	this->afterReadExecutors->addExecutor(new FuelConsumptionExecutor());
 };
 
 void KlineCarduinoNode::readValues() {
@@ -140,15 +143,7 @@ void KlineCarduinoNode::readValues() {
 				}
 				delete[] blockValuesByEcu;
 
-				float v;
-				if(ValueToReadEnum::SPEED.lastReadValue.intValue != 0 && ValueToReadEnum::FUEL_CONSUMPTION.lastReadValue.floatValue != 0) {
-					v = ValueToReadEnum::SPEED.lastReadValue.intValue / ValueToReadEnum::FUEL_CONSUMPTION.lastReadValue.floatValue;
-				} else {
-					v = 0;
-				}
-				CarstatusMessage *c = new CarstatusMessage(&Carstatus::FUEL_CONSUMPTION, v);
-				sendCanbusMessage(c);
-				delete c;
+				this->afterReadExecutors->execute(this);
 			}
 		}
 		

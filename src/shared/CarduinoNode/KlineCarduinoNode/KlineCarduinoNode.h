@@ -10,6 +10,8 @@
 #include "../../enums/CanbusMessageType.h"
 #include "../../CanbusMessage/CarstatusMessage/CarstatusMessage.h"
 #include "KlineCallback.h"
+#include "AfterReadExecutor/AfterReadExecutors.h"
+#include "AfterReadExecutor/FuelConsumptionExecutor.h"
 
 class KlineCarduinoNode : public CarduinoNode {
     public:
@@ -24,6 +26,7 @@ class KlineCarduinoNode : public CarduinoNode {
         Scheduler *scheduler;
         Task *readValuesTask;
         KlineEcuEnum *lastConnectedEcu;
+        AfterReadExecutors *afterReadExecutors;
 
         void readValues();
 };
