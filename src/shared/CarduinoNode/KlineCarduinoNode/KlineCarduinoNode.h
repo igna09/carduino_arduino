@@ -27,6 +27,7 @@ class KlineCarduinoNode : public CarduinoNode {
         Task *readValuesTask;
         KlineEcuEnum *lastConnectedEcu;
         AfterReadExecutors *afterReadExecutors;
+        bool klineConnected;
 
         void readValues();
 };

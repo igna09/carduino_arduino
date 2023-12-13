@@ -32,9 +32,13 @@ KlineCarduinoNode::KlineCarduinoNode(uint8_t pin_rx, uint8_t pin_tx, int cs, int
 
 	this->afterReadExecutors = new AfterReadExecutors();
 	this->afterReadExecutors->addExecutor(new FuelConsumptionExecutor());
+
+	this->klineConnected = false;
 };
 
 void KlineCarduinoNode::readValues() {
+	// unsigned long start = millis();
+	// Serial.println("start readValues()");
 	if(!this->otaMode) {
 		uint8_t ecusToReadSize = ValueToReadEnum::getEcusToReadSize();
 		KlineEcuEnum **ecusToRead = ValueToReadEnum::getEcusToRead();
@@ -46,109 +50,114 @@ void KlineCarduinoNode::readValues() {
 				uint8_t* blockValuesByEcu = ValueToReadEnum::getBlockValuesByEcu(*klineEcuEnum);
 
 				if(lastConnectedEcu == nullptr || (lastConnectedEcu != nullptr && lastConnectedEcu->id != klineEcuEnum->id)) {
-					kLine->connect(klineEcuEnum->address, klineEcuEnum->baud); // connect here to avoid connection to ecus that won't read any value
-					lastConnectedEcu = klineEcuEnum;
-				}
-
-				for(uint8_t blockValuesByEcuIndex = 0; blockValuesByEcuIndex < blockValuesByEcuSize; blockValuesByEcuIndex++) {
-					uint8_t block = blockValuesByEcu[blockValuesByEcuIndex];
-					uint8_t valuesByEcuBlockSize = ValueToReadEnum::getValuesByEcuBlockSize(*klineEcuEnum, block);
-					ValueToReadEnum** valuesByEcuBlock = ValueToReadEnum::getValuesByEcuBlock(*klineEcuEnum, block);
-
-					for(uint8_t valuesByEcuBlockIndex = 0; valuesByEcuBlockIndex < valuesByEcuBlockSize; valuesByEcuBlockIndex++) {
-						ValueToReadEnum *valueToReadEnum = valuesByEcuBlock[valuesByEcuBlockIndex];
-
-						uint8_t measurements[3 * 4]; //buffer to store the measurements; each measurement takes 3 bytes; one block contains 4 measurements
-						uint8_t amount_of_measurements = 0;
-						switch (kLine->readGroup(amount_of_measurements, block, measurements, sizeof(measurements))) {
-							case KLineKWP1281Lib::ERROR:
-								Serial.println("Error reading measurements!");
-								break;
-							
-							case KLineKWP1281Lib::FAIL:
-								Serial.print("Block ");
-								Serial.print(valueToReadEnum->group);
-								Serial.println(" does not exist!");
-								break;
-							
-							case KLineKWP1281Lib::SUCCESS:
-								/*
-									The getMeasurementType() function can return:
-									*KLineKWP1281Lib::UNKNOWN - index out of range (measurement doesn't exist in block)
-									*KLineKWP1281Lib::UNITS   - the measurement contains human-readable text in the units string
-									*KLineKWP1281Lib::VALUE   - "regular" measurement, with a value and units
-								*/
-								switch(KLineKWP1281Lib::getMeasurementType(valueToReadEnum->groupIndex, amount_of_measurements, measurements, sizeof(measurements))) {
-									//Value and units
-									case KLineKWP1281Lib::VALUE: {
-										float value = KLineKWP1281Lib::getMeasurementValue(valueToReadEnum->groupIndex, amount_of_measurements, measurements, sizeof(measurements));
-										
-										Serial.print("read ");
-										Serial.println(value);
-
-										if(valueToReadEnum->send) {
-											CarstatusMessage *c = nullptr;
-											if(valueToReadEnum->carstatus.type->id == CanbusMessageType::INT.id) {
-												c = new CarstatusMessage(&valueToReadEnum->carstatus, int(value));
-											} else if(valueToReadEnum->carstatus.type->id == CanbusMessageType::FLOAT.id) {
-												c = new CarstatusMessage(&valueToReadEnum->carstatus, value);
-											} else if(valueToReadEnum->carstatus.type->id == CanbusMessageType::BOOL.id) {
-												c = new CarstatusMessage(&valueToReadEnum->carstatus, value == 1);
-											}
-											sendCanbusMessage(c);
-											delete c;
-										}
-
-										if(valueToReadEnum->carstatus.type->id == CanbusMessageType::INT.id) {
-											valueToReadEnum->lastReadValue.intValue = int(value);
-										} else if(valueToReadEnum->carstatus.type->id == CanbusMessageType::FLOAT.id) {
-											valueToReadEnum->lastReadValue.floatValue = value;
-										} else if(valueToReadEnum->carstatus.type->id == CanbusMessageType::BOOL.id) {
-											valueToReadEnum->lastReadValue.boolValue = value == 1;
-										}
-
-										// for(uint8_t i = 0; i < KLINE_READ_VALUE_SIZE; i++) {
-										// 	KlineValueToKeep *klineValueToKeep = (KlineValueToKeep*) KlineValueToKeep::getValues()[i];
-										// 	if(strcmp(klineValueToKeep->name, valueToReadEnum->name) == 0) {
-										// 		if(klineValueToKeep->valueToReadEnum.carstatus.type->id == CanbusMessageType::INT.id) {
-										// 			klineValueToKeep->value.intValue = int(value);
-										// 		} else if(klineValueToKeep->valueToReadEnum.carstatus.type->id == CanbusMessageType::FLOAT.id) {
-										// 			klineValueToKeep->value.floatValue = value;
-										// 		} else if(klineValueToKeep->valueToReadEnum.carstatus.type->id == CanbusMessageType::BOOL.id) {
-										// 			klineValueToKeep->value.boolValue = value == 1;
-										// 		}
-										// 	}
-										// }
-										break;
-									}
-									
-									//Units string containing text
-									case KLineKWP1281Lib::UNITS: {
-										//Will hold the measurement's units
-										char units_string[16];
-										Serial.println(KLineKWP1281Lib::getMeasurementUnits(valueToReadEnum->groupIndex, amount_of_measurements, measurements, sizeof(measurements), units_string, sizeof(units_string)));
-										break;
-									}
-									
-									//Invalid measurement index
-									case KLineKWP1281Lib::UNKNOWN: {
-										Serial.println("N/A");
-										break;
-									}
-								}
-								break;
-						}
+					this->klineConnected = kLine->attemptConnect(klineEcuEnum->address, klineEcuEnum->baud) == KLineKWP1281Lib::SUCCESS; // connect here to avoid connection to ecus that won't read any value
+					if(this->klineConnected) {
+						lastConnectedEcu = klineEcuEnum;
 					}
-					delete[] valuesByEcuBlock;
 				}
-				delete[] blockValuesByEcu;
+				if(this->klineConnected) {
+					for(uint8_t blockValuesByEcuIndex = 0; blockValuesByEcuIndex < blockValuesByEcuSize; blockValuesByEcuIndex++) {
+						uint8_t block = blockValuesByEcu[blockValuesByEcuIndex];
+						uint8_t valuesByEcuBlockSize = ValueToReadEnum::getValuesByEcuBlockSize(*klineEcuEnum, block);
+						ValueToReadEnum** valuesByEcuBlock = ValueToReadEnum::getValuesByEcuBlock(*klineEcuEnum, block);
 
-				this->afterReadExecutors->execute(this);
+						for(uint8_t valuesByEcuBlockIndex = 0; valuesByEcuBlockIndex < valuesByEcuBlockSize; valuesByEcuBlockIndex++) {
+							ValueToReadEnum *valueToReadEnum = valuesByEcuBlock[valuesByEcuBlockIndex];
+
+							uint8_t measurements[3 * 4]; //buffer to store the measurements; each measurement takes 3 bytes; one block contains 4 measurements
+							uint8_t amount_of_measurements = 0;
+							switch (kLine->readGroup(amount_of_measurements, block, measurements, sizeof(measurements))) {
+								case KLineKWP1281Lib::ERROR:
+									Serial.println("Error reading measurements!");
+									break;
+								
+								case KLineKWP1281Lib::FAIL:
+									Serial.print("Block ");
+									Serial.print(valueToReadEnum->group);
+									Serial.println(" does not exist!");
+									break;
+								
+								case KLineKWP1281Lib::SUCCESS:
+									/*
+										The getMeasurementType() function can return:
+										*KLineKWP1281Lib::UNKNOWN - index out of range (measurement doesn't exist in block)
+										*KLineKWP1281Lib::UNITS   - the measurement contains human-readable text in the units string
+										*KLineKWP1281Lib::VALUE   - "regular" measurement, with a value and units
+									*/
+									switch(KLineKWP1281Lib::getMeasurementType(valueToReadEnum->groupIndex, amount_of_measurements, measurements, sizeof(measurements))) {
+										//Value and units
+										case KLineKWP1281Lib::VALUE: {
+											float value = KLineKWP1281Lib::getMeasurementValue(valueToReadEnum->groupIndex, amount_of_measurements, measurements, sizeof(measurements));
+											
+											Serial.print("read ");
+											Serial.println(value);
+
+											if(valueToReadEnum->send) {
+												CarstatusMessage *c = nullptr;
+												if(valueToReadEnum->carstatus.type->id == CanbusMessageType::INT.id) {
+													c = new CarstatusMessage(&valueToReadEnum->carstatus, int(value));
+												} else if(valueToReadEnum->carstatus.type->id == CanbusMessageType::FLOAT.id) {
+													c = new CarstatusMessage(&valueToReadEnum->carstatus, value);
+												} else if(valueToReadEnum->carstatus.type->id == CanbusMessageType::BOOL.id) {
+													c = new CarstatusMessage(&valueToReadEnum->carstatus, value == 1);
+												}
+												sendCanbusMessage(c);
+												delete c;
+											}
+
+											if(valueToReadEnum->carstatus.type->id == CanbusMessageType::INT.id) {
+												valueToReadEnum->lastReadValue.intValue = int(value);
+											} else if(valueToReadEnum->carstatus.type->id == CanbusMessageType::FLOAT.id) {
+												valueToReadEnum->lastReadValue.floatValue = value;
+											} else if(valueToReadEnum->carstatus.type->id == CanbusMessageType::BOOL.id) {
+												valueToReadEnum->lastReadValue.boolValue = value == 1;
+											}
+
+											// for(uint8_t i = 0; i < KLINE_READ_VALUE_SIZE; i++) {
+											// 	KlineValueToKeep *klineValueToKeep = (KlineValueToKeep*) KlineValueToKeep::getValues()[i];
+											// 	if(strcmp(klineValueToKeep->name, valueToReadEnum->name) == 0) {
+											// 		if(klineValueToKeep->valueToReadEnum.carstatus.type->id == CanbusMessageType::INT.id) {
+											// 			klineValueToKeep->value.intValue = int(value);
+											// 		} else if(klineValueToKeep->valueToReadEnum.carstatus.type->id == CanbusMessageType::FLOAT.id) {
+											// 			klineValueToKeep->value.floatValue = value;
+											// 		} else if(klineValueToKeep->valueToReadEnum.carstatus.type->id == CanbusMessageType::BOOL.id) {
+											// 			klineValueToKeep->value.boolValue = value == 1;
+											// 		}
+											// 	}
+											// }
+											break;
+										}
+										
+										//Units string containing text
+										case KLineKWP1281Lib::UNITS: {
+											//Will hold the measurement's units
+											char units_string[16];
+											Serial.println(KLineKWP1281Lib::getMeasurementUnits(valueToReadEnum->groupIndex, amount_of_measurements, measurements, sizeof(measurements), units_string, sizeof(units_string)));
+											break;
+										}
+										
+										//Invalid measurement index
+										case KLineKWP1281Lib::UNKNOWN: {
+											Serial.println("N/A");
+											break;
+										}
+									}
+									break;
+							}
+						}
+						delete[] valuesByEcuBlock;
+					}
+					delete[] blockValuesByEcu;
+
+					this->afterReadExecutors->execute(this);
+				}
 			}
 		}
 		
 		delete ecusToRead;
 	}
+	// Serial.print("end readValues() ");
+	// Serial.println((millis() - start));
 };
 
 void KlineCarduinoNode::loop () {
