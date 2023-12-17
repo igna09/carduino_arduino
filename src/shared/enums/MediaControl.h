@@ -2,7 +2,7 @@
 
 #include "Enum.h"
 
-#define MEDIA_CONTROL_SIZE 4
+#define MEDIA_CONTROL_SIZE 5
 
 class MediaControl : public Enum {
     public:
@@ -10,6 +10,7 @@ class MediaControl : public Enum {
         static const MediaControl VOLUME_DOWN;
         static const MediaControl PLAY_PAUSE;
         static const MediaControl NEXT;
+        static const MediaControl LONG_PRESS;
 
         MediaControl() : Enum() {};
 
@@ -63,3 +64,4 @@ inline const MediaControl MediaControl::VOLUME_UP = MediaControl(0x00, "VOLUME_U
 inline const MediaControl MediaControl::VOLUME_DOWN = MediaControl(0x01, "VOLUME_DOWN");
 inline const MediaControl MediaControl::PLAY_PAUSE = MediaControl(0x02, "PLAY_PAUSE");
 inline const MediaControl MediaControl::NEXT = MediaControl(0x03, "NEXT");
+inline const MediaControl MediaControl::LONG_PRESS = MediaControl(0x04, "LONG_PRESS");
