@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <TaskScheduler.h>
 
+#include "./shared/SharedDefinitions.h"
 #include "./shared/CarduinoNode/KlineCarduinoNode/KlineCarduinoNode.h"
 
 KlineCarduinoNode *klineCarduinoNode;
@@ -12,7 +13,7 @@ KlineCarduinoNode *klineCarduinoNode;
 */
 
 void setup(void) {
-  Serial.begin(115200);
+  Serial.begin(BAUD_RATE);
 
   klineCarduinoNode = new KlineCarduinoNode(D2, D1, D3, D0, "SSID_KLINE_CARDUINO_NODE", "pwd12345");
 }

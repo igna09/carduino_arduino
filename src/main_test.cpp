@@ -1,11 +1,12 @@
 #include <Arduino.h>
 #include "Versatile_RotaryEncoder.h"
+#include "./shared/SharedDefinitions.h"
 
 Versatile_RotaryEncoder *versatileEncoder;
 
 void setup()
 {
-	Serial.begin(115200);
+	Serial.begin(BAUD_RATE);
 
 	versatileEncoder = new Versatile_RotaryEncoder(D1, D2, RX);
 

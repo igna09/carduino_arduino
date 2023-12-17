@@ -8,3 +8,5 @@ union ValueType
     float floatValue;
     bool boolValue;
 };
+
+#define BAUD_RATE 9600
