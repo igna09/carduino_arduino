@@ -6,11 +6,13 @@
 
 // TODO: add unit of measurement (even if not used)
 
-#define CARSTATUS_SIZE 15
+#define CARSTATUS_SIZE 18
 
 class Carstatus : public TypedEnum {
     public:
         static const Carstatus EXTERNAL_TEMPERATURE;
+        static const Carstatus EXTERNAL_TEMPERATURE_2;
+        static const Carstatus EXTERNAL_TEMPERATURE_3;
         static const Carstatus INTERNAL_TEMPERATURE;
         static const Carstatus SPEED;
         static const Carstatus INTERNAL_LUMINANCE;
@@ -25,6 +27,7 @@ class Carstatus : public TypedEnum {
         static const Carstatus INJECTED_QUANTITY;
         static const Carstatus FUEL_CONSUMPTION;
         static const Carstatus BATTERY_VOLTAGE;
+        static const Carstatus BATTERY_VOLTAGE_2;
 
         Carstatus() : TypedEnum() {};
 
@@ -75,6 +78,8 @@ class Carstatus : public TypedEnum {
 inline const TypedEnum* Carstatus::values [CARSTATUS_SIZE] = { 0 };
 inline uint8_t Carstatus::index = 0;
 inline const Carstatus Carstatus::EXTERNAL_TEMPERATURE = Carstatus(0x00, "EXTERNAL_TEMPERATURE", &CanbusMessageType::FLOAT);
+inline const Carstatus Carstatus::EXTERNAL_TEMPERATURE_2 = Carstatus(0x10, "EXTERNAL_TEMPERATURE_2", &CanbusMessageType::FLOAT);
+inline const Carstatus Carstatus::EXTERNAL_TEMPERATURE_3 = Carstatus(0x11, "EXTERNAL_TEMPERATURE_3", &CanbusMessageType::FLOAT);
 inline const Carstatus Carstatus::INTERNAL_TEMPERATURE = Carstatus(0x01, "INTERNAL_TEMPERATURE", &CanbusMessageType::FLOAT);
 inline const Carstatus Carstatus::SPEED = Carstatus(0x02, "SPEED", &CanbusMessageType::INT);
 inline const Carstatus Carstatus::INTERNAL_LUMINANCE = Carstatus(0x03, "INTERNAL_LUMINANCE", &CanbusMessageType::INT);
@@ -88,4 +93,5 @@ inline const Carstatus Carstatus::TRIP_AVERAGE_SPEED = Carstatus(0x0A, "TRIP_AVE
 inline const Carstatus Carstatus::TRIP_MAX_SPEED = Carstatus(0x0B, "TRIP_MAX_SPEED", &CanbusMessageType::INT);
 inline const Carstatus Carstatus::INJECTED_QUANTITY = Carstatus(0x0C, "INJECTED_QUANTITY", &CanbusMessageType::FLOAT);
 inline const Carstatus Carstatus::FUEL_CONSUMPTION = Carstatus(0x0D, "FUEL_CONSUMPTION", &CanbusMessageType::FLOAT);
-inline const Carstatus Carstatus::BATTERY_VOLTAGE = Carstatus(0x0D, "BATTERY:VOLTAGE", &CanbusMessageType::FLOAT);
+inline const Carstatus Carstatus::BATTERY_VOLTAGE = Carstatus(0x0E, "BATTERY_VOLTAGE", &CanbusMessageType::FLOAT);
+inline const Carstatus Carstatus::BATTERY_VOLTAGE_2 = Carstatus(0x0F, "BATTERY_VOLTAGE_2", &CanbusMessageType::FLOAT);
