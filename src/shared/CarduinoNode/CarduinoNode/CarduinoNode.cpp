@@ -34,6 +34,7 @@ void CarduinoNode::loop() {
     }
 
     if (initializedCan && availableCanbusMessages()) {
+    //   Serial.println(initializedCan && availableCanbusMessages() ? "true" : "false");
       // iterate over all pending messages
       // If either the bus is saturated or the MCU is busy,
       // both RX buffers may be in use and reading a single

@@ -37,12 +37,12 @@ KlineCarduinoNode::KlineCarduinoNode(uint8_t pin_rx, uint8_t pin_tx, int cs, int
 };
 
 void KlineCarduinoNode::readValues() {
-	Serial.println("KlineCarduinoNode::readValues() start");
+	// Serial.println("KlineCarduinoNode::readValues() start");
 	// unsigned long start = millis();
 	// Serial.println("start readValues()");
 	if(!this->otaMode) {
-		Serial.print("KlineCarduinoNode::readValues() this->otaMode ");
-		Serial.println(this->otaMode ? "true" : "false");
+		// Serial.print("KlineCarduinoNode::readValues() this->otaMode ");
+		// Serial.println(this->otaMode ? "true" : "false");
 		uint8_t ecusToReadSize = ValueToReadEnum::getEcusToReadSize();
 		KlineEcuEnum **ecusToRead = ValueToReadEnum::getEcusToRead();
 
@@ -53,10 +53,10 @@ void KlineCarduinoNode::readValues() {
 				uint8_t* blockValuesByEcu = ValueToReadEnum::getBlockValuesByEcu(*klineEcuEnum);
 
 				if(lastConnectedEcu == nullptr || (lastConnectedEcu != nullptr && lastConnectedEcu->id != klineEcuEnum->id)) {
-					Serial.println("KlineCarduinoNode::readValues() trying to connect ");
+					// Serial.println("KlineCarduinoNode::readValues() trying to connect ");
 					this->klineConnected = kLine->attemptConnect(klineEcuEnum->address, klineEcuEnum->baud) == KLineKWP1281Lib::SUCCESS; // connect here to avoid connection to ecus that won't read any value
-					Serial.print("KlineCarduinoNode::readValues() this->klineConnected ");
-					Serial.println(this->klineConnected ? "true" : "false");
+					// Serial.print("KlineCarduinoNode::readValues() this->klineConnected ");
+					// Serial.println(this->klineConnected ? "true" : "false");
 					if(this->klineConnected) {
 						lastConnectedEcu = klineEcuEnum;
 					}
@@ -95,8 +95,8 @@ void KlineCarduinoNode::readValues() {
 										case KLineKWP1281Lib::VALUE: {
 											float value = KLineKWP1281Lib::getMeasurementValue(valueToReadEnum->groupIndex, amount_of_measurements, measurements, sizeof(measurements));
 											
-											Serial.println("KlineCarduinoNode::readValues() read value ");
-											Serial.println(value);
+											// Serial.println("KlineCarduinoNode::readValues() read value ");
+											// Serial.println(value);
 
 											if(valueToReadEnum->send) {
 												CarstatusMessage *c = nullptr;
@@ -144,9 +144,9 @@ void KlineCarduinoNode::readValues() {
 					delete[] blockValuesByEcu;
 
 					
-					Serial.println("KlineCarduinoNode::readValues() trying to call  this->afterReadExecutors->execute(this)");
+					// Serial.println("KlineCarduinoNode::readValues() trying to call  this->afterReadExecutors->execute(this)");
 					this->afterReadExecutors->execute(this);
-					Serial.println("KlineCarduinoNode::readValues() called  this->afterReadExecutors->execute(this)");
+					// Serial.println("KlineCarduinoNode::readValues() called  this->afterReadExecutors->execute(this)");
 				}
 			}
 		}
@@ -155,7 +155,7 @@ void KlineCarduinoNode::readValues() {
 	}
 	// Serial.print("end readValues() ");
 	// Serial.println((millis() - start));
-	Serial.println("KlineCarduinoNode::readValues() finish");
+	// Serial.println("KlineCarduinoNode::readValues() finish");
 };
 
 void KlineCarduinoNode::loop () {
