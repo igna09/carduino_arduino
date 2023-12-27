@@ -1,35 +1,28 @@
 #include <Arduino.h>
-#include "Versatile_RotaryEncoder.h"
+#include "shared/CarduinoNode/CarduinoNode/CarduinoNode.h"
+#include "shared/CarduinoNode/KlineCarduinoNode/AfterReadExecutor/AfterReadExecutors.h"
+#include "shared/CarduinoNode/KlineCarduinoNode/AfterReadExecutor/AfterReadExecutorInterface.h"
 
-Versatile_RotaryEncoder *versatileEncoder;
+class TestExecutor : public AfterReadExecutorInterface {
+	public:
+		void execute(CarduinoNode *node) {
+			Serial.println("test");
+		}
+};
 
 void setup()
 {
 	Serial.begin(115200);
 
-	versatileEncoder = new Versatile_RotaryEncoder(D1, D2, RX);
+	AfterReadExecutors *executors = new AfterReadExecutors();
+	executors->addExecutor(new TestExecutor());
 
-	versatileEncoder->setHandleRotate([](uint8_t rotation){
-		if(rotation == 255) { // clockwise
-			Serial.println("vol up");
-		} else if (rotation == 1) { //counter clockwise
-			Serial.println("vol down");
-		}
-	});
-	versatileEncoder->setHandlePressRelease([](){
-		Serial.println("play pause");
-	});
-	versatileEncoder->setHandleDoublePressRelease([](){
-		Serial.println("next");
-	});
-	versatileEncoder->setHandleLongPress([](){
-		Serial.println("turn off");
-	});
+	executors->execute(new CarduinoNode(D3, D0, "SSID_KLINE_CARDUINO_NODE", "pwd12345"));
 }
 
 void loop()
 {
-  versatileEncoder->ReadEncoder();
+	delay(1000);
 }
 
 /*********************************************************************************************************

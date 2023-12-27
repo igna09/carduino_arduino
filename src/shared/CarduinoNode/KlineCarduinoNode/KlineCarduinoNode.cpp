@@ -95,7 +95,9 @@ void KlineCarduinoNode::readValues() {
 										case KLineKWP1281Lib::VALUE: {
 											float value = KLineKWP1281Lib::getMeasurementValue(valueToReadEnum->groupIndex, amount_of_measurements, measurements, sizeof(measurements));
 											
-											Serial.println("KlineCarduinoNode::readValues() read value ");
+											Serial.print("KlineCarduinoNode::readValues() read value ");
+											Serial.print(" ");
+											Serial.print(valueToReadEnum->name);
 											Serial.println(value);
 
 											if(valueToReadEnum->send) {
