@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <TaskScheduler.h>
 
+#include "./shared/SharedDefinitions.h"
 #include "shared/CarduinoNode/MediaControlCarduinoNode/MediaControlCarduinoNode.h"
 
 MediaControlCarduinoNode *mediaControlCarduinoNode;
@@ -12,7 +13,7 @@ MediaControlCarduinoNode *mediaControlCarduinoNode;
 */
 
 void setup(void) {
-  	Serial.begin(115200);
+  	Serial.begin(BAUD_RATE);
 //   randomSeed(analogRead(0));
 
 	// TODO: update encoder pins

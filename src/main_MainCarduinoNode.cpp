@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <TaskScheduler.h>
 
+#include "./shared/SharedDefinitions.h"
 #include "./shared/CarduinoNode/MainCarduinoNode/MainCarduinoNode.h"
 
 MainCarduinoNode *carduinoNode;
@@ -12,7 +13,7 @@ MainCarduinoNode *carduinoNode;
 */
 
 void setup(void) {
-  Serial.begin(115200);
+  Serial.begin(BAUD_RATE);
   randomSeed(analogRead(0));
 
   carduinoNode = new MainCarduinoNode(D8,D0,"SSID_MAIN_CARDUINO_NODE","pwd12345");

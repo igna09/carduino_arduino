@@ -2,6 +2,7 @@
 #include "shared/CarduinoNode/CarduinoNode/CarduinoNode.h"
 #include "shared/CarduinoNode/KlineCarduinoNode/AfterReadExecutor/AfterReadExecutors.h"
 #include "shared/CarduinoNode/KlineCarduinoNode/AfterReadExecutor/AfterReadExecutorInterface.h"
+#include "./shared/SharedDefinitions.h"
 
 class TestExecutor : public AfterReadExecutorInterface {
 	public:
@@ -12,7 +13,7 @@ class TestExecutor : public AfterReadExecutorInterface {
 
 void setup()
 {
-	Serial.begin(115200);
+	Serial.begin(BAUD_RATE);
 
 	AfterReadExecutors *executors = new AfterReadExecutors();
 	executors->addExecutor(new TestExecutor());

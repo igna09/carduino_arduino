@@ -16,7 +16,7 @@ MediaControlCarduinoNode::MediaControlCarduinoNode(uint8_t clk, uint8_t dt, uint
 		this->sendMediaControlMessage(&MediaControl::PLAY_PAUSE);
 		// Serial.println("PLAY_PAUSE");
 	});
-	versatileEncoder->setHandleLongPressRelease([this](){
+	versatileEncoder->setHandleLongPress([this](){
 		this->sendMediaControlMessage(&MediaControl::LONG_PRESS);
 	});
 	versatileEncoder->setHandleDoublePressRelease([this](){
