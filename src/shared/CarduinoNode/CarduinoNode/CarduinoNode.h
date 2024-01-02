@@ -48,6 +48,7 @@ class CarduinoNode {
         bool availableCanbusMessages();
         void otaStartup();
         void otaShutdown();
+        void restart();
 
         static uint16_t generateId(const Category category, const Enum messageEnum);
         static uint16_t generateId(const Category category, uint8_t messageId);

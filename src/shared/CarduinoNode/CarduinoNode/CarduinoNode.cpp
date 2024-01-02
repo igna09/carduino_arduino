@@ -113,3 +113,7 @@ void CarduinoNode::sendCanbusMessage(CanbusMessage *message) {
 	// printUint8Array("loop", m.payload, m.payloadLength);
     sendByteCanbus(message->id, message->payloadLength, message->payload);
 }
+
+void CarduinoNode::restart() {
+    ESP.restart();
+}

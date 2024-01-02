@@ -14,13 +14,20 @@ class WriteOtaSetting : public CarduinoNodeExecutorInterface {
 
         void execute(CarduinoNode *node, CanbusMessage *message) {
             SettingMessage *settingMessage = new SettingMessage(*message);
-            
-            if(settingMessage->setting->id == Setting::OTA_MODE.id) {
-                if(settingMessage->getBoolValue()) {
-                    node->otaStartup();
-                } else {
-                    node->otaShutdown();
-                }
+
+            switch(settingMessage->setting->id) {
+                case Setting::OTA_MODE.id:
+                    if(settingMessage->getBoolValue()) {
+                        node->otaStartup();
+                    } else {
+                        node->otaShutdown();
+                    }
+                    break;
+                case Setting:RESTART.id:
+                    if(settingMessage->getBoolValue()) {
+                        node->restart();
+                    }
+                    break;
             }
 
             delete settingMessage;

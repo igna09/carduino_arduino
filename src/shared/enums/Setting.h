@@ -9,6 +9,7 @@ class Setting : public TypedEnum {
     public:
         static const Setting AUTO_CLOSE_REARVIEW_MIRRORS;
         static const Setting OTA_MODE;
+        static const Setting RESTART;
 
         static const TypedEnum* getValueById(uint8_t id) {
             for(uint8_t i = 0; i < getSize(); i++) {
@@ -52,3 +53,4 @@ inline const TypedEnum* Setting::values [SETTING_SIZE] = { 0 };
 inline uint8_t Setting::index = 0;
 inline const Setting Setting::AUTO_CLOSE_REARVIEW_MIRRORS = Setting(0x00, "AUTO_CLOSE_REARVIEW_MIRRORS", &CanbusMessageType::BOOL);
 inline const Setting Setting::OTA_MODE = Setting(0x01, "OTA_MODE", &CanbusMessageType::BOOL);
+inline const Setting Setting::RESTART = Setting(0x02, "RESTART", &CanbusMessageType::BOOL);
