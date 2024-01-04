@@ -9,9 +9,9 @@
 #include "../../../CanbusMessage/SettingMessage/SettingMessage.h"
 #include "../../../enums/Category.h"
 
-class WriteSetting : public CarduinoNodeExecutorInterface {
+class WriteSettingExecutor : public CarduinoNodeExecutorInterface {
     public:
-        WriteSetting() : CarduinoNodeExecutorInterface(&Category::WRITE_SETTING) {};
+        WriteSettingExecutor() : CarduinoNodeExecutorInterface(&Category::WRITE_SETTING) {};
 
         void execute(CarduinoNode *node, CanbusMessage *message) {
             SettingMessage *settingMessage = new SettingMessage(*message);
@@ -25,6 +25,13 @@ class WriteSetting : public CarduinoNodeExecutorInterface {
             }
 
             node->sendCanbusMessage(message);
+
+            if(settingMessage->setting->id == Setting::RESTART.id) { // I restart after sending reset message
+                delay(1000);
+                if(settingMessage->getBoolValue()) {
+                    node->restart();
+                }
+            }
 
             delete settingMessage;
         };

@@ -23,7 +23,7 @@
  * This node has got a canbus interface and a wifi AP to update software
 */
 
-class WriteOtaSetting; // forward declaration to avoid circular dependency
+class WriteSetting; // forward declaration to avoid circular dependency
 class Executors; // forward declaration to avoid circular dependency
 class CarduinoNode {
     private:

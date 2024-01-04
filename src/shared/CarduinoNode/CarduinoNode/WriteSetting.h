@@ -8,9 +8,9 @@
 #include "shared/CanbusMessage/SettingMessage/SettingMessage.h"
 #include "shared/enums/Category.h"
 
-class WriteOtaSetting : public CarduinoNodeExecutorInterface {
+class WriteSetting : public CarduinoNodeExecutorInterface {
     public:
-        WriteOtaSetting() : CarduinoNodeExecutorInterface(&Category::WRITE_SETTING) {};
+        WriteSetting() : CarduinoNodeExecutorInterface(&Category::WRITE_SETTING) {};
 
         void execute(CarduinoNode *node, CanbusMessage *message) {
             SettingMessage *settingMessage = new SettingMessage(*message);
