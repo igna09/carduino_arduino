@@ -8,7 +8,7 @@
 
 class MediaControlCarduinoNode : public CarduinoNode {
     public:
-        MediaControlCarduinoNode(uint8_t clk, uint8_t dt, uint8_t sw, int cs, int interruptPin, const char *ssid, const char *password);
+        MediaControlCarduinoNode(uint8_t id, uint8_t clk, uint8_t dt, uint8_t sw, int cs, int interruptPin, const char *ssid, const char *password);
         void loop();
         void sendMediaControlMessage(const MediaControl*);
 

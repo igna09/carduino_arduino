@@ -15,6 +15,8 @@
 #include "executors/MediaControlExecutor.h"
 #include "shared/executors/Executors.h"
 #include "./executors/ReadSettingExecutor.h"
+#include "./executors/HeartbeatExecutor.h"
+#include <map>              // user must include to use std::map (see above comment)
 
 struct SplittedUsbMessage {
     bool isValid;
@@ -29,8 +31,9 @@ class MainCarduinoNode : public CarduinoNode {
         Task *temperatureTask;
         Task *luminanceTask;
         Executors *usbExecutors;
+        std::map<uint8_t, unsigned long> lastReceivedHeartbeat;
 
-        MainCarduinoNode(int cs, int interruptPin, char *ssid,  char *password);
+        MainCarduinoNode(uint8_t id, int cs, int interruptPin, char *ssid,  char *password);
 
         void luminanceCallback();
         void temperatureCallback();

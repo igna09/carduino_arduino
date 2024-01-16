@@ -17,7 +17,7 @@ void setup(void) {
 //   randomSeed(analogRead(0));
 
 	// TODO: update encoder pins
-  	mediaControlCarduinoNode = new MediaControlCarduinoNode(D1, D2, RX, D3, D0, "SSID_MEDIA_CONTROL_CARDUINO_NODE", "pwd12345");
+  	mediaControlCarduinoNode = new MediaControlCarduinoNode(0x02, D1, D2, RX, D3, D0, "SSID_MEDIA_CONTROL_CARDUINO_NODE", "pwd12345");
 }
 
 // unsigned long lastSent = millis();

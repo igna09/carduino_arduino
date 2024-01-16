@@ -27,8 +27,8 @@ class WriteSettingExecutor : public CarduinoNodeExecutorInterface {
             node->sendCanbusMessage(message);
 
             if(settingMessage->setting->id == Setting::RESTART.id) { // I restart after sending reset message
-                delay(1000);
                 if(settingMessage->getBoolValue()) {
+                    delay(1000);
                     node->restart();
                 }
             }

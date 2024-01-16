@@ -10,3 +10,6 @@ union ValueType
 };
 
 #define BAUD_RATE 9600
+
+#define HEARTBEAT_INTERVAL 2500
+#define HEARTBEAT_INTERVAL_TOLERANCE 200

@@ -1,6 +1,6 @@
 #include "MainCarduinoNode.h"
 
-MainCarduinoNode::MainCarduinoNode(int cs, int interruptPin, char *ssid, char *password) : CarduinoNode(cs, interruptPin, ssid, password) {
+MainCarduinoNode::MainCarduinoNode(uint8_t id, int cs, int interruptPin, char *ssid, char *password) : CarduinoNode(id, cs, interruptPin, ssid, password) {
     this->scheduler = new Scheduler();
     this->aht = new Adafruit_AHTX0();
     this->aht->begin();
@@ -15,6 +15,7 @@ MainCarduinoNode::MainCarduinoNode(int cs, int interruptPin, char *ssid, char *p
 
     this->canExecutors->addExecutor(new CarstatusExecutor());
     this->canExecutors->addExecutor(new MediaControlExecutor());
+    this->canExecutors->addExecutor(new HeartbeatExecutor());
     // this->canExecutors->addExecutor(new ReadSettingExecutor());
     // this->canExecutors->addExecutor(new AllMessageExecutor());
     // this->canExecutors->addExecutor(new WriteSettingExecutor());

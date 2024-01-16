@@ -1,6 +1,6 @@
 #include "MediaControlCarduinoNode.h"
 
-MediaControlCarduinoNode::MediaControlCarduinoNode(uint8_t clk, uint8_t dt, uint8_t sw, int cs, int interruptPin, const char *ssid, const char *password) : CarduinoNode(cs, interruptPin, ssid,  password) {
+MediaControlCarduinoNode::MediaControlCarduinoNode(uint8_t id, uint8_t clk, uint8_t dt, uint8_t sw, int cs, int interruptPin, const char *ssid, const char *password) : CarduinoNode(id, cs, interruptPin, ssid,  password) {
     versatileEncoder = new Versatile_RotaryEncoder(clk, dt, sw);
 
 	versatileEncoder->setHandleRotate([this](uint8_t rotation){

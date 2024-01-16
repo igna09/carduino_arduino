@@ -4,7 +4,7 @@
 #include "Carstatus.h"
 #include "Setting.h"
 
-#define CATEGORY_SIZE 4
+#define CATEGORY_SIZE 6
 
 class Category : public Enum {
     public:
@@ -12,6 +12,7 @@ class Category : public Enum {
         static const Category READ_SETTINGS;
         static const Category MEDIA_CONTROL;
         static const Category WRITE_SETTING;
+        static const Category HEARTBEAT;
 
         std::function<const TypedEnum*(char*)> getEnumFromNameFunction;
 
@@ -67,3 +68,5 @@ inline const Category Category::CAR_STATUS = Category(0x00, "CAR_STATUS");
 inline const Category Category::READ_SETTINGS = Category(0x01, "READ_SETTINGS");
 inline const Category Category::MEDIA_CONTROL = Category(0x02, "MEDIA_CONTROL");
 inline const Category Category::WRITE_SETTING = Category(0x03, "WRITE_SETTING", Setting::getValueByName);
+inline const Category Category::HEARTBEAT = Category(0x04, "HEARTBEAT");
+inline const Category Category::ERROR = Category(0x05, "ERROR");

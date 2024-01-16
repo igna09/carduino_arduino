@@ -11,6 +11,8 @@
 
 #include "../../utils.h"
 #include "../../CanbusMessage/CanbusMessage.h"
+#include "../../SharedDefinitions.h"
+#include "callbacks/SendHearbeatCallback.h"
 
 /**
  * Send message to android --> Category;payload;
@@ -29,6 +31,7 @@ class CarduinoNode {
     private:
 
     public:
+        uint8_t id;
         MCP_CAN *can;
         ESP8266WebServer *server;
         String ssid;
@@ -38,8 +41,10 @@ class CarduinoNode {
         Executors *canExecutors;
         bool initializedCan;
         ESP8266HTTPUpdateServer *httpUpdater;
+        Scheduler *runner;
+        Task *temperatureTask;
 
-        CarduinoNode(int cs, int interruptPin, const char *ssid, const char *password);
+        CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssid, const char *password);
 
         void loop();
         void manageReceivedCanbusMessage(CanbusMessage *message);
@@ -49,6 +54,7 @@ class CarduinoNode {
         void otaStartup();
         void otaShutdown();
         void restart();
+        void sendHeartbeat();
 
         static uint16_t generateId(const Category category, const Enum messageEnum);
         static uint16_t generateId(const Category category, uint8_t messageId);
