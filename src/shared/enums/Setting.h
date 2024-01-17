@@ -3,7 +3,7 @@
 #include "TypedEnum.h"
 #include "CanbusMessageType.h"
 
-#define SETTING_SIZE 2
+#define SETTING_SIZE 3
 
 class Setting : public TypedEnum {
     public:

@@ -8,7 +8,7 @@ void ReadSettingExecutor::execute(CarduinoNode *node, CanbusMessage *message) {
     ((MainCarduinoNode*)node)->sendSerialMessage(&otaModeSettingMessage);
 
     
-    TypedCanbusMessage resetTypedCanbusMessage = TypedCanbusMessage(node->generateId(Category::READ_SETTINGS, Setting::RESET), false);
+    TypedCanbusMessage resetTypedCanbusMessage = TypedCanbusMessage(node->generateId(Category::READ_SETTINGS, Setting::RESTART), false);
     SettingMessage resetSettingMessage(resetTypedCanbusMessage);
     ((MainCarduinoNode*)node)->sendSerialMessage(&resetSettingMessage);
 };

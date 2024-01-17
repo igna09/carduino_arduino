@@ -69,4 +69,4 @@ inline const Category Category::READ_SETTINGS = Category(0x01, "READ_SETTINGS");
 inline const Category Category::MEDIA_CONTROL = Category(0x02, "MEDIA_CONTROL");
 inline const Category Category::WRITE_SETTING = Category(0x03, "WRITE_SETTING", Setting::getValueByName);
 inline const Category Category::HEARTBEAT = Category(0x04, "HEARTBEAT");
-inline const Category Category::ERROR = Category(0x05, "ERROR");
+// inline const Category Category::ERROR = Category(0x05, "ERROR");

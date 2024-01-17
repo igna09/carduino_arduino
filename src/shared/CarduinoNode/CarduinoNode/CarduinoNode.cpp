@@ -13,10 +13,11 @@ CarduinoNode::CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssi
 
     // Initialize MCP2515 running at 16MHz with a baudrate of 500kb/s and the masks and filters disabled.
     if(can->begin(MCP_ANY, CAN_500KBPS, MCP_8MHZ) == CAN_OK) {
-        Serial.println("MCP2515 Initialized Successfully!");
+        // Serial.println("MCP2515 Initialized Successfully!");
         this->initializedCan = true;
     } else {
-        Serial.println("Error Initializing MCP2515...");
+        // Serial.println("Error Initializing MCP2515...");
+        //TODO: manage error (webserver with logs?)
         this->initializedCan = false;
     }
     can->setMode(MCP_NORMAL);                     // Set operation mode to normal so the MCP2515 sends acks to received data.
@@ -35,6 +36,8 @@ CarduinoNode::CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssi
 };
 
 void CarduinoNode::loop() {
+    this->scheduler->execute();
+
     if(otaMode) {
         this->server->handleClient();
     }
@@ -116,7 +119,8 @@ bool CarduinoNode::availableCanbusMessages() {
 }
 
 void CarduinoNode::sendCanbusMessage(CanbusMessage *message) {
-	// printUint8Array("loop", m.payload, m.payloadLength);
+    // Serial.println(message->id, 2);
+	// printUint8Array("loop", message->payload, message->payloadLength);
     sendByteCanbus(message->id, message->payloadLength, message->payload);
 }
 
@@ -125,7 +129,7 @@ void CarduinoNode::restart() {
 }
 
 void CarduinoNode::sendHeartbeat() {
-    HeartbeatMessage heartbeatMessage = new HeartbeatMessage(this->id);
+    HeartbeatMessage *heartbeatMessage = new HeartbeatMessage(this->id);
     sendCanbusMessage(heartbeatMessage);
     delete heartbeatMessage;
 }

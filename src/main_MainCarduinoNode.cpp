@@ -19,6 +19,16 @@ void setup(void) {
   carduinoNode = new MainCarduinoNode(0x00, D8, D0, "SSID_MAIN_CARDUINO_NODE", "pwd12345");
 }
 
+// unsigned long lastSent = millis();
+
 void loop(void) {
   carduinoNode->loop();
+  // if(millis() > lastSent + 2600) {
+	// 		lastSent = millis();
+	// 		// float v = 45.7;
+	// 		// printFreeHeap("loop");
+  //     uint8_t a[] = {0x01};
+	// 		CanbusMessage *message = new CanbusMessage(0b10000000010, a, 1);
+	// 		carduinoNode->manageReceivedCanbusMessage(message);
+	// }
 }

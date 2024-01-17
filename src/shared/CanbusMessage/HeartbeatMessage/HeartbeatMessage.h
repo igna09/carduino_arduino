@@ -12,5 +12,6 @@ class HeartbeatMessage : public TypedCanbusMessage {
         uint8_t senderId;
 
         HeartbeatMessage(uint8_t senderId);
+        HeartbeatMessage(CanbusMessage *canbusMessage);
         String toSerialString();
 };

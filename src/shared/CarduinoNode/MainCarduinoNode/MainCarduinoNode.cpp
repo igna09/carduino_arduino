@@ -1,17 +1,14 @@
 #include "MainCarduinoNode.h"
 
 MainCarduinoNode::MainCarduinoNode(uint8_t id, int cs, int interruptPin, char *ssid, char *password) : CarduinoNode(id, cs, interruptPin, ssid, password) {
-    this->scheduler = new Scheduler();
     this->aht = new Adafruit_AHTX0();
     this->aht->begin();
 
     LuminanceCallback<void(void)>::func = std::bind(&MainCarduinoNode::luminanceCallback, this);
-    luminanceTask = new Task(1000, TASK_FOREVER, static_cast<TaskCallback>(LuminanceCallback<void(void)>::callback), scheduler, true);
+    luminanceTask = new Task(1000, TASK_FOREVER, static_cast<TaskCallback>(LuminanceCallback<void(void)>::callback), this->scheduler, true);
 
     TemperatureCallback<void(void)>::func = std::bind(&MainCarduinoNode::temperatureCallback, this);
-    temperatureTask = new Task(30000, TASK_FOREVER, static_cast<TaskCallback>(TemperatureCallback<void(void)>::callback), scheduler, true);
-
-    this->scheduler->startNow();
+    temperatureTask = new Task(30000, TASK_FOREVER, static_cast<TaskCallback>(TemperatureCallback<void(void)>::callback), this->scheduler, true);
 
     this->canExecutors->addExecutor(new CarstatusExecutor());
     this->canExecutors->addExecutor(new MediaControlExecutor());
@@ -21,8 +18,10 @@ MainCarduinoNode::MainCarduinoNode(uint8_t id, int cs, int interruptPin, char *s
     // this->canExecutors->addExecutor(new WriteSettingExecutor());
 
     this->usbExecutors = new Executors();
-    this->usbExecutors->addExecutor(new WriteSetting());
+    this->usbExecutors->addExecutor(new WriteSettingExecutor());
     this->usbExecutors->addExecutor(new ReadSettingExecutor());
+
+    this->lastReceivedHeartbeats = new std::map<uint8_t, unsigned long>();
 };
 
 void MainCarduinoNode::luminanceCallback() {
@@ -50,8 +49,6 @@ unsigned long int next = 0;
 
 void MainCarduinoNode::loop() {
     CarduinoNode::loop();
-
-    this->scheduler->execute();
 
     /**
      * manage received messages over USB

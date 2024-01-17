@@ -11,7 +11,7 @@
 #include "shared//CarduinoNode/CarduinoNode/CarduinoNode.h"
 #include "executors/CarstatusExecutor.h"
 #include "executors/AllMessageExecutor.h"
-#include "executors/WriteSetting.h"
+#include "executors/WriteSettingExecutor.h"
 #include "executors/MediaControlExecutor.h"
 #include "shared/executors/Executors.h"
 #include "./executors/ReadSettingExecutor.h"
@@ -25,13 +25,11 @@ struct SplittedUsbMessage {
 
 class MainCarduinoNode : public CarduinoNode {
     public:
-        Scheduler *scheduler;
         Adafruit_AHTX0 *aht;
-        Scheduler *runner;
         Task *temperatureTask;
         Task *luminanceTask;
         Executors *usbExecutors;
-        std::map<uint8_t, unsigned long> lastReceivedHeartbeat;
+        std::map<uint8_t, unsigned long> *lastReceivedHeartbeats;
 
         MainCarduinoNode(uint8_t id, int cs, int interruptPin, char *ssid,  char *password);
 

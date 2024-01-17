@@ -8,9 +8,11 @@
 
 #include "mcp_can.h"
 #include <SPI.h>
+#include <TaskSchedulerDeclarations.h>
 
 #include "../../utils.h"
 #include "../../CanbusMessage/CanbusMessage.h"
+#include "../../CanbusMessage/HeartbeatMessage/HeartbeatMessage.h"
 #include "../../SharedDefinitions.h"
 #include "callbacks/SendHearbeatCallback.h"
 
@@ -41,7 +43,7 @@ class CarduinoNode {
         Executors *canExecutors;
         bool initializedCan;
         ESP8266HTTPUpdateServer *httpUpdater;
-        Scheduler *runner;
+        Scheduler *scheduler;
         Task *temperatureTask;
 
         CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssid, const char *password);

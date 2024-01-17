@@ -15,19 +15,16 @@ class WriteSetting : public CarduinoNodeExecutorInterface {
         void execute(CarduinoNode *node, CanbusMessage *message) {
             SettingMessage *settingMessage = new SettingMessage(*message);
 
-            switch(settingMessage->setting->id) {
-                case Setting::OTA_MODE.id:
-                    if(settingMessage->getBoolValue()) {
-                        node->otaStartup();
-                    } else {
-                        node->otaShutdown();
-                    }
-                    break;
-                case Setting:RESTART.id:
-                    if(settingMessage->getBoolValue()) {
-                        node->restart();
-                    }
-                    break;
+            if(settingMessage->setting->id == Setting::OTA_MODE.id) {
+                if(settingMessage->getBoolValue()) {
+                    node->otaStartup();
+                } else {
+                    node->otaShutdown();
+                }
+            } else if(settingMessage->setting->id == Setting::RESTART.id) {
+                if(settingMessage->getBoolValue()) {
+                    node->restart();
+                }
             }
 
             delete settingMessage;
