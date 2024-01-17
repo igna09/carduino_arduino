@@ -13,7 +13,7 @@ CarduinoNode::CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssi
     this->httpUpdater = new ESP8266HTTPUpdateServer();
     httpUpdater->setup(this->server);
 
-    this->setup(this->server, logOnServer, logOnSerial);
+    this->setupLogger(this->server, logOnServer, logOnSerial);
 
     // Initialize MCP2515 running at 16MHz with a baudrate of 500kb/s and the masks and filters disabled.
     if(can->begin(MCP_ANY, CAN_500KBPS, MCP_8MHZ) == CAN_OK) {

@@ -14,7 +14,7 @@ class Logger {
         WebSocketsServer *_webSocketsServer;
         ESP8266WebServer *_webServer;
         Logger();
-        void setup(ESP8266WebServer *server, bool logOnServer, bool logOnSerial);
+        void setupLogger(ESP8266WebServer *server, bool logOnServer, bool logOnSerial);
 
         void onWebSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length);
 

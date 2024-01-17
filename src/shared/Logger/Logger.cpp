@@ -2,7 +2,7 @@
 
 Logger::Logger() {};
 
-void Logger::setup(ESP8266WebServer *server, bool logOnServer, bool logOnSerial) {
+void Logger::setupLogger(ESP8266WebServer *server, bool logOnServer, bool logOnSerial) {
     this->_logOnSerial = logOnSerial;
     this->_logOnServer = logOnServer;
     if(this->_logOnServer) {
@@ -117,14 +117,18 @@ void Logger::onWebSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, siz
   }
 }
 
+void Logger::logOnServer(const char c[]) {
+    this->_webSocketsServer->broadcastTXT(c);
+}
+
 void Logger::printlnWrapper(const String &s) {
     if(_logOnSerial) Serial.println(s);
-    if(_logOnServer) logOnServer(s.c_str());
+    if(_logOnServer) logOnServer(s.c_str() + '\n');
 }
 
 void Logger::printlnWrapper(const char c[]) {
     if(_logOnSerial) Serial.println(c);
-    if(_logOnServer) logOnServer(c);
+    if(_logOnServer) logOnServer(c + '\n');
 }
 
 void Logger::printlnWrapper(char c) {
