@@ -1,14 +1,22 @@
 #pragma once
 
 #include <Arduino.h>
+#include <ESP8266WebServer.h>
+#include <WebSocketsServer.h>
 
 class Logger {
     private:
         bool _logOnServer;
         bool _logOnSerial;
+        static const char PROGMEM INDEX_HTML[];
 
     public:
-        Logger(ESP8266WebServer *server);
+        WebSocketsServer *_webSocketsServer;
+        ESP8266WebServer *_webServer;
+        Logger();
+        void setup(ESP8266WebServer *server, bool logOnServer, bool logOnSerial);
+
+        void onWebSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length);
 
         void logOnServer(const char c[]);
 

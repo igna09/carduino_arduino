@@ -18,7 +18,7 @@ void setup()
 	AfterReadExecutors *executors = new AfterReadExecutors();
 	executors->addExecutor(new TestExecutor());
 
-	executors->execute(new CarduinoNode(0xFF, D3, D0, "SSID_KLINE_CARDUINO_NODE", "pwd12345"));
+	executors->execute(new CarduinoNode(0xFF, D3, D0, "SSID_KLINE_CARDUINO_NODE", "pwd12345", false, false));
 }
 
 void loop()

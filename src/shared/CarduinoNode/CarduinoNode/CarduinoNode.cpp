@@ -2,14 +2,18 @@
 #include "../../executors/Executors.h" // include here to avoid circular dependency
 #include "WriteSetting.h" // include here to avoid circular dependency
 
-CarduinoNode::CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssid, const char *password) {
+CarduinoNode::CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssid, const char *password, bool logOnServer, bool logOnSerial) : Logger() {
     this->id = id;
     this->can = new MCP_CAN(cs);
     this->server = new ESP8266WebServer(80);
     this->ssid = ssid;
     this->password = password;
     this->interruptPin = interruptPin;
+
     this->httpUpdater = new ESP8266HTTPUpdateServer();
+    httpUpdater->setup(this->server);
+
+    this->setup(this->server, logOnServer, logOnSerial);
 
     // Initialize MCP2515 running at 16MHz with a baudrate of 500kb/s and the masks and filters disabled.
     if(can->begin(MCP_ANY, CAN_500KBPS, MCP_8MHZ) == CAN_OK) {
@@ -33,6 +37,8 @@ CarduinoNode::CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssi
     SendHeartbeatCallback<void(void)>::func = std::bind(&CarduinoNode::sendHeartbeat, this);
     new Task(HEARTBEAT_INTERVAL, TASK_FOREVER, static_cast<TaskCallback>(SendHeartbeatCallback<void(void)>::callback), this->scheduler, true);
     this->scheduler->startNow();
+
+    otaStartup();
 };
 
 void CarduinoNode::loop() {
@@ -40,6 +46,7 @@ void CarduinoNode::loop() {
 
     if(otaMode) {
         this->server->handleClient();
+        this->_webSocketsServer->loop();
     }
 
     if (initializedCan && availableCanbusMessages()) {
@@ -86,7 +93,6 @@ void CarduinoNode::otaStartup() {
     IPAddress NMask = IPAddress (255, 255, 255, 0);
     WiFi.softAPConfig(IP, IP, NMask);
 
-    httpUpdater->setup(this->server);
     this->server->begin();
 
     this->otaMode = true;

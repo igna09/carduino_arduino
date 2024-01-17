@@ -15,6 +15,7 @@
 #include "../../CanbusMessage/HeartbeatMessage/HeartbeatMessage.h"
 #include "../../SharedDefinitions.h"
 #include "callbacks/SendHearbeatCallback.h"
+#include "../../Logger/Logger.h"
 
 /**
  * Send message to android --> Category;payload;
@@ -29,7 +30,7 @@
 
 class WriteSetting; // forward declaration to avoid circular dependency
 class Executors; // forward declaration to avoid circular dependency
-class CarduinoNode {
+class CarduinoNode : public Logger {
     private:
 
     public:
@@ -46,7 +47,7 @@ class CarduinoNode {
         Scheduler *scheduler;
         Task *temperatureTask;
 
-        CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssid, const char *password);
+        CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssid, const char *password, bool logOnServer, bool logOnSerial);
 
         void loop();
         void manageReceivedCanbusMessage(CanbusMessage *message);
