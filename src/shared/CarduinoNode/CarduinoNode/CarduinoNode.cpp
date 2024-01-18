@@ -10,18 +10,51 @@ CarduinoNode::CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssi
     this->password = password;
     this->interruptPin = interruptPin;
 
-    // this->httpUpdater = new ESP8266HTTPUpdateServer();
-    // httpUpdater->setup(this->server);
+    if (!LittleFS.begin())
+    {
+        Serial.println("An Error has occurred while mounting LittleFS");
+        return;
+    }
+
+    this->server->serveStatic("/", LittleFS, "/").setDefaultFile("/index.html");
+
+    this->server->on("/update", HTTP_POST, [](AsyncWebServerRequest *request){
+        Serial.println("index");
+        AsyncWebServerResponse *response = request->beginResponse(200, "text/plain", !Update.hasError() ? "OK" : "FAIL");
+        response->addHeader("Connection", "close");
+        request->send(response);
+        ESP.restart();
+    },[](AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final){
+        Serial.println("index");
+        if(!index){
+            Serial.printf("Update Start: %s\n", filename.c_str());
+            Update.runAsync(true);
+            if(!Update.begin((ESP.getFreeSketchSpace() - 0x1000) & 0xFFFFF000)){
+                Update.printError(Serial);
+            }
+        }
+        if(!Update.hasError()){
+            if(Update.write(data, len) != len){
+                Update.printError(Serial);
+            }
+        }
+        if(final){
+            if(Update.end(true)){
+                Serial.printf("Update Success: %uB\n", index+len);
+            } else {
+                Update.printError(Serial);
+            }
+        }
+    });
 
     this->setupLogger(this->server, logOnServer, logOnSerial);
 
     // Initialize MCP2515 running at 16MHz with a baudrate of 500kb/s and the masks and filters disabled.
     if(can->begin(MCP_ANY, CAN_500KBPS, MCP_8MHZ) == CAN_OK) {
-        // Serial.println("MCP2515 Initialized Successfully!");
+        this->printlnWrapper("MCP2515 Initialized Successfully!");
         this->initializedCan = true;
     } else {
-        // Serial.println("Error Initializing MCP2515...");
-        //TODO: manage error (webserver with logs?)
+        printlnWrapper("Error Initializing MCP2515...");
         this->initializedCan = false;
     }
     can->setMode(MCP_NORMAL);                     // Set operation mode to normal so the MCP2515 sends acks to received data.

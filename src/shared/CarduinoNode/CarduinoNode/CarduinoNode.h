@@ -8,6 +8,7 @@
 #include <SPI.h>
 #include <TaskSchedulerDeclarations.h>
 #include <ESPAsyncWebServer.h>
+#include <LittleFS.h>
 
 #include "../../utils.h"
 #include "../../CanbusMessage/CanbusMessage.h"
@@ -42,7 +43,6 @@ class CarduinoNode : public Logger {
         int interruptPin;
         Executors *canExecutors;
         bool initializedCan;
-        // ESP8266HTTPUpdateServer *httpUpdater;
         Scheduler *scheduler;
         Task *temperatureTask;
 
