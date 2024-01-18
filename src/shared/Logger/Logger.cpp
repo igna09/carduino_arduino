@@ -2,16 +2,16 @@
 
 Logger::Logger() {};
 
-void Logger::setupLogger(ESP8266WebServer *server, bool logOnServer, bool logOnSerial) {
+void Logger::setupLogger(AsyncWebServer *server, bool logOnServer, bool logOnSerial) {
     this->_logOnSerial = logOnSerial;
     this->_logOnServer = logOnServer;
     if(this->_logOnServer) {
-        this->_webSocketsServer = new WebSocketsServer(81);
+        this->_webSocket = new AsyncWebSocket("/ws");
         this->_webServer = server;
-        this->_webSocketsServer->begin();
-        this->_webSocketsServer->onEvent([&](uint8_t num, WStype_t type, uint8_t * payload, size_t length){
-            this->onWebSocketEvent(num, type, payload, length);
+        this->_webSocket->onEvent([&](AsyncWebSocket * webSocket, AsyncWebSocketClient * client, AwsEventType type, void * arg, uint8_t *data, size_t len){
+            this->onWebSocketEvent(client, type, arg, data, len);
         });
+        this->_webServer->addHandler(this->_webSocket);
         
         static const char PROGMEM INDEX_HTML[] = R"rawliteral(
             <!DOCTYPE html>
@@ -57,59 +57,29 @@ void Logger::setupLogger(ESP8266WebServer *server, bool logOnServer, bool logOnS
             </html>
             )rawliteral";
 
-        this->_webServer->on("/logger", HTTP_GET, [&](){
-            this->_webServer->send_P(200, PSTR("text/html"), INDEX_HTML);
+        this->_webServer->on("/logger", HTTP_GET, [&](AsyncWebServerRequest *request){
+            request->send(200, PSTR("text/html"), INDEX_HTML);
             // TODO: send webapp homepage
         });
-
-        // server->on("/logger/logs", HTTP_GET, [&](){
-        //       _server->send_P(200, PSTR("text/html"), serverIndex);
-        //     TODO: send list of logs
-        // });
     }
 };
 
-void Logger::onWebSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length)
+void Logger::onWebSocketEvent(AsyncWebSocketClient * client, AwsEventType type, void * arg, uint8_t *data, size_t len)
 {
-  Serial.printf("webSocketEvent(%d, %d, ...)\r\n", num, type);
+  Serial.printf("webSocketEvent(%d, %d, ...)\r\n", client->id(), type);
   switch(type) {
-    case WStype_DISCONNECTED:
-      Serial.printf("[%u] Disconnected!\r\n", num);
+    case WS_EVT_DISCONNECT:
+      Serial.printf("[%u] Disconnected!\r\n", client->id());
       break;
-    case WStype_CONNECTED:
+    case WS_EVT_CONNECT:
       {
-        IPAddress ip = this->_webSocketsServer->remoteIP(num);
-        Serial.printf("[%u] Connected from %d.%d.%d.%d url: %s\r\n", num, ip[0], ip[1], ip[2], ip[3], payload);
-        // Send the current LED status
-        // if (LEDStatus) {
-        //   this->_webSocketsServer->sendTXT(num, LEDON, strlen(LEDON));
-        // }
-        // else {
-        //   this->_webSocketsServer->sendTXT(num, LEDOFF, strlen(LEDOFF));
-        // }
+        IPAddress ip = client->remoteIP();
+        Serial.printf("[%u] Connected from %d.%d.%d.%d url: %s\r\n", client->id(), ip[0], ip[1], ip[2], ip[3], data);
       }
       break;
-    case WStype_TEXT:
-      Serial.printf("[%u] get Text: %s\r\n", num, payload);
-
-    //   if (strcmp(LEDON, (const char *)payload) == 0) {
-    //     // writeLED(true);
-    //   }
-    //   else if (strcmp(LEDOFF, (const char *)payload) == 0) {
-    //     // writeLED(false);
-    //   }
-    //   else {
-    //     Serial.println("Unknown command");
-    //   }
-      // send data to all connected clients
-      this->_webSocketsServer->broadcastTXT(payload, length);
-      break;
-    case WStype_BIN:
-      Serial.printf("[%u] get binary length: %u\r\n", num, length);
-      hexdump(payload, length);
-
-      // echo data back to browser
-      this->_webSocketsServer->sendBIN(num, payload, length);
+    case WS_EVT_DATA:
+      Serial.printf("[%u] get Text: %s\r\n", client->id(), data);
+      this->_webSocket->textAll(data, len);
       break;
     default:
       Serial.printf("Invalid WStype [%d]\r\n", type);
@@ -118,7 +88,7 @@ void Logger::onWebSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, siz
 }
 
 void Logger::logOnServer(String message) {
-    this->_webSocketsServer->broadcastTXT(message);
+    this->_webSocket->textAll(message);
 }
 
 void Logger::printlnWrapper(const String &s) {

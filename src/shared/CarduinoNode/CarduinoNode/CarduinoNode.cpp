@@ -5,13 +5,13 @@
 CarduinoNode::CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssid, const char *password, bool logOnServer, bool logOnSerial) : Logger() {
     this->id = id;
     this->can = new MCP_CAN(cs);
-    this->server = new ESP8266WebServer(80);
+    this->server = new AsyncWebServer(80);
     this->ssid = ssid;
     this->password = password;
     this->interruptPin = interruptPin;
 
-    this->httpUpdater = new ESP8266HTTPUpdateServer();
-    httpUpdater->setup(this->server);
+    // this->httpUpdater = new ESP8266HTTPUpdateServer();
+    // httpUpdater->setup(this->server);
 
     this->setupLogger(this->server, logOnServer, logOnSerial);
 
@@ -37,15 +37,16 @@ CarduinoNode::CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssi
     SendHeartbeatCallback<void(void)>::func = std::bind(&CarduinoNode::sendHeartbeat, this);
     new Task(HEARTBEAT_INTERVAL, TASK_FOREVER, static_cast<TaskCallback>(SendHeartbeatCallback<void(void)>::callback), this->scheduler, true);
     this->scheduler->startNow();
+
+    otaStartup();
 };
 
 void CarduinoNode::loop() {
     this->scheduler->execute();
 
-    if(otaMode) {
-        this->server->handleClient();
-        this->_webSocketsServer->loop();
-    }
+    // if(otaMode) {
+    //     this->server->loop();
+    // }
 
     if (initializedCan && availableCanbusMessages()) {
     //   Serial.println(initializedCan && availableCanbusMessages() ? "true" : "false");
@@ -97,7 +98,7 @@ void CarduinoNode::otaStartup() {
 };
 
 void CarduinoNode::otaShutdown() {
-    this->server->stop();
+    this->server->end();
 
     WiFi.softAPdisconnect(true);
     WiFi.mode(WIFI_OFF);

@@ -1,8 +1,7 @@
 #pragma once
 
 #include <Arduino.h>
-#include <ESP8266WebServer.h>
-#include <WebSocketsServer.h>
+#include <ESPAsyncWebServer.h>
 
 class Logger {
     private:
@@ -11,12 +10,12 @@ class Logger {
         static const char PROGMEM INDEX_HTML[];
 
     public:
-        WebSocketsServer *_webSocketsServer;
-        ESP8266WebServer *_webServer;
+        AsyncWebSocket *_webSocket;
+        AsyncWebServer *_webServer;
         Logger();
-        void setupLogger(ESP8266WebServer *server, bool logOnServer, bool logOnSerial);
+        void setupLogger(AsyncWebServer *server, bool logOnServer, bool logOnSerial);
 
-        void onWebSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length);
+        void onWebSocketEvent(AsyncWebSocketClient * client, AwsEventType type, void * arg, uint8_t *data, size_t len);
 
         void logOnServer(String message);
 

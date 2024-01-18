@@ -3,12 +3,11 @@
 #include <Arduino.h>
 
 #include <ESP8266WiFi.h>
-#include <ESP8266WebServer.h>
-#include <ESP8266HTTPUpdateServer.h>
 
 #include "mcp_can.h"
 #include <SPI.h>
 #include <TaskSchedulerDeclarations.h>
+#include <ESPAsyncWebServer.h>
 
 #include "../../utils.h"
 #include "../../CanbusMessage/CanbusMessage.h"
@@ -36,14 +35,14 @@ class CarduinoNode : public Logger {
     public:
         uint8_t id;
         MCP_CAN *can;
-        ESP8266WebServer *server;
+        AsyncWebServer *server;
         String ssid;
         String password;
         bool otaMode;
         int interruptPin;
         Executors *canExecutors;
         bool initializedCan;
-        ESP8266HTTPUpdateServer *httpUpdater;
+        // ESP8266HTTPUpdateServer *httpUpdater;
         Scheduler *scheduler;
         Task *temperatureTask;
 
