@@ -18,7 +18,7 @@ class Logger {
 
         void onWebSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length);
 
-        void logOnServer(const char c[]);
+        void logOnServer(String message);
 
         void printlnWrapper(const String &s);
         void printlnWrapper(const char c[]);

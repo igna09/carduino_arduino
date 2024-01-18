@@ -117,18 +117,18 @@ void Logger::onWebSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, siz
   }
 }
 
-void Logger::logOnServer(const char c[]) {
-    this->_webSocketsServer->broadcastTXT(c);
+void Logger::logOnServer(String message) {
+    this->_webSocketsServer->broadcastTXT(message);
 }
 
 void Logger::printlnWrapper(const String &s) {
     if(_logOnSerial) Serial.println(s);
-    if(_logOnServer) logOnServer(s.c_str() + '\n');
+    if(_logOnServer) logOnServer(s + "\n");
 }
 
 void Logger::printlnWrapper(const char c[]) {
     if(_logOnSerial) Serial.println(c);
-    if(_logOnServer) logOnServer(c + '\n');
+    if(_logOnServer) logOnServer(String(c) + "\n");
 }
 
 void Logger::printlnWrapper(char c) {
@@ -169,12 +169,12 @@ void Logger::printlnWrapper(double num, int digits) {
 
 void Logger::printWrapper(const String &s) {
     if(_logOnSerial) Serial.print(s);
-    if(_logOnServer) logOnServer(s.c_str());
+    if(_logOnServer) logOnServer(s);
 }
 
 void Logger::printWrapper(const char c[]) {
     if(_logOnSerial) Serial.print(c);
-    if(_logOnServer) logOnServer(c);
+    if(_logOnServer) logOnServer(String(c));
 }
 
 void Logger::printWrapper(char c) {
