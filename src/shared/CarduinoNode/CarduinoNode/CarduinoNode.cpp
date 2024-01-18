@@ -18,14 +18,17 @@ CarduinoNode::CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssi
 
     this->server->serveStatic("/", LittleFS, "/").setDefaultFile("/index.html");
 
-    this->server->on("/update", HTTP_POST, [](AsyncWebServerRequest *request){
-        Serial.println("index");
-        AsyncWebServerResponse *response = request->beginResponse(200, "text/plain", !Update.hasError() ? "OK" : "FAIL");
+    this->server->on("/update-firmware", HTTP_POST, [](AsyncWebServerRequest *request){
+        AsyncWebServerResponse *response;
+        if(Update.hasError()) {
+            response = request->beginResponse(500, "text/plain", Update.getErrorString());
+        } else {
+            response = request->beginResponse(200, "text/plain");
+        }
         response->addHeader("Connection", "close");
         request->send(response);
         ESP.restart();
     },[](AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final){
-        Serial.println("index");
         if(!index){
             Serial.printf("Update Start: %s\n", filename.c_str());
             Update.runAsync(true);
@@ -44,6 +47,27 @@ CarduinoNode::CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssi
             } else {
                 Update.printError(Serial);
             }
+        }
+    });
+
+    this->server->onFileUpload([&](AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final){
+        if (!index) {
+            printlnWrapper("Upload Start: " + String(filename));
+            // open the file on first call and store the file handle in the request object
+            request->_tempFile = LittleFS.open("/" + filename, "w");
+        }
+
+        if (len) {
+            // stream the incoming chunk to the opened file
+            request->_tempFile.write(data, len);
+            printlnWrapper("Writing file: " + String(filename) + " index=" + String(index) + " len=" + String(len));
+        }
+
+        if (final) {
+            // close the file handle as the upload is now done
+            request->_tempFile.close();
+            printlnWrapper("Upload Complete: " + String(filename) + ",size: " + String(index + len));
+            request->redirect("/");
         }
     });
 
