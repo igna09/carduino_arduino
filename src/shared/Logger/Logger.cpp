@@ -25,7 +25,7 @@ void Logger::setupLogger(AsyncWebServer *server, bool logOnServer, bool logOnSer
             <script>
             var websock;
             function start() {
-            websock = new WebSocket('ws://' + window.location.hostname + ':81/');
+            websock = new WebSocket('ws://' + window.location.hostname + '/ws');
             websock.onopen = function(evt) { console.log('websock open'); };
             websock.onclose = function(evt) { console.log('websock close'); };
             websock.onerror = function(evt) { console.log(evt); };
@@ -66,24 +66,65 @@ void Logger::setupLogger(AsyncWebServer *server, bool logOnServer, bool logOnSer
 
 void Logger::onWebSocketEvent(AsyncWebSocketClient * client, AwsEventType type, void * arg, uint8_t *data, size_t len)
 {
-  Serial.printf("webSocketEvent(%d, %d, ...)\r\n", client->id(), type);
   switch(type) {
     case WS_EVT_DISCONNECT:
-      Serial.printf("[%u] Disconnected!\r\n", client->id());
-      break;
+        Serial.printf("ws[%s][%u] disconnect: %u\n", this->_webSocket->url(), client->id());
+        break;
     case WS_EVT_CONNECT:
-      {
-        IPAddress ip = client->remoteIP();
-        Serial.printf("[%u] Connected from %d.%d.%d.%d url: %s\r\n", client->id(), ip[0], ip[1], ip[2], ip[3], data);
-      }
-      break;
+        Serial.printf("ws[%s][%u] connect\n", this->_webSocket->url(), client->id());
+        break;
+    case WS_EVT_PONG:
+        Serial.printf("ws[%s][%u] pong[%u]: %s\n", this->_webSocket->url(), client->id(), len, (len)?(char*)data:"");
+        break;
     case WS_EVT_DATA:
-      Serial.printf("[%u] get Text: %s\r\n", client->id(), data);
-      this->_webSocket->textAll(data, len);
-      break;
-    default:
-      Serial.printf("Invalid WStype [%d]\r\n", type);
-      break;
+        AwsFrameInfo * info = (AwsFrameInfo*)arg;
+        if(info->final && info->index == 0 && info->len == len){
+            //the whole message is in a single frame and we got all of it's data
+            printf("ws[%s][%u] %s-message[%llu]: ", this->_webSocket->url(), client->id(), (info->opcode == WS_TEXT)?"text":"binary", info->len);
+            if(info->opcode == WS_TEXT){
+                data[len] = 0;
+                printf("%s\n", (char*)data);
+            } else {
+                for(size_t i=0; i < info->len; i++){
+                printf("%02x ", data[i]);
+                }
+                printf("\n");
+            }
+            if(info->opcode == WS_TEXT)
+                client->text("I got your text message");
+            else
+                client->binary("I got your binary message");
+        } else {
+            //message is comprised of multiple frames or the frame is split into multiple packets
+            if(info->index == 0){
+                if(info->num == 0)
+                    printf("ws[%s][%u] %s-message start\n", this->_webSocket->url(), client->id(), (info->message_opcode == WS_TEXT)?"text":"binary");
+                printf("ws[%s][%u] frame[%u] start[%llu]\n", this->_webSocket->url(), client->id(), info->num, info->len);
+            }
+
+            printf("ws[%s][%u] frame[%u] %s[%llu - %llu]: ", this->_webSocket->url(), client->id(), info->num, (info->message_opcode == WS_TEXT)?"text":"binary", info->index, info->index + len);
+            if(info->message_opcode == WS_TEXT){
+                data[len] = 0;
+                printf("%s\n", (char*)data);
+            } else {
+                for(size_t i=0; i < len; i++){
+                    printf("%02x ", data[i]);
+                }
+                printf("\n");
+            }
+
+            if((info->index + len) == info->len){
+                printf("ws[%s][%u] frame[%u] end[%llu]\n", this->_webSocket->url(), client->id(), info->num, info->len);
+                if(info->final){
+                    printf("ws[%s][%u] %s-message end\n", this->_webSocket->url(), client->id(), (info->message_opcode == WS_TEXT)?"text":"binary");
+                    if(info->message_opcode == WS_TEXT)
+                        client->text("I got your text message");
+                    else
+                        client->binary("I got your binary message");
+                }
+            }
+        }
+        break;
   }
 }
 
