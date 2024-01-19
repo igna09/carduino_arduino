@@ -9,6 +9,8 @@ CarduinoNode::CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssi
     this->ssid = ssid;
     this->password = password;
     this->interruptPin = interruptPin;
+    this->originalLogOnSerial = logOnSerial;
+    this->originalLogOnWebserver = logOnServer;
 
     if (!LittleFS.begin())
     {
@@ -16,7 +18,66 @@ CarduinoNode::CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssi
         return;
     }
 
-    //TODO: add management of simple page to upload webapp files for first time
+    if(existsAllFiles()) {
+        setupServerWebapp();
+    } else {
+        setupServerFallback();
+    }
+
+    // Initialize MCP2515 running at 16MHz with a baudrate of 500kb/s and the masks and filters disabled.
+    if(can->begin(MCP_ANY, CAN_500KBPS, MCP_8MHZ) == CAN_OK) {
+        this->printlnWrapper("MCP2515 Initialized Successfully!");
+        this->initializedCan = true;
+    } else {
+        printlnWrapper("Error Initializing MCP2515...");
+        this->initializedCan = false;
+    }
+    can->setMode(MCP_NORMAL);                     // Set operation mode to normal so the MCP2515 sends acks to received data.
+    pinMode(interruptPin, INPUT);                            // Configuring pin for /INT input
+
+    this->otaMode = false;
+    WiFi.mode(WIFI_OFF);
+    
+    this->canExecutors = new Executors();
+    this->canExecutors->addExecutor(new WriteSetting());
+
+    this->scheduler = new Scheduler();
+    SendHeartbeatCallback<void(void)>::func = std::bind(&CarduinoNode::sendHeartbeat, this);
+    new Task(HEARTBEAT_INTERVAL, TASK_FOREVER, static_cast<TaskCallback>(SendHeartbeatCallback<void(void)>::callback), this->scheduler, true);
+    this->scheduler->startNow();
+
+    otaStartup();
+};
+
+String CarduinoNode::fallbackPageProcessor(const String& var) {
+    // if (var == "FILELIST") {
+    //     return listFiles(true);
+    // }
+    // if (var == "FREESPIFFS") {
+    //     return humanReadableSize((SPIFFS.totalBytes() - SPIFFS.usedBytes()));
+    // }
+
+    // if (var == "USEDSPIFFS") {
+    //     return humanReadableSize(SPIFFS.usedBytes());
+    // }
+
+    // if (var == "TOTALSPIFFS") {
+    //     return humanReadableSize(SPIFFS.totalBytes());
+    // }
+
+  return String();
+}
+
+bool CarduinoNode::existsAllFiles() {
+    bool mainJsExists = LittleFS.exists("/main.js.gz");
+    bool polyfillsJsExists = LittleFS.exists("/polyfills.js.gz");
+    bool indexHtmlExists = LittleFS.exists("/index.html.gz");
+    bool stylesCssExists = LittleFS.exists("/styles.css.gz");
+
+    return mainJsExists && polyfillsJsExists && indexHtmlExists && stylesCssExists;
+}
+
+void CarduinoNode::setupServerWebapp() {
     this->server->serveStatic("/", LittleFS, "/").setDefaultFile("/index.html");
 
     this->server->on("/update-firmware", HTTP_POST, [](AsyncWebServerRequest *request){
@@ -72,34 +133,52 @@ CarduinoNode::CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssi
             // close the file handle as the upload is now done
             request->_tempFile.close();
             printlnWrapper("Upload Complete: " + String(filename) + ",size: " + String(index + len));
-            request->redirect("/");
         }
     });
 
-    this->setupLogger(this->server, logOnServer, logOnSerial);
+    this->setupLogger(this->server, this->originalLogOnWebserver, this->originalLogOnSerial);
+}
 
-    // Initialize MCP2515 running at 16MHz with a baudrate of 500kb/s and the masks and filters disabled.
-    if(can->begin(MCP_ANY, CAN_500KBPS, MCP_8MHZ) == CAN_OK) {
-        this->printlnWrapper("MCP2515 Initialized Successfully!");
-        this->initializedCan = true;
-    } else {
-        printlnWrapper("Error Initializing MCP2515...");
-        this->initializedCan = false;
-    }
-    can->setMode(MCP_NORMAL);                     // Set operation mode to normal so the MCP2515 sends acks to received data.
-    pinMode(interruptPin, INPUT);                            // Configuring pin for /INT input
+void CarduinoNode::setupServerFallback() {
+    this->server->on("/", HTTP_GET, [](AsyncWebServerRequest * request) {
+        String logmessage = "Client:" + request->client()->remoteIP().toString() + + " " + request->url();
+        Serial.println(logmessage);
+        request->send_P(200, "text/html", FALLBACK_PAGE/*, [&](const String& var){
+            return this->fallbackPageProcessor(var);
+        }*/);
+    });
 
-    this->otaMode = false;
-    WiFi.mode(WIFI_OFF);
-    
-    this->canExecutors = new Executors();
-    this->canExecutors->addExecutor(new WriteSetting());
+    this->requestsCounter = 0;
+    this->server->on("/file-upload", HTTP_POST, [&](AsyncWebServerRequest *request){
+        if(this->existsAllFiles() && this->requestsCounter == 0) {
+            this->server->reset();
+            this->setupServerWebapp();
+        }
+        request->redirect("/");
+    },[&](AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final){
+        if (!index) {
+            this->requestsCounter++;
+            printlnWrapper("Upload Start: " + String(filename));
+            // open the file on first call and store the file handle in the request object
+            request->_tempFile = LittleFS.open("/" + filename, "w");
+        }
 
-    this->scheduler = new Scheduler();
-    SendHeartbeatCallback<void(void)>::func = std::bind(&CarduinoNode::sendHeartbeat, this);
-    new Task(HEARTBEAT_INTERVAL, TASK_FOREVER, static_cast<TaskCallback>(SendHeartbeatCallback<void(void)>::callback), this->scheduler, true);
-    this->scheduler->startNow();
-};
+        if (len) {
+            // stream the incoming chunk to the opened file
+            request->_tempFile.write(data, len);
+            // printlnWrapper("Writing file: " + String(filename) + " index=" + String(index) + " len=" + String(len));
+        }
+
+        if (final) {
+            this->requestsCounter--;
+            // close the file handle as the upload is now done
+            request->_tempFile.close();
+            printlnWrapper("Upload Complete: " + String(filename) + ",size: " + String(index + len));
+        }
+    });
+
+    this->setupLogger(this->server, false, this->originalLogOnSerial);
+}
 
 void CarduinoNode::loop() {
     this->scheduler->execute();

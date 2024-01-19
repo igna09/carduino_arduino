@@ -28,10 +28,36 @@
  * This node has got a canbus interface and a wifi AP to update software
 */
 
+const char FALLBACK_PAGE[] PROGMEM = R"rawliteral(
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="UTF-8">
+</head>
+<body>
+<p><h1>File Upload</h1></p>
+<form method="POST" action="/file-upload" enctype="multipart/form-data">
+    <p><input type="file" name="file" multiple/></p>
+    <input type="submit" name="upload" value="Upload" title="Upload File">
+</form>
+<p>Some files are missing, upload ALL webapp files (favicon.ico.gz index.html.gz main.js.gz polyfills.js.gz styles.css.gz)</p>
+<p>You will be redirect as soon as the upload ends (if you uploaded ALL files)</p>
+</body>
+</html>
+)rawliteral";
+
 class WriteSetting; // forward declaration to avoid circular dependency
 class Executors; // forward declaration to avoid circular dependency
 class CarduinoNode : public Logger {
     private:
+        String fallbackPageProcessor(const String& var);
+        bool existsAllFiles();
+        int requestsCounter;
+        void setupServerWebapp();
+        void setupServerFallback();
+        bool originalLogOnWebserver;
+        bool originalLogOnSerial;
 
     public:
         uint8_t id;
