@@ -50,7 +50,11 @@ CarduinoNode::CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssi
         }
     });
 
-    this->server->onFileUpload([&](AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final){
+    this->server->on("/file-upload", HTTP_POST, [&](AsyncWebServerRequest *request){
+        AsyncWebServerResponse *response = request->beginResponse(200, "text/plain");
+        response->addHeader("Connection", "close");
+        request->send(response);
+    },[&](AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final){
         if (!index) {
             printlnWrapper("Upload Start: " + String(filename));
             // open the file on first call and store the file handle in the request object
@@ -60,7 +64,7 @@ CarduinoNode::CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssi
         if (len) {
             // stream the incoming chunk to the opened file
             request->_tempFile.write(data, len);
-            printlnWrapper("Writing file: " + String(filename) + " index=" + String(index) + " len=" + String(len));
+            // printlnWrapper("Writing file: " + String(filename) + " index=" + String(index) + " len=" + String(len));
         }
 
         if (final) {
