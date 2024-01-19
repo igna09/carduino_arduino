@@ -16,6 +16,7 @@ CarduinoNode::CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssi
         return;
     }
 
+    //TODO: add management of simple page to upload webapp files for first time
     this->server->serveStatic("/", LittleFS, "/").setDefaultFile("/index.html");
 
     this->server->on("/update-firmware", HTTP_POST, [](AsyncWebServerRequest *request){
