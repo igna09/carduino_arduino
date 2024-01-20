@@ -144,15 +144,13 @@ void KlineCarduinoNode::readValues() {
 						}
 						delete[] valuesByEcuBlock;
 					}
-					delete[] blockValuesByEcu;
-
-					
 					// Serial.println("KlineCarduinoNode::readValues() trying to call  this->afterReadExecutors->execute(this)");
 					this->afterReadExecutors->execute(this);
 					// Serial.println("KlineCarduinoNode::readValues() called  this->afterReadExecutors->execute(this)");
 				} else {
 					printlnWrapper("KlineCarduinoNode::readValues could not connect to ECU");
 				}
+				delete[] blockValuesByEcu;
 			}
 		}
 		
