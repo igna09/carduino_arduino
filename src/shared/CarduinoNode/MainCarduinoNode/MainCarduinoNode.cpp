@@ -65,6 +65,7 @@ void MainCarduinoNode::loop() {
 }
 
 void MainCarduinoNode::handleReceivedSerialMessage(String receivedMessage) {
+    this->printlnWrapper("CarduinoNode::handleReceivedSerialMessage " + receivedMessage);
     SplittedUsbMessage *splittedUsbMessage = splitReceivedUsbMessage(receivedMessage);
 
     if(splittedUsbMessage->isValid) {

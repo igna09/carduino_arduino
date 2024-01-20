@@ -19,9 +19,14 @@ void setup(void) {
 }
 
 // unsigned long lastSent = millis();
+// bool sent = false;
 
 void loop(void) {
   	klineCarduinoNode->loop();
+	// if(millis() > 5000 & !sent) {
+	// 	sent = true;
+	// 	klineCarduinoNode->otaStartup();
+	// }
 	// if(millis() > lastSent + 2000) {
 		// 	lastSent = millis();
 		// 	float v = 45.7;

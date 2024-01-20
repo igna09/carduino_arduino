@@ -5,13 +5,14 @@
 
 class Logger {
     private:
-        bool _logOnServer;
-        bool _logOnSerial;
         static const char PROGMEM INDEX_HTML[];
 
     public:
         AsyncWebSocket *_webSocket;
-        AsyncWebServer *_webServer;
+        bool _logOnServer;
+        bool _logOnSerial;
+        bool _originalLogOnWebserver;
+        bool _originalLogOnSerial;
         Logger();
         void setupLogger(AsyncWebServer *server, bool logOnServer, bool logOnSerial);
 

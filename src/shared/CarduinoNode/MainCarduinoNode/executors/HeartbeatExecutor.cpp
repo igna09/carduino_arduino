@@ -13,7 +13,7 @@ void HeartbeatExecutor::execute(CarduinoNode *node, CanbusMessage *message) {
     if (it != map->end()) {
         if(millis() - it->second > HEARTBEAT_INTERVAL + HEARTBEAT_INTERVAL_TOLERANCE) { // ERROR
             //TODO: error management
-            Serial.println("----- error -----");
+            node->printlnWrapper("----- HEARTBEAT ERROR -----");
         } else { // NO ERROR
             (*map)[heartbeatMessage->senderId] = millis();
         }

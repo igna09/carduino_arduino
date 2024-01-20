@@ -6,11 +6,13 @@ CarduinoNode::CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssi
     this->id = id;
     this->can = new MCP_CAN(cs);
     this->server = new AsyncWebServer(80);
+    this->server->end();
     this->ssid = ssid;
     this->password = password;
     this->interruptPin = interruptPin;
-    this->originalLogOnSerial = logOnSerial;
-    this->originalLogOnWebserver = logOnServer;
+    this->_fallbackPage = true;
+    this->_originalLogOnSerial = logOnSerial;
+    this->_originalLogOnWebserver = logOnServer;
 
     if (!LittleFS.begin())
     {
@@ -45,6 +47,8 @@ CarduinoNode::CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssi
     SendHeartbeatCallback<void(void)>::func = std::bind(&CarduinoNode::sendHeartbeat, this);
     new Task(HEARTBEAT_INTERVAL, TASK_FOREVER, static_cast<TaskCallback>(SendHeartbeatCallback<void(void)>::callback), this->scheduler, true);
     this->scheduler->startNow();
+    
+    // otaStartup();
 };
 
 String CarduinoNode::fallbackPageProcessor(const String& var) {
@@ -76,6 +80,8 @@ bool CarduinoNode::existsAllFiles() {
 }
 
 void CarduinoNode::setupServerWebapp() {
+    this->_fallbackPage = false;
+    this->setupLogger(this->server, false, this->_originalLogOnSerial);
     this->server->serveStatic("/", LittleFS, "/").setDefaultFile("/index.html");
 
     this->server->on("/update-firmware", HTTP_POST, [](AsyncWebServerRequest *request){
@@ -134,13 +140,17 @@ void CarduinoNode::setupServerWebapp() {
         }
     });
 
-    this->setupLogger(this->server, this->originalLogOnWebserver, this->originalLogOnSerial);
+    //TODO: implement API to get current status
+    //TODO: implement API to restart ESP
 }
 
 void CarduinoNode::setupServerFallback() {
-    this->server->on("/", HTTP_GET, [](AsyncWebServerRequest * request) {
-        String logmessage = "Client:" + request->client()->remoteIP().toString() + + " " + request->url();
-        Serial.println(logmessage);
+    this->_fallbackPage = true;
+    this->setupLogger(this->server, false, this->_originalLogOnSerial);
+
+    this->server->on("/", HTTP_GET, [&](AsyncWebServerRequest * request) {
+        String logmessage = "Client:" + request->client()->remoteIP().toString() + " " + request->url();
+        printlnWrapper(logmessage);
         request->send_P(200, "text/html", FALLBACK_PAGE/*, [&](const String& var){
             return this->fallbackPageProcessor(var);
         }*/);
@@ -174,16 +184,10 @@ void CarduinoNode::setupServerFallback() {
             printlnWrapper("Upload Complete: " + String(filename) + ",size: " + String(index + len));
         }
     });
-
-    this->setupLogger(this->server, false, this->originalLogOnSerial);
 }
 
 void CarduinoNode::loop() {
     this->scheduler->execute();
-
-    // if(otaMode) {
-    //     this->server->loop();
-    // }
 
     if (initializedCan && availableCanbusMessages()) {
     //   Serial.println(initializedCan && availableCanbusMessages() ? "true" : "false");
@@ -210,6 +214,7 @@ void CarduinoNode::loop() {
 };
 
 void CarduinoNode::manageReceivedCanbusMessage(CanbusMessage *message) {
+    this->printlnWrapper("CarduinoNode::manageReceivedCanbusMessage " + message->toSerialString());
     this->canExecutors->execute(this, message);
 };
 
@@ -224,18 +229,20 @@ void CarduinoNode::sendByteCanbus(uint16_t messageId, int len, uint8_t *buf) {
 
 void CarduinoNode::otaStartup() {
     WiFi.softAP(this->ssid, this->password);
-    delay(150);
+    delay(50);
     IPAddress IP = IPAddress (10, 10, 10, 10);
     IPAddress NMask = IPAddress (255, 255, 255, 0);
     WiFi.softAPConfig(IP, IP, NMask);
 
     this->server->begin();
+    this->_logOnServer = _originalLogOnWebserver && !this->_fallbackPage;
 
     this->otaMode = true;
 };
 
 void CarduinoNode::otaShutdown() {
     this->server->end();
+    this->_logOnServer = false;
 
     WiFi.softAPdisconnect(true);
     WiFi.mode(WIFI_OFF);
@@ -261,12 +268,16 @@ bool CarduinoNode::availableCanbusMessages() {
 }
 
 void CarduinoNode::sendCanbusMessage(CanbusMessage *message) {
-    // Serial.println(message->id, 2);
-	// printUint8Array("loop", message->payload, message->payloadLength);
-    sendByteCanbus(message->id, message->payloadLength, message->payload);
+    if(initializedCan) {
+        this->printlnWrapper("CarduinoNode::sendCanbusMessage " + message->toSerialString());
+        sendByteCanbus(message->id, message->payloadLength, message->payload);
+    } else {
+        this->printlnWrapper("CarduinoNode::sendCanbusMessage CAN not initialized, cannot send message " + message->toSerialString());
+    }
 }
 
 void CarduinoNode::restart() {
+    this->printlnWrapper("CarduinoNode::restart");
     ESP.restart();
 }
 

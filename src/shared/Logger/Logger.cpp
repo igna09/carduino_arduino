@@ -1,22 +1,22 @@
 #include "Logger.h"
 
-Logger::Logger() {};
+Logger::Logger() {
+    this->_webSocket = nullptr;
+};
 
-void Logger::setupLogger(AsyncWebServer *server, bool logOnServer, bool logOnSerial) {
+void Logger::setupLogger(AsyncWebServer *webServer, bool logOnServer, bool logOnSerial) {
     this->_logOnSerial = logOnSerial;
     this->_logOnServer = logOnServer;
-    if(this->_logOnServer) {
-        if(this->_webSocket != nullptr) {
-            webServer->removeHandler(this->_webSocket);
-            delete this->_webSocket;
-        }
-        this->_webSocket = new AsyncWebSocket("/ws");
-        this->_webServer = server;
-        this->_webSocket->onEvent([&](AsyncWebSocket * webSocket, AsyncWebSocketClient * client, AwsEventType type, void * arg, uint8_t *data, size_t len){
-            this->onWebSocketEvent(client, type, arg, data, len);
-        });
-        this->_webServer->addHandler(this->_webSocket);
+
+    if(this->_webSocket != nullptr) {
+        webServer->removeHandler(this->_webSocket);
+        delete this->_webSocket;
     }
+    this->_webSocket = new AsyncWebSocket("/ws");
+    this->_webSocket->onEvent([&](AsyncWebSocket * webSocket, AsyncWebSocketClient * client, AwsEventType type, void * arg, uint8_t *data, size_t len){
+        this->onWebSocketEvent(client, type, arg, data, len);
+    });
+    webServer->addHandler(this->_webSocket);
 };
 
 void Logger::onWebSocketEvent(AsyncWebSocketClient * client, AwsEventType type, void * arg, uint8_t *data, size_t len)

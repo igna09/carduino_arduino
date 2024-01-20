@@ -1,6 +1,6 @@
 #include "KlineCarduinoNode.h"
 
-KlineCarduinoNode::KlineCarduinoNode(uint8_t id, uint8_t pin_rx, uint8_t pin_tx, int cs, int interruptPin, const char *ssid, const char *password) : CarduinoNode(id, cs, interruptPin, ssid,  password, false, false) {
+KlineCarduinoNode::KlineCarduinoNode(uint8_t id, uint8_t pin_rx, uint8_t pin_tx, int cs, int interruptPin, const char *ssid, const char *password) : CarduinoNode(id, cs, interruptPin, ssid,  password, true, true) {
     this->pin_rx = pin_rx;
     this->pin_tx = pin_tx;
 	this->softwareSerial = new SoftwareSerial(pin_rx, pin_tx);
@@ -40,7 +40,7 @@ void KlineCarduinoNode::readValues() {
 	// Serial.println("KlineCarduinoNode::readValues() start");
 	// unsigned long start = millis();
 	// Serial.println("start readValues()");
-	if(!this->otaMode) {
+	// if(!this->otaMode) {
 		// Serial.print("KlineCarduinoNode::readValues() this->otaMode ");
 		// Serial.println(this->otaMode ? "true" : "false");
 		uint8_t ecusToReadSize = ValueToReadEnum::getEcusToReadSize();
@@ -150,12 +150,14 @@ void KlineCarduinoNode::readValues() {
 					// Serial.println("KlineCarduinoNode::readValues() trying to call  this->afterReadExecutors->execute(this)");
 					this->afterReadExecutors->execute(this);
 					// Serial.println("KlineCarduinoNode::readValues() called  this->afterReadExecutors->execute(this)");
+				} else {
+					printlnWrapper("KlineCarduinoNode::readValues could not connect to ECU");
 				}
 			}
 		}
 		
 		delete ecusToRead;
-	}
+	// }
 	// Serial.print("end readValues() ");
 	// Serial.println((millis() - start));
 	// Serial.println("KlineCarduinoNode::readValues() finish");

@@ -23,12 +23,11 @@ void setup(void) {
 
 void loop(void) {
   carduinoNode->loop();
-  // if(millis() > lastSent + 2600) {
+  // if(millis() > lastSent + 1000) {
 	// 		lastSent = millis();
-	// 		// float v = 45.7;
-	// 		// printFreeHeap("loop");
-  //     uint8_t a[] = {0x01};
-	// 		CanbusMessage *message = new CanbusMessage(0b10000000010, a, 1);
-	// 		carduinoNode->manageReceivedCanbusMessage(message);
+      // uint8_t a[] = {0x01};
+			// CanbusMessage *message = new CanbusMessage(0b10000000010, a, 1);
+			// carduinoNode->manageReceivedCanbusMessage(message);
+  //     carduinoNode->printlnWrapper("test");
 	// }
 }

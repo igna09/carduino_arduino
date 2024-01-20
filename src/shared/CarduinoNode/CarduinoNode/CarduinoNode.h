@@ -56,8 +56,7 @@ class CarduinoNode : public Logger {
         int requestsCounter;
         void setupServerWebapp();
         void setupServerFallback();
-        bool originalLogOnWebserver;
-        bool originalLogOnSerial;
+        bool _fallbackPage;
 
     public:
         uint8_t id;

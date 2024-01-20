@@ -25,6 +25,15 @@ class CanbusMessage {
         virtual ~CanbusMessage();
 
         virtual String toSerialString() {
-            return "";
+            String returnValue = "";
+            returnValue += categoryId;
+            returnValue += ";";
+            returnValue += messageId;
+            returnValue += ";";
+            for(int i=0; i < payloadLength; i++){
+                returnValue += payload[i];
+                returnValue += " ";
+            }
+            return returnValue;
         };
 };
