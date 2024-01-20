@@ -1,24 +1,31 @@
 #include <Arduino.h>
-#include "shared/CarduinoNode/CarduinoNode/CarduinoNode.h"
-#include "shared/CarduinoNode/KlineCarduinoNode/AfterReadExecutor/AfterReadExecutors.h"
-#include "shared/CarduinoNode/KlineCarduinoNode/AfterReadExecutor/AfterReadExecutorInterface.h"
-#include "./shared/SharedDefinitions.h"
 
-class TestExecutor : public AfterReadExecutorInterface {
-	public:
-		void execute(CarduinoNode *node) {
-			Serial.println("test");
-		}
-};
+#include "./shared/SharedDefinitions.h"
 
 void setup()
 {
 	Serial.begin(BAUD_RATE);
 
-	AfterReadExecutors *executors = new AfterReadExecutors();
-	executors->addExecutor(new TestExecutor());
+	uint32_t realSize = ESP.getFlashChipRealSize();
+  uint32_t ideSize = ESP.getFlashChipSize();
+  FlashMode_t ideMode = ESP.getFlashChipMode();
 
-	executors->execute(new CarduinoNode(0xFF, D3, D0, "SSID_KLINE_CARDUINO_NODE", "pwd12345", false, false));
+  Serial.printf("Flash real id:   %08X\n", ESP.getFlashChipId());
+  Serial.printf("Flash real size: %u bytes\n\n", realSize);
+
+  Serial.printf("Flash ide  size: %u bytes\n", ideSize);
+  Serial.printf("Flash ide speed: %u Hz\n", ESP.getFlashChipSpeed());
+  Serial.printf("Flash ide mode:  %s\n", (ideMode == FM_QIO ? "QIO" : ideMode == FM_QOUT ? "QOUT"
+                                                                    : ideMode == FM_DIO  ? "DIO"
+                                                                    : ideMode == FM_DOUT ? "DOUT"
+                                                                                         : "UNKNOWN"));
+
+  if (ideSize != realSize) {
+    Serial.println("Flash Chip configuration wrong!\n");
+  } else {
+    Serial.println("Flash Chip configuration ok.\n");
+  }
+
 }
 
 void loop()
