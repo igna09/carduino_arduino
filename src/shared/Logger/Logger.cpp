@@ -6,6 +6,10 @@ void Logger::setupLogger(AsyncWebServer *server, bool logOnServer, bool logOnSer
     this->_logOnSerial = logOnSerial;
     this->_logOnServer = logOnServer;
     if(this->_logOnServer) {
+        if(this->_webSocket != nullptr) {
+            webServer->removeHandler(this->_webSocket);
+            delete this->_webSocket;
+        }
         this->_webSocket = new AsyncWebSocket("/ws");
         this->_webServer = server;
         this->_webSocket->onEvent([&](AsyncWebSocket * webSocket, AsyncWebSocketClient * client, AwsEventType type, void * arg, uint8_t *data, size_t len){
