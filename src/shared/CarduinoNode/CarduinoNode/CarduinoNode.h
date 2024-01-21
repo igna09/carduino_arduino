@@ -8,6 +8,7 @@
 #include <SPI.h>
 #include <TaskSchedulerDeclarations.h>
 #include <ESPAsyncWebServer.h>
+#include <ArduinoJson.h>
 #include <LittleFS.h>
 
 #include "../../utils.h"

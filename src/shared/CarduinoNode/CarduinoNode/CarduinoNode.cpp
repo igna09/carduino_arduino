@@ -140,8 +140,23 @@ void CarduinoNode::setupServerWebapp() {
         }
     });
 
-    //TODO: implement API to get current status
-    //TODO: implement API to restart ESP
+    this->server->on("/restart", HTTP_GET, [&](AsyncWebServerRequest *request){
+        AsyncWebServerResponse *response = request->beginResponse(200, "text/plain");
+        response->addHeader("Connection", "close");
+        request->send(response);
+
+        delay(250);
+        this->restart();
+    });
+
+    this->server->on("/status", HTTP_GET, [&](AsyncWebServerRequest *request){
+        AsyncResponseStream *response = request->beginResponseStream("application/json");
+        JsonDocument jsonDocument;
+        jsonDocument["freeHeap"] = ESP.getFreeHeap();
+        jsonDocument["ssid"] = WiFi.softAPSSID();
+        serializeJson(jsonDocument, *response);
+        request->send(response);
+    });
 }
 
 void CarduinoNode::setupServerFallback() {
