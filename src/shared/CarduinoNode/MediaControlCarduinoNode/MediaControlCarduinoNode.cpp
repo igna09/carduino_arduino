@@ -3,7 +3,13 @@
 MediaControlCarduinoNode::MediaControlCarduinoNode(uint8_t id, uint8_t clk, uint8_t dt, uint8_t sw, int cs, int interruptPin, const char *ssid, const char *password) : CarduinoNode(id, cs, interruptPin, ssid,  password, false, false) {
     versatileEncoder = new Versatile_RotaryEncoder(clk, dt, sw);
 
+	this->lastRead = 0;
+
 	versatileEncoder->setHandleRotate([this](uint8_t rotation){
+		if(!this->canRead()) {
+			return;
+		}
+		this->lastRead = millis();
 		if(rotation == 255) { // clockwise
 			this->sendMediaControlMessage(&MediaControl::VOLUME_UP);
 			// Serial.println("VOLUME_UP");
@@ -13,13 +19,26 @@ MediaControlCarduinoNode::MediaControlCarduinoNode(uint8_t id, uint8_t clk, uint
 		}
 	});
 	versatileEncoder->setHandlePressRelease([this](){
+		if(!this->canRead()) {
+			return;
+		}
+		this->lastRead = millis();
 		this->sendMediaControlMessage(&MediaControl::PLAY_PAUSE);
 		// Serial.println("PLAY_PAUSE");
 	});
 	versatileEncoder->setHandleLongPress([this](){
+		if(!this->canRead()) {
+			return;
+		}
+		this->lastRead = millis();
+		// Serial.println("LONG_PRESS");
 		this->sendMediaControlMessage(&MediaControl::LONG_PRESS);
 	});
 	versatileEncoder->setHandleDoublePressRelease([this](){
+		if(!this->canRead()) {
+			return;
+		}
+		this->lastRead = millis();
 		// Serial.println("NEXT");
 		this->sendMediaControlMessage(&MediaControl::NEXT);
 	});
@@ -31,7 +50,11 @@ void MediaControlCarduinoNode::sendMediaControlMessage(const MediaControl *media
 	delete m;
 };
 
-void MediaControlCarduinoNode::loop () {
+void MediaControlCarduinoNode::loop() {
 	CarduinoNode::loop();
 	versatileEncoder->ReadEncoder();
+};
+
+bool MediaControlCarduinoNode::canRead() {
+	return millis() > this->lastRead + ENCODER_READING_INTERVAL;
 };

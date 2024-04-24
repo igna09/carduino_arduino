@@ -5,6 +5,7 @@
 #include "Versatile_RotaryEncoder.h"
 #include "shared/enums/MediaControl.h"
 #include "shared/CanbusMessage/MediaControlMessage/MediaControlMessage.h"
+#include "shared/SharedDefinitions.h"
 
 class MediaControlCarduinoNode : public CarduinoNode {
     public:
@@ -14,4 +15,6 @@ class MediaControlCarduinoNode : public CarduinoNode {
 
     private:
         Versatile_RotaryEncoder *versatileEncoder;
+        unsigned long lastRead;
+        bool canRead();
 };
