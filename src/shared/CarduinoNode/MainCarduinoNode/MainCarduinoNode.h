@@ -30,18 +30,6 @@ class MainCarduinoNode : public CarduinoNode {
         Executors *usbExecutors;
         std::map<uint8_t, unsigned long> *lastReceivedHeartbeats;
 
-        /**
-         * TODO: move to new node to relief main node
-        */
-        Adafruit_AHTX0 *aht;
-        Task *temperatureTask;
-        Task *luminanceTask;
-        PCF8574 *pcf8574;
-        bool pressing;
-        bool pairing;
-        uint8_t pressedPin;
-        unsigned long lastPressedMillis;
-
         MainCarduinoNode(uint8_t id, int cs, int interruptPin, char *ssid,  char *password);
 
         // void manageReceivedCanbusMessage(CanbusMessage message);
@@ -54,8 +42,20 @@ class MainCarduinoNode : public CarduinoNode {
         /**
          * TODO: move to new node to relief main node
         */
+        Adafruit_AHTX0 *aht;
+        Task *temperatureTask;
+        Task *luminanceTask;
+        PCF8574 *pcf8574;
+        bool isPressing;
+        bool isPairing;
+        bool isWaitingPairing;
+        bool firstWaitingPin;
+        uint8_t pressedPin;
+        unsigned long lastPressedMillis;
+
         void executeSwcCommand(MediaControl *mediaControl);
-        void executeSwcPairing();
+        void manageSwc();
+        void startSwcPairing();
         void luminanceCallback();
         void temperatureCallback();
 };

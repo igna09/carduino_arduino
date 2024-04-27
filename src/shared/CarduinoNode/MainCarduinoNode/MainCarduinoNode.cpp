@@ -16,8 +16,9 @@ MainCarduinoNode::MainCarduinoNode(uint8_t id, int cs, int interruptPin, char *s
     this->pcf8574->digitalWrite(P7, HIGH);
 
     this->lastPressedMillis = 0;
-    this->pressing = false;
-    this->pairing = false;
+    this->isPressing = false;
+    this->isPairing = false;
+    this->isWaitingPairing = false;
 
     LuminanceCallback<void(void)>::func = std::bind(&MainCarduinoNode::luminanceCallback, this);
     luminanceTask = new Task(1000, TASK_FOREVER, static_cast<TaskCallback>(LuminanceCallback<void(void)>::callback), this->scheduler, true);
@@ -78,21 +79,7 @@ void MainCarduinoNode::loop() {
         handleReceivedSerialMessage("READ_SETTINGS;OTA_MODE;false;");
     }*/
 
-    if(this->pressing) {
-        if(millis() > this->lastPressedMillis + SWC_PRESS_INTERVAL) {
-            this->pcf8574->digitalWrite(this->pressedPin, HIGH);
-            this->pressing = false;
-        }
-    } else if(this->pairing) {
-        if(millis() > this->lastPressedMillis + SWC_PAIRING_INTERVAL) {
-            this->pcf8574->digitalWrite(this->pressedPin, HIGH);
-            if(this->pressedPin < SWC_PIN_SIZE - 1) {
-                this->executeSwcPairing();
-            } else {
-                this->pairing = false;
-            }
-        }
-    }
+    manageSwc();
 }
 
 void MainCarduinoNode::handleReceivedSerialMessage(String receivedMessage) {
@@ -162,13 +149,51 @@ void MainCarduinoNode::executeSwcCommand(MediaControl *mediaControl) {
     }
 }
 
-void MainCarduinoNode::executeSwcPairing() {
-    if(!this->pairing) {
-        this->pairing = true;
-        this->pressedPin = 0;
-    } else {
-        this->pressedPin++;
-    }
-    this->pcf8574->digitalWrite(this->pressedPin, LOW);
+void MainCarduinoNode::startSwcPairing() {
+    this->isWaitingPairing = true;
+    this->pressedPin = 0;
     this->lastPressedMillis = millis();
+    this->firstWaitingPin = true;
+    this->printlnWrapper("start waiting PIN " + this->pressedPin);
+}
+
+void MainCarduinoNode::manageSwc() {
+    if(this->pressing) {
+        if(millis() > this->lastPressedMillis + SWC_PRESS_INTERVAL) {
+            this->pcf8574->digitalWrite(this->pressedPin, HIGH);
+            this->pressing = false;
+        }
+    } else if(this->pairing) {
+        if(millis() > this->lastPressedMillis + SWC_PAIRING_INTERVAL) {
+            this->pcf8574->digitalWrite(this->pressedPin, HIGH);
+            this->printlnWrapper("Stop pressing PIN " + this->pressedPin);
+            this->pairing = false;
+            if(this->pressedPin < SWC_PIN_SIZE - 1) {
+                this->pressedPin++;
+                this->isWaitingPairing = true;
+                this->lastPressedMillis = millis();
+            }
+        }
+    } else if(this->isWaitingPairing) {
+        if(this->firstWaitingPin) {
+            this->printlnWrapper("start waiting PIN " + this->pressedPin);
+            this->firstWaitingPin = false;
+        }
+
+        int intervalToWait;
+        if(this->pressedPin == 0) {
+            intervalToWait = SWC_FIRST_WAITING_PAIRING_INTERVAL;
+        } else {
+            intervalToWait = SWC_WAITING_PAIRING_INTERVAL;
+        }
+
+        if(millis() > this->lastPressedMillis + intervalToWait) {
+            this->pcf8574->digitalWrite(this->pressedPin, LOW);
+            this->lastPressedMillis = millis();
+            this->isWaitingPairing = false;
+            this->isPairing = true;
+            this->firstWaitingPin = true;
+            this->printlnWrapper("stop waiting and start pressing PIN " + this->pressedPin);
+        }
+    }
 }
