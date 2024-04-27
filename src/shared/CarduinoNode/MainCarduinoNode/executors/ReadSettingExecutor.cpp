@@ -13,7 +13,7 @@ void ReadSettingExecutor::execute(CarduinoNode *node, CanbusMessage *message) {
     ((MainCarduinoNode*)node)->sendSerialMessage(&resetSettingMessage);
 
     /**
-     * TODO: move to new node, should add method to send read setting on canbus?
+     * TODO: move to new node, should add method to send read setting on canbus? yes
     */
     TypedCanbusMessage swcBindingTypedCanbusMessage = TypedCanbusMessage(node->generateId(Category::READ_SETTINGS, Setting::SWC_PAIR), false);
     SettingMessage swcBindingSettingMessage(swcBindingTypedCanbusMessage);

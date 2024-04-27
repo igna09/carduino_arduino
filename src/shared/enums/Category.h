@@ -51,6 +51,8 @@ class Category : public Enum {
         Category(uint8_t id, const char *name) : Enum(id, name) {
             Category::values[Category::index] = this;
             Category::index++;
+
+            this->getEnumFromNameFunction = nullptr;
         };
 
         Category(uint8_t id, const char *name, std::function<const TypedEnum*(char*)> convertCallback) : Enum(id, name) {
