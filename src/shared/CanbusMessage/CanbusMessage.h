@@ -34,6 +34,7 @@ class CanbusMessage {
                 returnValue += payload[i];
                 returnValue += " ";
             }
+            returnValue += ";";
             return returnValue;
         };
 };
