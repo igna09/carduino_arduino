@@ -13,7 +13,7 @@ void WriteSettingExecutor::execute(CarduinoNode *node, CanbusMessage *message) {
         }
     } else if(settingMessage->setting->id == Setting::SWC_PAIR.id) { //TODO: move to new node in canbus executor
         if(settingMessage->getBoolValue()) {
-            ((MainCarduinoNode*)node)->executeSwcPairing();
+            ((MainCarduinoNode*)node)->startSwcPairing();
         }
     }
 

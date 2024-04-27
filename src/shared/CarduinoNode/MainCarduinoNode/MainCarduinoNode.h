@@ -49,7 +49,6 @@ class MainCarduinoNode : public CarduinoNode {
         bool isPressing;
         bool isPairing;
         bool isWaitingPairing;
-        bool firstWaitingPin;
         uint8_t pressedPin;
         unsigned long lastPressedMillis;
 

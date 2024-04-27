@@ -141,8 +141,8 @@ SplittedUsbMessage* MainCarduinoNode::splitReceivedUsbMessage(String message) {
 }
 
 void MainCarduinoNode::executeSwcCommand(MediaControl *mediaControl) {
-    if(!this->pressing && mediaControl->pin != 255) {
-        this->pressing = true;
+    if(!this->isPressing && mediaControl->pin != 255) {
+        this->isPressing = true;
         this->pressedPin = mediaControl->pin;
         this->pcf8574->digitalWrite(mediaControl->pin, LOW);
         this->lastPressedMillis = millis();
@@ -153,33 +153,30 @@ void MainCarduinoNode::startSwcPairing() {
     this->isWaitingPairing = true;
     this->pressedPin = 0;
     this->lastPressedMillis = millis();
-    this->firstWaitingPin = true;
-    this->printlnWrapper("start waiting PIN " + this->pressedPin);
+
+    this->printlnWrapper("Start waiting PIN " + String(this->pressedPin) + " " + String(millis()));
 }
 
 void MainCarduinoNode::manageSwc() {
-    if(this->pressing) {
+    if(this->isPressing) {
         if(millis() > this->lastPressedMillis + SWC_PRESS_INTERVAL) {
             this->pcf8574->digitalWrite(this->pressedPin, HIGH);
-            this->pressing = false;
+            this->isPressing = false;
         }
-    } else if(this->pairing) {
+    } else if(this->isPairing) {
         if(millis() > this->lastPressedMillis + SWC_PAIRING_INTERVAL) {
             this->pcf8574->digitalWrite(this->pressedPin, HIGH);
-            this->printlnWrapper("Stop pressing PIN " + this->pressedPin);
-            this->pairing = false;
+            this->printlnWrapper("Stop pressing PIN " + String(this->pressedPin) + " " + String(millis()));
+            this->isPairing = false;
             if(this->pressedPin < SWC_PIN_SIZE - 1) {
                 this->pressedPin++;
                 this->isWaitingPairing = true;
                 this->lastPressedMillis = millis();
+
+                this->printlnWrapper("Start waiting PIN " + String(this->pressedPin) + " " + String(millis()));
             }
         }
     } else if(this->isWaitingPairing) {
-        if(this->firstWaitingPin) {
-            this->printlnWrapper("start waiting PIN " + this->pressedPin);
-            this->firstWaitingPin = false;
-        }
-
         int intervalToWait;
         if(this->pressedPin == 0) {
             intervalToWait = SWC_FIRST_WAITING_PAIRING_INTERVAL;
@@ -192,8 +189,7 @@ void MainCarduinoNode::manageSwc() {
             this->lastPressedMillis = millis();
             this->isWaitingPairing = false;
             this->isPairing = true;
-            this->firstWaitingPin = true;
-            this->printlnWrapper("stop waiting and start pressing PIN " + this->pressedPin);
+            this->printlnWrapper("stop waiting and start pressing PIN " + String(this->pressedPin) + " " + String(millis()));
         }
     }
 }
