@@ -6,7 +6,18 @@ MainCarduinoNode::MainCarduinoNode(uint8_t id, int cs, int interruptPin, char *s
 
     this->pcf8574 = new PCF8574(0x20);
 
-	this->pcf8574->digitalWrite(P0, HIGH);
+	this->pcf8574->pinMode(P0, OUTPUT);
+    this->pcf8574->pinMode(P1, OUTPUT);
+    this->pcf8574->pinMode(P2, OUTPUT);
+    this->pcf8574->pinMode(P3, OUTPUT);
+    this->pcf8574->pinMode(P4, OUTPUT);
+    this->pcf8574->pinMode(P5, OUTPUT);
+    this->pcf8574->pinMode(P6, OUTPUT);
+    this->pcf8574->pinMode(P7, OUTPUT);
+
+    this->pcf8574->begin();
+
+    this->pcf8574->digitalWrite(P0, HIGH);
     this->pcf8574->digitalWrite(P1, HIGH);
     this->pcf8574->digitalWrite(P2, HIGH);
     this->pcf8574->digitalWrite(P3, HIGH);
