@@ -38,7 +38,7 @@ void KlineCarduinoNode::readValues() {
 	// Serial.println("KlineCarduinoNode::readValues() start");
 	// unsigned long start = millis();
 	// Serial.println("start readValues()");
-	// if(!this->otaMode) {
+	if(!this->otaMode) {
 		// Serial.print("KlineCarduinoNode::readValues() this->otaMode ");
 		// Serial.println(this->otaMode ? "true" : "false");
 		uint8_t ecusToReadSize = ValueToReadEnum::getEcusToReadSize();
@@ -142,9 +142,7 @@ void KlineCarduinoNode::readValues() {
 						}
 						delete[] valuesByEcuBlock;
 					}
-					// Serial.println("KlineCarduinoNode::readValues() trying to call  this->afterReadExecutors->execute(this)");
 					this->afterReadExecutors->execute(this);
-					// Serial.println("KlineCarduinoNode::readValues() called  this->afterReadExecutors->execute(this)");
 				} else {
 					printlnWrapper("KlineCarduinoNode::readValues could not connect to ECU");
 				}
@@ -153,7 +151,7 @@ void KlineCarduinoNode::readValues() {
 		}
 		
 		delete ecusToRead;
-	// }
+	}
 	// Serial.print("end readValues() ");
 	// Serial.println((millis() - start));
 	// Serial.println("KlineCarduinoNode::readValues() finish");
