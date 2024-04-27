@@ -4,6 +4,21 @@ MainCarduinoNode::MainCarduinoNode(uint8_t id, int cs, int interruptPin, char *s
     this->aht = new Adafruit_AHTX0();
     this->aht->begin();
 
+    this->pcf8574 = new PCF8574(0x20);
+
+	this->pcf8574->digitalWrite(P0, HIGH);
+    this->pcf8574->digitalWrite(P1, HIGH);
+    this->pcf8574->digitalWrite(P2, HIGH);
+    this->pcf8574->digitalWrite(P3, HIGH);
+    this->pcf8574->digitalWrite(P4, HIGH);
+    this->pcf8574->digitalWrite(P5, HIGH);
+    this->pcf8574->digitalWrite(P6, HIGH);
+    this->pcf8574->digitalWrite(P7, HIGH);
+
+    this->lastPressedMillis = 0;
+    this->pressing = false;
+    this->pairing = false;
+
     LuminanceCallback<void(void)>::func = std::bind(&MainCarduinoNode::luminanceCallback, this);
     luminanceTask = new Task(1000, TASK_FOREVER, static_cast<TaskCallback>(LuminanceCallback<void(void)>::callback), this->scheduler, true);
 
@@ -62,6 +77,22 @@ void MainCarduinoNode::loop() {
         mockReceived = true;
         handleReceivedSerialMessage("READ_SETTINGS;OTA_MODE;false;");
     }*/
+
+    if(this->pressing) {
+        if(millis() > this->lastPressedMillis + SWC_PRESS_INTERVAL) {
+            this->pcf8574->digitalWrite(this->pressedPin, HIGH);
+            this->pressing = false;
+        }
+    } else if(this->pairing) {
+        if(millis() > this->lastPressedMillis + SWC_PAIRING_INTERVAL) {
+            this->pcf8574->digitalWrite(this->pressedPin, HIGH);
+            if(this->pressedPin < SWC_PIN_SIZE - 1) {
+                this->executeSwcPairing();
+            } else {
+                this->pairing = false;
+            }
+        }
+    }
 }
 
 void MainCarduinoNode::handleReceivedSerialMessage(String receivedMessage) {
@@ -120,4 +151,24 @@ SplittedUsbMessage* MainCarduinoNode::splitReceivedUsbMessage(String message) {
     }
 
     return splittedUsbMessage;
+}
+
+void MainCarduinoNode::executeSwcCommand(MediaControl *mediaControl) {
+    if(!this->pressing && mediaControl->pin != 255) {
+        this->pressing = true;
+        this->pressedPin = mediaControl->pin;
+        this->pcf8574->digitalWrite(mediaControl->pin, LOW);
+        this->lastPressedMillis = millis();
+    }
+}
+
+void MainCarduinoNode::executeSwcPairing() {
+    if(!this->pairing) {
+        this->pairing = true;
+        this->pressedPin = 0;
+    } else {
+        this->pressedPin++;
+    }
+    this->pcf8574->digitalWrite(this->pressedPin, LOW);
+    this->lastPressedMillis = millis();
 }

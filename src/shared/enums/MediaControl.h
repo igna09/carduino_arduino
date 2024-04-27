@@ -12,6 +12,8 @@ class MediaControl : public Enum {
         static const MediaControl NEXT;
         static const MediaControl LONG_PRESS;
 
+        uint8_t pin;
+
         MediaControl() : Enum() {};
 
         uint16_t getMessageId() {
@@ -48,9 +50,18 @@ class MediaControl : public Enum {
             return MediaControl::values;
         }
 
+        MediaControl(uint8_t id, const char *name, uint8_t pin) : Enum(id, name) {
+            MediaControl::values[MediaControl::index] = this;
+            MediaControl::index++;
+
+            this->pin = pin;
+        };
+
         MediaControl(uint8_t id, const char *name) : Enum(id, name) {
             MediaControl::values[MediaControl::index] = this;
             MediaControl::index++;
+
+            this->pin = 255;
         };
 
     private:
@@ -60,8 +71,8 @@ class MediaControl : public Enum {
 
 inline const Enum* MediaControl::values [MEDIA_CONTROL_SIZE] = { 0 };
 inline uint8_t MediaControl::index = 0;
-inline const MediaControl MediaControl::VOLUME_UP = MediaControl(0x00, "VOLUME_UP");
-inline const MediaControl MediaControl::VOLUME_DOWN = MediaControl(0x01, "VOLUME_DOWN");
-inline const MediaControl MediaControl::PLAY_PAUSE = MediaControl(0x02, "PLAY_PAUSE");
-inline const MediaControl MediaControl::NEXT = MediaControl(0x03, "NEXT");
+inline const MediaControl MediaControl::VOLUME_UP = MediaControl(0x00, "VOLUME_UP", 0);
+inline const MediaControl MediaControl::VOLUME_DOWN = MediaControl(0x01, "VOLUME_DOWN", 1);
+inline const MediaControl MediaControl::PLAY_PAUSE = MediaControl(0x02, "PLAY_PAUSE", 2);
+inline const MediaControl MediaControl::NEXT = MediaControl(0x03, "NEXT", 3);
 inline const MediaControl MediaControl::LONG_PRESS = MediaControl(0x04, "LONG_PRESS");

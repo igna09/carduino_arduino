@@ -27,12 +27,12 @@ void loop(void) {
 	// 	sent = true;
 	// 	klineCarduinoNode->otaStartup();
 	// }
-	// if(millis() > lastSent + 2000) {
-		// 	lastSent = millis();
-		// 	float v = 45.7;
-		// 	printFreeHeap("loop");
-		// 	CarstatusMessage m(&Carstatus::ENGINE_OIL_TEMPERATURE, v);
-		// 	klineCarduinoNode->sendCanbusMessage(&m);
-		// 	printFreeHeap("loop");
+	// if(millis() > lastSent + 1000) {
+	// 		lastSent = millis();
+			// float v = 45.7;
+			// printFreeHeap("loop");
+			// CarstatusMessage m(&Carstatus::ENGINE_OIL_TEMPERATURE, v);
+			// klineCarduinoNode->sendCanbusMessage(&m);
+			// printFreeHeap("loop");
 	// }
 }

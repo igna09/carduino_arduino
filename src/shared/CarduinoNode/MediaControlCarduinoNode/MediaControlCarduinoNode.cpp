@@ -1,6 +1,6 @@
 #include "MediaControlCarduinoNode.h"
 
-MediaControlCarduinoNode::MediaControlCarduinoNode(uint8_t id, uint8_t clk, uint8_t dt, uint8_t sw, int cs, int interruptPin, const char *ssid, const char *password) : CarduinoNode(id, cs, interruptPin, ssid,  password, false, false) {
+MediaControlCarduinoNode::MediaControlCarduinoNode(uint8_t id, uint8_t clk, uint8_t dt, uint8_t sw, int cs, int interruptPin, const char *ssid, const char *password) : CarduinoNode(id, cs, interruptPin, ssid,  password, false, true) {
     versatileEncoder = new Versatile_RotaryEncoder(clk, dt, sw);
 
 	this->lastRead = 0;
@@ -10,10 +10,10 @@ MediaControlCarduinoNode::MediaControlCarduinoNode(uint8_t id, uint8_t clk, uint
 			return;
 		}
 		this->lastRead = millis();
-		if(rotation == 255) { // clockwise
+		if(rotation == 1) { // clockwise
 			this->sendMediaControlMessage(&MediaControl::VOLUME_UP);
 			// Serial.println("VOLUME_UP");
-		} else if (rotation == 1) { //counter clockwise
+		} else if (rotation == 255) { //counter clockwise
 			this->sendMediaControlMessage(&MediaControl::VOLUME_DOWN);
 			// Serial.println("VOLUME_DOWN");
 		}
