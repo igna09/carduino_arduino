@@ -23,7 +23,6 @@ class KlineCarduinoNode : public CarduinoNode {
 		SoftwareSerial *softwareSerial;
 		uint8_t pin_rx;
     	uint8_t pin_tx;
-        Scheduler *scheduler;
         Task *readValuesTask;
         KlineEcuEnum *lastConnectedEcu;
         AfterReadExecutors *afterReadExecutors;
