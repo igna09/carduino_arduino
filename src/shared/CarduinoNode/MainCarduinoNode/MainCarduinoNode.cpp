@@ -37,6 +37,8 @@ MainCarduinoNode::MainCarduinoNode(uint8_t id, int cs, int interruptPin, char *s
     TemperatureCallback<void(void)>::func = std::bind(&MainCarduinoNode::temperatureCallback, this);
     temperatureTask = new Task(30000, TASK_FOREVER, static_cast<TaskCallback>(TemperatureCallback<void(void)>::callback), this->scheduler, true);
 
+    this->lastReceivedHeartbeats = new std::map<uint8_t, unsigned long>();
+
     this->canExecutors->addExecutor(new CarstatusExecutor());
     this->canExecutors->addExecutor(new MediaControlExecutor());
     this->canExecutors->addExecutor(new HeartbeatExecutor());
@@ -48,7 +50,7 @@ MainCarduinoNode::MainCarduinoNode(uint8_t id, int cs, int interruptPin, char *s
     this->usbExecutors->addExecutor(new WriteSettingExecutor());
     this->usbExecutors->addExecutor(new ReadSettingExecutor());
 
-    this->lastReceivedHeartbeats = new std::map<uint8_t, unsigned long>();
+    this->sendEvent(&Event::TURN_ON);
 };
 
 void MainCarduinoNode::luminanceCallback() {
@@ -91,6 +93,10 @@ void MainCarduinoNode::loop() {
     }*/
 
     manageSwc();
+
+    /**
+     * read digital input +12v ACC line to manage events
+    */
 }
 
 void MainCarduinoNode::handleReceivedSerialMessage(String receivedMessage) {

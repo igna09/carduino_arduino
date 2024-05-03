@@ -301,3 +301,9 @@ void CarduinoNode::sendHeartbeat() {
     sendCanbusMessage(heartbeatMessage);
     delete heartbeatMessage;
 }
+
+void CarduinoNode::sendEvent(const Event *event) {
+    EventMessage *eventMessage = new EventMessage(event);
+    this->sendCanbusMessage(eventMessage);
+    delete eventMessage;
+}

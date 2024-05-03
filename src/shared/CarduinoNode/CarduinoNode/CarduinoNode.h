@@ -17,6 +17,8 @@
 #include "../../SharedDefinitions.h"
 #include "callbacks/SendHearbeatCallback.h"
 #include "../../Logger/Logger.h"
+#include "shared/enums/Event.h"
+#include "shared/CanbusMessage/EventMessage/EventMessage.h"
 
 /**
  * Send message to android --> Category;payload;
@@ -83,6 +85,7 @@ class CarduinoNode : public Logger {
         void otaShutdown();
         void restart();
         void sendHeartbeat();
+        void sendEvent(const Event *event);
 
         static uint16_t generateId(const Category category, const Enum messageEnum);
         static uint16_t generateId(const Category category, uint8_t messageId);

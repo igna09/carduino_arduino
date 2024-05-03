@@ -19,6 +19,7 @@
 #include <map>              // user must include to use std::map (see above comment)
 #include <PCF8574.h>
 #include "shared/SharedDefinitions.h"
+#include "shared/enums/Event.h"
 
 struct SplittedUsbMessage {
     bool isValid;
