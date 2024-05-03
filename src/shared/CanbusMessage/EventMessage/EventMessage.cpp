@@ -1,6 +1,6 @@
 #include "EventMessage.h"
 
-EventMessage::EventMessage(const Event *event) : TypedCanbusMessage(CarduinoNode::generateId(Category::EVENT, *event), 0) { //TODO: replace 0 with id?
+EventMessage::EventMessage(const Event *event, ) : TypedCanbusMessage(CarduinoNode::generateId(Category::EVENT, *event), 0) { //TODO: replace 0 with id?
     this->event = event;
 };
 
