@@ -11,7 +11,7 @@ class EventMessage : public TypedCanbusMessage {
     public:
         const Event *event;
 
-        EventMessage(const Event *event);
+        EventMessage(const Event *event, int senderId);
 
         String toSerialString();
 };
