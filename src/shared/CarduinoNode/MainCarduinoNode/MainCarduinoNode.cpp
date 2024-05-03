@@ -23,7 +23,7 @@ MainCarduinoNode::MainCarduinoNode(uint8_t id, int cs, int interruptPin, char *s
     this->canExecutors->addExecutor(new MediaControlExecutor());
     this->canExecutors->addExecutor(new HeartbeatExecutor());
     this->canExecutors->addExecutor(new MainNodeCanReadSettingExecutor());
-    this->canExecutors->addExecutor(new MainNodeCanHello());
+    this->canExecutors->addExecutor(new MainNodeCanEvent());
 
     this->usbExecutors = new Executors();
     this->usbExecutors->addExecutor(new WriteSettingExecutor());

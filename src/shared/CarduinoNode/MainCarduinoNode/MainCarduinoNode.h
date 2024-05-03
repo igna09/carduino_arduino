@@ -22,7 +22,7 @@
 #include "shared/enums/Event.h"
 #include "shared/CarduinoNode/MainCarduinoNode/executors/MainNodeCanReadSettingExecutor.h"
 #include "shared/CarduinoNode/MainCarduinoNode/executors/MainNodeSerialGetSettings.h"
-#include "shared/CarduinoNode/MainCarduinoNode/executors/MainNodeCanHello/MainNodeCanHello.h"
+#include "shared/CarduinoNode/MainCarduinoNode/executors/MainNodeCanEvent/MainNodeCanEvent.h"
 
 struct SplittedUsbMessage {
     bool isValid;
