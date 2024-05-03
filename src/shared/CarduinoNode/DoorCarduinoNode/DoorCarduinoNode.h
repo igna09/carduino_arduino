@@ -9,7 +9,6 @@
 
 class DoorCarduinoNode : public CarduinoNode {
     public:
-        DoorCarduinoNode(uint8_t id, uint8_t sw, int cs, int interruptPin, const char *ssid, const char *password);
+        DoorCarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssid, const char *password);
         void loop();
-    private:
 };

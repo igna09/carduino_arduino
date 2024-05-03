@@ -4,13 +4,13 @@
 #include "./shared/SharedDefinitions.h"
 #include "shared/CarduinoNode/DoorCarduinoNode/DoorCarduinoNode.h"
 
-doorCarduinoNode *doorCarduinoNode;
+DoorCarduinoNode *doorCarduinoNode;
 
 void setup(void) {
   	Serial.begin(BAUD_RATE);
 //   randomSeed(analogRead(0));
 
-  	doorCarduinoNode = new doorCarduinoNode(0x03, D8, D0, "SSID_MEDIA_CONTROL_CARDUINO_NODE", "pwd12345");
+  	doorCarduinoNode = new DoorCarduinoNode(0x03, D8, D0, "SSID_DOOR_CARDUINO_NODE", "pwd12345");
 }
 
 // unsigned long lastSent = millis();
