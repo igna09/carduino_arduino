@@ -2,8 +2,8 @@
 
 #include <Arduino.h>
 #include "shared/CarduinoNode/CarduinoNode/CarduinoNode.h"
-#include "shared/CarduinoNode/DoorCarduinoNode/executors/DoorNodeWriteSetting.h"
-#include "shared/CarduinoNode/DoorCarduinoNode/executors/DoorNodeGetSettings.h"
+#include "shared/CarduinoNode/DoorCarduinoNode/executors/DoorNodeWriteSetting/DoorNodeWriteSetting.h"
+#include "shared/CarduinoNode/DoorCarduinoNode/executors/DoorNodeGetSettings/DoorNodeGetSettings.h"
 #include "Versatile_RotaryEncoder.h"
 #include "shared/enums/MediaControl.h"
 #include "shared/CanbusMessage/MediaControlMessage/MediaControlMessage.h"
@@ -16,4 +16,6 @@ class DoorCarduinoNode : public CarduinoNode {
         bool lowerMirrorsOnReverse;
 
         void loop();
+        void setup();
+        void setdown();
 };

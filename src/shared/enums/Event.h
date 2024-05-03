@@ -53,6 +53,9 @@ class Event : public TypedEnum {
         };
 };
 
+/**
+ * TODO: move heartbeat in event
+*/
 inline const TypedEnum* Event::values [EVENT_SIZE] = { 0 };
 inline uint8_t Event::index = 0;
 inline const Event Event::TURN_ON = Event(0x00, "TURN_ON", &CanbusMessageType::BOOL);
@@ -61,4 +64,4 @@ inline const Event Event::TURN_ON_FINISH = Event(0x02, "TURN_ON_FINISH", &Canbus
 inline const Event Event::TURN_OFF = Event(0x03, "TURN_OFF", &CanbusMessageType::BOOL);
 inline const Event Event::TURN_OFF_INTERRUPT = Event(0x04, "TURN_OFF_INTERRUPT", &CanbusMessageType::BOOL);
 inline const Event Event::TURN_OFF_FINISH = Event(0x05, "TURN_OFF_FINISH", &CanbusMessageType::BOOL);
-inline const Event Event::HELLO = Event(0x06, "HELLO", &CanbusMessageType::INT); //contains id sending hello
+inline const Event Event::HELLO = Event(0x06, "HELLO", &CanbusMessageType::INT); //contains id sending hello (heartbeat and events used to get a list of nodes)
