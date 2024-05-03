@@ -4,6 +4,10 @@ EventMessage::EventMessage(const Event *event, int senderId) : TypedCanbusMessag
     this->event = event;
 };
 
+EventMessage::EventMessage(CanbusMessage *canbusMessage) : TypedCanbusMessage(((Event*) Event::getValueById(canbusMessage->messageId))->type, canbusMessage->id, canbusMessage->payload, canbusMessage->payloadLength) {
+    this->event = (Event*) Event::getValueById(canbusMessage->messageId);
+}
+
 String EventMessage::toSerialString() {
     String s = "";
     s += this->category->name;
