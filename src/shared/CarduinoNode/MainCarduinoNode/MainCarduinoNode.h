@@ -8,6 +8,7 @@
 #include "shared/enums/TypedEnum.h"
 #include "callbacks/TemperatureCallback.h"
 #include "callbacks/LuminanceCallback.h"
+#include "callbacks/TurnOffRadioCallback.h"
 #include "shared/CarduinoNode/CarduinoNode/CarduinoNode.h"
 #include "executors/CarstatusExecutor.h"
 #include "executors/AllMessageExecutor.h"
@@ -31,6 +32,9 @@ class MainCarduinoNode : public CarduinoNode {
     public:
         Executors *usbExecutors;
         std::map<uint8_t, unsigned long> *lastReceivedHeartbeats;
+        bool isRadioOn;
+        bool isKeyOn;
+        Task *turnOffRadioTask;
 
         MainCarduinoNode(uint8_t id, int cs, int interruptPin, char *ssid,  char *password);
 
@@ -40,6 +44,9 @@ class MainCarduinoNode : public CarduinoNode {
         void sendSerialMessage(CanbusMessage *message);
         SplittedUsbMessage* splitReceivedUsbMessage(String message);
         void handleReceivedSerialMessage(String message);
+        void startTurnOffSystem();
+        void manageRadioPower();
+        void pcfSetup();
 
         /**
          * TODO: move to new node to relief main node
