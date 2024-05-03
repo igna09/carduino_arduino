@@ -6,7 +6,7 @@
 #include "shared/CarduinoNode/MainCarduinoNode/MainCarduinoNode.h"
 #include "../../../executors/CarduinoNodeExecutorInterface.h"
 #include "../../../enums/Setting.h"
-#include "../../../CanbusMessage/SettingMessage/SettingMessage.h"
+#include "shared/CanbusMessage/WriteSettingMessage/WriteSettingMessage.h"
 #include "../../../enums/Category.h"
 
 class WriteSettingExecutor : public CarduinoNodeExecutorInterface {

@@ -19,6 +19,7 @@
 #include "../../Logger/Logger.h"
 #include "shared/enums/Event.h"
 #include "shared/CanbusMessage/EventMessage/EventMessage.h"
+#include "shared/CarduinoNode/CarduinoNode/executors/CarduinoNodeWriteSetting.h"
 
 /**
  * Send message to android --> Category;payload;
@@ -75,6 +76,10 @@ class CarduinoNode : public Logger {
         Task *temperatureTask;
 
         CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssid, const char *password, bool logOnServer, bool logOnSerial);
+        
+        /**
+         * TODO: manage saving of settings in eeprom
+        */
 
         void loop();
         void manageReceivedCanbusMessage(CanbusMessage *message);

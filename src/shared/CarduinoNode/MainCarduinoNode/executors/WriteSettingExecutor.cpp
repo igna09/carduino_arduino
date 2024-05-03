@@ -3,7 +3,7 @@
 WriteSettingExecutor::WriteSettingExecutor() : CarduinoNodeExecutorInterface(&Category::WRITE_SETTING) {};
 
 void WriteSettingExecutor::execute(CarduinoNode *node, CanbusMessage *message) {
-    SettingMessage *settingMessage = new SettingMessage(*message);
+    WriteSettingMessage *settingMessage = new WriteSettingMessage(*message);
     
     if(settingMessage->setting->id == Setting::OTA_MODE.id) {
         if(settingMessage->getBoolValue()) {

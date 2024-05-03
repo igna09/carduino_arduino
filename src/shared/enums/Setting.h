@@ -11,6 +11,7 @@ class Setting : public TypedEnum {
         static const Setting OTA_MODE;
         static const Setting RESTART;
         static const Setting SWC_PAIR;
+        static const Setting ON_REVERSE_LOWER_MIRRORS;
 
         static const TypedEnum* getValueById(uint8_t id) {
             for(uint8_t i = 0; i < getSize(); i++) {
@@ -56,3 +57,4 @@ inline const Setting Setting::AUTO_CLOSE_REARVIEW_MIRRORS = Setting(0x00, "AUTO_
 inline const Setting Setting::OTA_MODE = Setting(0x01, "OTA_MODE", &CanbusMessageType::BOOL);
 inline const Setting Setting::RESTART = Setting(0x02, "RESTART", &CanbusMessageType::BOOL);
 inline const Setting Setting::SWC_PAIR = Setting(0x03, "SWC_PAIR", &CanbusMessageType::BOOL);
+inline const Setting Setting::ON_REVERSE_LOWER_MIRRORS = Setting(0x04, "ON_REVERSE_LOWER_MIRRORS", &CanbusMessageType::BOOL);

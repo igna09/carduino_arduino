@@ -9,7 +9,7 @@
 class Category : public Enum {
     public:
         static const Category CAR_STATUS;
-        static const Category READ_SETTINGS;
+        static const Category READ_SETTING;
         static const Category MEDIA_CONTROL;
         static const Category WRITE_SETTING;
         static const Category HEARTBEAT;
@@ -69,7 +69,7 @@ class Category : public Enum {
 inline const Enum* Category::values [CATEGORY_SIZE] = { 0 };
 inline uint8_t Category::index = 0;
 inline const Category Category::CAR_STATUS = Category(0x00, "CAR_STATUS");
-inline const Category Category::READ_SETTINGS = Category(0x01, "READ_SETTINGS");
+inline const Category Category::READ_SETTING = Category(0x01, "READ_SETTING");
 inline const Category Category::MEDIA_CONTROL = Category(0x02, "MEDIA_CONTROL");
 inline const Category Category::WRITE_SETTING = Category(0x03, "WRITE_SETTING", Setting::getValueByName);
 inline const Category Category::HEARTBEAT = Category(0x04, "HEARTBEAT");
