@@ -1,6 +1,6 @@
 #include "CarduinoNode.h"
 #include "../../executors/Executors.h" // include here to avoid circular dependency
-#include "WriteSetting.h" // include here to avoid circular dependency
+#include "shared/CarduinoNode/CarduinoNode/executors/WriteSetting.h" // include here to avoid circular dependency
 
 CarduinoNode::CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssid, const char *password, bool logOnServer, bool logOnSerial) : Logger() {
     this->id = id;
