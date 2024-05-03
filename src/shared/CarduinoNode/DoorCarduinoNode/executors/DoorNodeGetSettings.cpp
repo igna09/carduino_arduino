@@ -1,8 +1,8 @@
-#include "DoorNodeReadSetting.h"
+#include "DoorNodeGetSettings.h"
 
-DoorNodeReadSetting::DoorNodeReadSetting() : CarduinoNodeExecutorInterface(&Category::READ_SETTING) {};
+DoorNodeGetSettings::DoorNodeGetSettings() : CarduinoNodeExecutorInterface(&Category::GET_SETTINGS) {};
 
-void DoorNodeReadSetting::execute(CarduinoNode *node, CanbusMessage *message) {
+void DoorNodeGetSettings::execute(CarduinoNode *node, CanbusMessage *message) {
     DoorCarduinoNode *doorCarduinoNode = (DoorCarduinoNode*) node;
     ReadSettingMessage *settingMessage = new ReadSettingMessage(&Setting::ON_REVERSE_LOWER_MIRRORS, doorCarduinoNode->lowerMirrorsOnReverse);
     node->sendCanbusMessage(settingMessage);

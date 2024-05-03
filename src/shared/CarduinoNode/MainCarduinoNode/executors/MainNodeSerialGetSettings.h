@@ -3,15 +3,14 @@
 #include <Arduino.h>
 #include "shared/CanbusMessage/CanbusMessage.h"
 #include "shared/CarduinoNode/CarduinoNode/CarduinoNode.h"
-#include "shared/CarduinoNode/DoorCarduinoNode/DoorCarduinoNode.h"
+#include "shared/CarduinoNode/MainCarduinoNode/MainCarduinoNode.h"
 #include "shared/executors/CarduinoNodeExecutorInterface.h"
 #include "shared/enums/Setting.h"
 #include "shared/CanbusMessage/ReadSettingMessage/ReadSettingMessage.h"
 #include "shared/enums/Category.h"
 
-class DoorNodeReadSetting : public CarduinoNodeExecutorInterface {
+class MainNodeSerialGetSettings : public CarduinoNodeExecutorInterface {
     public:
-        DoorNodeReadSetting();
-
+        MainNodeSerialGetSettings();
         void execute(CarduinoNode *node, CanbusMessage *message);
 };

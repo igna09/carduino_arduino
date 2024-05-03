@@ -42,13 +42,11 @@ MainCarduinoNode::MainCarduinoNode(uint8_t id, int cs, int interruptPin, char *s
     this->canExecutors->addExecutor(new CarstatusExecutor());
     this->canExecutors->addExecutor(new MediaControlExecutor());
     this->canExecutors->addExecutor(new HeartbeatExecutor());
-    // this->canExecutors->addExecutor(new ReadSettingExecutor());
-    // this->canExecutors->addExecutor(new AllMessageExecutor());
-    // this->canExecutors->addExecutor(new WriteSettingExecutor());
+    this->canExecutors->addExecutor(new MainNodeCanReadSettingExecutor());
 
     this->usbExecutors = new Executors();
     this->usbExecutors->addExecutor(new WriteSettingExecutor());
-    this->usbExecutors->addExecutor(new ReadSettingExecutor());
+    this->usbExecutors->addExecutor(new MainNodeSerialGetSettings());
 
     this->sendEvent(&Event::TURN_ON);
 };

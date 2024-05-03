@@ -14,12 +14,13 @@
 #include "executors/WriteSettingExecutor.h"
 #include "executors/MediaControlExecutor.h"
 #include "shared/executors/Executors.h"
-#include "./executors/ReadSettingExecutor.h"
 #include "./executors/HeartbeatExecutor.h"
 #include <map>              // user must include to use std::map (see above comment)
 #include <PCF8574.h>
 #include "shared/SharedDefinitions.h"
 #include "shared/enums/Event.h"
+#include "shared/CarduinoNode/MainCarduinoNode/executors/MainNodeCanReadSettingExecutor.h"
+#include "shared/CarduinoNode/MainCarduinoNode/executors/MainNodeSerialGetSettings.h"
 
 struct SplittedUsbMessage {
     bool isValid;

@@ -1,8 +1,8 @@
-#include "ReadSettingExecutor.h"
+#include "MainNodeSerialGetSettings.h"
 
-ReadSettingExecutor::ReadSettingExecutor() : CarduinoNodeExecutorInterface(&Category::READ_SETTING) {};
+MainNodeSerialGetSettings::MainNodeSerialGetSettings() : CarduinoNodeExecutorInterface(&Category::GET_SETTINGS) {};
 
-void ReadSettingExecutor::execute(CarduinoNode *node, CanbusMessage *message) {
+void MainNodeSerialGetSettings::execute(CarduinoNode *node, CanbusMessage *message) {
     TypedCanbusMessage otaModeTypedCanbusMessage = TypedCanbusMessage(node->generateId(Category::READ_SETTING, Setting::OTA_MODE), node->otaMode);
     ReadSettingMessage otaModeSettingMessage(otaModeTypedCanbusMessage);
     ((MainCarduinoNode*)node)->sendSerialMessage(&otaModeSettingMessage);
@@ -13,9 +13,12 @@ void ReadSettingExecutor::execute(CarduinoNode *node, CanbusMessage *message) {
     ((MainCarduinoNode*)node)->sendSerialMessage(&resetSettingMessage);
 
     /**
-     * TODO: move to new node, should add method to send read setting on canbus? yes
+     * TODO: move swc to new node
     */
     TypedCanbusMessage swcBindingTypedCanbusMessage = TypedCanbusMessage(node->generateId(Category::READ_SETTING, Setting::SWC_PAIR), false);
     ReadSettingMessage swcBindingSettingMessage(swcBindingTypedCanbusMessage);
     ((MainCarduinoNode*)node)->sendSerialMessage(&swcBindingSettingMessage);
+
+
+    node->sendCanbusMessage(message);
 };

@@ -3,7 +3,7 @@
 #include <Arduino.h>
 #include "shared/CarduinoNode/CarduinoNode/CarduinoNode.h"
 #include "shared/CarduinoNode/DoorCarduinoNode/executors/DoorNodeWriteSetting.h"
-#include "shared/CarduinoNode/DoorCarduinoNode/executors/DoorNodeReadSetting.h"
+#include "shared/CarduinoNode/DoorCarduinoNode/executors/DoorNodeGetSettings.h"
 #include "Versatile_RotaryEncoder.h"
 #include "shared/enums/MediaControl.h"
 #include "shared/CanbusMessage/MediaControlMessage/MediaControlMessage.h"
