@@ -17,7 +17,7 @@ MainCarduinoNode::MainCarduinoNode(uint8_t id, int cs, int interruptPin, char *s
     TemperatureCallback<void(void)>::func = std::bind(&MainCarduinoNode::temperatureCallback, this);
     temperatureTask = new Task(30000, TASK_FOREVER, static_cast<TaskCallback>(TemperatureCallback<void(void)>::callback), this->scheduler, true);
 
-    this->lastReceivedHeartbeats = new std::map<uint8_t, unsigned long>();
+    this->nodeInformations = new std::map<uint8_t, NodeInformation*>();
 
     this->canExecutors->addExecutor(new CarstatusExecutor());
     this->canExecutors->addExecutor(new MediaControlExecutor());
@@ -28,15 +28,17 @@ MainCarduinoNode::MainCarduinoNode(uint8_t id, int cs, int interruptPin, char *s
     this->usbExecutors->addExecutor(new WriteSettingExecutor());
     this->usbExecutors->addExecutor(new MainNodeSerialGetSettings());
 
-    this->sendEvent(&Event::TURN_ON);
+    TurnOffRadioCallback<void(void)>::func = std::bind(&MainCarduinoNode::startTurnOffSystem, this);
+    turnOffRadioTask = new Task(RADIO_TURN_OFF_TIMER, 1, static_cast<TaskCallback>(TurnOffRadioCallback<void(void)>::callback), this->scheduler, false);
+
+    this->sendEvent(&Event::GET_HELLOS);
+
     //turn ON MOSFET on remote line
     //pinMode(pin, OUT);
     //digitalWrite(pin, HIGH);
     this->isRadioOn = true;
     this->isKeyOn = true;
-
-    TurnOffRadioCallback<void(void)>::func = std::bind(&MainCarduinoNode::startTurnOffSystem, this);
-    turnOffRadioTask = new Task(RADIO_TURN_OFF_TIMER, 1, static_cast<TaskCallback>(TurnOffRadioCallback<void(void)>::callback), this->scheduler, false);
+    this->sendEvent(&Event::TURN_ON);
 };
 
 void MainCarduinoNode::luminanceCallback() {
@@ -242,4 +244,28 @@ void MainCarduinoNode::pcfSetup() {
     this->pcf8574->digitalWrite(P5, HIGH);
     this->pcf8574->digitalWrite(P6, HIGH);
     this->pcf8574->digitalWrite(P7, HIGH);
+}
+
+NodeInformation* MainCarduinoNode::getNodeInformation(uint8_t id) {
+    std::map<uint8_t, NodeInformation*>::iterator it = this->nodeInformations->find(id);
+    if (it != this->nodeInformations->end()) {
+        return it->second;
+    } else {
+        return nullptr;
+    }
+}
+
+NodeInformation* MainCarduinoNode::createOrGetNodeInformation(uint8_t id) {
+    NodeInformation *nodeInformation = this->getNodeInformation(id);
+
+    if (nodeInformation == nullptr) {
+        NodeInformation *nodeInformation = new NodeInformation();
+        nodeInformation->id = id;
+        nodeInformation->lastCompletedEvent = nullptr;
+        nodeInformation->lastTimeReceivedHeartBeat = 0;
+
+        (*this->nodeInformations)[id] = nodeInformation;
+    }
+
+    return nodeInformation;
 }

@@ -28,10 +28,16 @@ struct SplittedUsbMessage {
     String messages[3];
 };
 
+struct NodeInformation {
+    uint8_t id;
+    unsigned long lastTimeReceivedHeartBeat;
+    Event *lastCompletedEvent;
+};
+
 class MainCarduinoNode : public CarduinoNode {
     public:
         Executors *usbExecutors;
-        std::map<uint8_t, unsigned long> *lastReceivedHeartbeats;
+        std::map<uint8_t, NodeInformation*> *nodeInformations;
         bool isRadioOn;
         bool isKeyOn;
         Task *turnOffRadioTask;
@@ -47,6 +53,8 @@ class MainCarduinoNode : public CarduinoNode {
         void startTurnOffSystem();
         void manageRadioPower();
         void pcfSetup();
+        NodeInformation* getNodeInformation(uint8_t id);
+        NodeInformation* createOrGetNodeInformation(uint8_t id);
 
         /**
          * TODO: move to new node to relief main node

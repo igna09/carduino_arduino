@@ -19,7 +19,9 @@
 #include "../../Logger/Logger.h"
 #include "shared/enums/Event.h"
 #include "shared/CanbusMessage/EventMessage/EventMessage.h"
-#include "shared/CarduinoNode/CarduinoNode/executors/CarduinoNodeWriteSetting.h"
+#include "shared/CarduinoNode/CarduinoNode/executors/CarduinoNodeWriteSetting/CarduinoNodeWriteSetting.h"
+#include "shared/CarduinoNode/CarduinoNode/executors/CarduinoNodeCanGetHellos/CarduinoNodeCanGetHellos.h"
+#include "shared/executors/Executors.h"
 
 /**
  * Send message to android --> Category;payload;
@@ -51,8 +53,7 @@ const char FALLBACK_PAGE[] PROGMEM = R"rawliteral(
 </html>
 )rawliteral";
 
-class WriteSetting; // forward declaration to avoid circular dependency
-class Executors; // forward declaration to avoid circular dependency
+// class Executors; // forward declaration to avoid circular dependency
 class CarduinoNode : public Logger {
     private:
         String fallbackPageProcessor(const String& var);

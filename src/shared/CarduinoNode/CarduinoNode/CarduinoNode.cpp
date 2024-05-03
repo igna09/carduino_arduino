@@ -40,11 +40,14 @@ CarduinoNode::CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssi
     
     this->canExecutors = new Executors();
     this->canExecutors->addExecutor(new CarduinoNodeWriteSetting());
+    this->canExecutors->addExecutor(new CarduinoNodeCanGetHellos());
 
     this->scheduler = new Scheduler();
     SendHeartbeatCallback<void(void)>::func = std::bind(&CarduinoNode::sendHeartbeat, this);
     new Task(HEARTBEAT_INTERVAL, TASK_FOREVER, static_cast<TaskCallback>(SendHeartbeatCallback<void(void)>::callback), this->scheduler, true);
     this->scheduler->startNow();
+
+    this->sendEvent(&Event::HELLO);
     
     // otaStartup();
 };
