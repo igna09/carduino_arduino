@@ -69,4 +69,4 @@ inline const Event Event::TURN_OFF_INTERRUPT = Event(0x04, "TURN_OFF_INTERRUPT",
 inline const Event Event::TURN_OFF_FINISH = Event(0x05, "TURN_OFF_FINISH", &CanbusMessageType::INT);
 inline const Event Event::HELLO = Event(0x06, "HELLO", &CanbusMessageType::INT); //contains id sending hello (heartbeat and events used to get a list of nodes)
 inline const Event Event::GET_HELLOS = Event(0x07, "GET_HELLOS", &CanbusMessageType::BOOL); //request all hellos messages
-inline const Event Event::HEARTBEAT = Event(0x07, "HEARTBEAT", &CanbusMessageType::INT);
+inline const Event Event::HEARTBEAT = Event(0x08, "HEARTBEAT", &CanbusMessageType::INT);
