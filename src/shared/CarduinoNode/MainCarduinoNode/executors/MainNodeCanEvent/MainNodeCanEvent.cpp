@@ -9,11 +9,12 @@ void MainNodeCanEvent::execute(CarduinoNode *node, CanbusMessage *message) {
         NodeInformation *nodeInformation = ((MainCarduinoNode*)node)->createOrGetNodeInformation(eventMessage->senderId);
 
         nodeInformation->lastTimeReceivedHeartBeat = millis();
+        nodeInformation->lastCompletedEvent = nullptr;
     } else if(eventMessage->id == Event::TURN_OFF_FINISH.id || eventMessage->id == Event::TURN_ON_FINISH.id) {
         NodeInformation *nodeInformation = ((MainCarduinoNode*)node)->getNodeInformation(eventMessage->senderId);
 
         if(nodeInformation != nullptr) {
-            nodeInformation->lastCompletedEvent = (Event*) Event::getValueById(eventMessage->id);
+            nodeInformation->lastCompletedEvent = (Event*) eventMessage->event;
         }
     }
 
