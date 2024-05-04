@@ -13,7 +13,6 @@
 
 #include "../../utils.h"
 #include "../../CanbusMessage/CanbusMessage.h"
-#include "../../CanbusMessage/HeartbeatMessage/HeartbeatMessage.h"
 #include "../../SharedDefinitions.h"
 #include "callbacks/SendHearbeatCallback.h"
 #include "../../Logger/Logger.h"

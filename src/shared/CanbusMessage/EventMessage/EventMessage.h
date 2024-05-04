@@ -10,6 +10,7 @@
 class EventMessage : public TypedCanbusMessage {
     public:
         const Event *event;
+        int senderId;
 
         EventMessage(const Event *event, int senderId);
         EventMessage(CanbusMessage *canbusMessage);

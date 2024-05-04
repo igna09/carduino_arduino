@@ -6,7 +6,7 @@
 #include "../../MainCarduinoNode/MainCarduinoNode.h"
 #include "../../../executors/CarduinoNodeExecutorInterface.h"
 #include "../../../enums/Setting.h"
-#include "../../../CanbusMessage/HeartbeatMessage/HeartbeatMessage.h"
+#include "../../../CanbusMessage/EventMessage/EventMessage.h"
 #include "../../../enums/Category.h"
 #include "shared/CarduinoNode/MainCarduinoNode/MainCarduinoNode.h"
 #include <map>

@@ -2,10 +2,12 @@
 
 EventMessage::EventMessage(const Event *event, int senderId) : TypedCanbusMessage(CarduinoNode::generateId(Category::EVENT, *event), senderId) {
     this->event = event;
+    this->senderId = senderId;
 };
 
 EventMessage::EventMessage(CanbusMessage *canbusMessage) : TypedCanbusMessage(((Event*) Event::getValueById(canbusMessage->messageId))->type, canbusMessage->id, canbusMessage->payload, canbusMessage->payloadLength) {
     this->event = (Event*) Event::getValueById(canbusMessage->messageId);
+    this->senderId = this->getIntValue();
 }
 
 String EventMessage::toSerialString() {

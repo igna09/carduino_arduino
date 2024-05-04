@@ -298,9 +298,9 @@ void CarduinoNode::restart() {
 }
 
 void CarduinoNode::sendHeartbeat() {
-    HeartbeatMessage *heartbeatMessage = new HeartbeatMessage(this->id);
-    sendCanbusMessage(heartbeatMessage);
-    delete heartbeatMessage;
+    EventMessage *eventMessage = new EventMessage(&Event::HEARTBEAT, this->id);
+    sendCanbusMessage(eventMessage);
+    delete eventMessage;
 }
 
 void CarduinoNode::sendEvent(const Event *event) {

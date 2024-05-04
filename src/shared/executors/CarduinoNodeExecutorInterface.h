@@ -9,7 +9,10 @@ class CarduinoNode; //forward declaration, needed to avoid circular dependency
 class CarduinoNodeExecutorInterface {
     public:
         const Category *categoryFilter;
+        uint8_t messageId;
+        bool filterMessage;
         
         CarduinoNodeExecutorInterface(const Category *categoryFilter);
+        CarduinoNodeExecutorInterface(const Category *categoryFilter, uint8_t messageId);
         virtual void execute(CarduinoNode *node, CanbusMessage *message) = 0;
 };

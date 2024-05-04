@@ -4,7 +4,7 @@
 #include "Carstatus.h"
 #include "Setting.h"
 
-#define CATEGORY_SIZE 8 // TODO: reached max value, change bits to 4 (category) - 7 (message)
+#define CATEGORY_SIZE 7
 
 class Category : public Enum {
     public:
@@ -12,7 +12,7 @@ class Category : public Enum {
         static const Category READ_SETTING; // used to receive setting value
         static const Category MEDIA_CONTROL;
         static const Category WRITE_SETTING;
-        static const Category HEARTBEAT;
+        // static const Category HEARTBEAT;
         // static const Category ERROR;
         static const Category EVENT;
         static const Category GET_SETTINGS; // used to start reading all settings
@@ -73,7 +73,7 @@ inline const Category Category::CAR_STATUS = Category(0x00, "CAR_STATUS");
 inline const Category Category::READ_SETTING = Category(0x01, "READ_SETTING");
 inline const Category Category::MEDIA_CONTROL = Category(0x02, "MEDIA_CONTROL");
 inline const Category Category::WRITE_SETTING = Category(0x03, "WRITE_SETTING", Setting::getValueByName);
-inline const Category Category::HEARTBEAT = Category(0x04, "HEARTBEAT");
+// inline const Category Category::HEARTBEAT = Category(0x04, "HEARTBEAT");
 // inline const Category Category::ERROR = Category(0x05, "ERROR");
 inline const Category Category::EVENT = Category(0x06, "EVENT");
 inline const Category Category::GET_SETTINGS = Category(0x07, "GET_SETTINGS");
