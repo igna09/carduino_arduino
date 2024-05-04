@@ -2,7 +2,6 @@
 
 #include <Arduino.h>
 #include "../CanbusMessage.h"
-#include "../../enums/Carstatus.h"
 #include "../../enums/Category.h"
 #include "../../utils.h"
 #include "../../enums/CanbusMessageType.h"
@@ -26,4 +25,6 @@ public:
     TypedCanbusMessage(unsigned long id, float value);
     TypedCanbusMessage();
     virtual ~TypedCanbusMessage() = default;
+    
+    String toSerialString() override;
 };

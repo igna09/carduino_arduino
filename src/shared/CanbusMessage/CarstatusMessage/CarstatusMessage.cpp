@@ -28,3 +28,10 @@ String CarstatusMessage::toSerialString() {
     s += ";";
     return s;
 };
+
+CarstatusMessage* CarstatusMessage::createSpecializedCopy(CanbusMessage* canbusMessage) {
+    const Carstatus *c = (Carstatus*)Carstatus::getValueById(canbusMessage->messageId);
+    const CanbusMessageType t = *c->type;
+
+    return new CarstatusMessage(&t, canbusMessage);
+};

@@ -39,3 +39,16 @@ TypedCanbusMessage::TypedCanbusMessage(const CanbusMessageType *type, CanbusMess
         this->value.floatValue = convertByteArrayToFloat(payload, payloadLength);
     }
 };
+
+
+
+String TypedCanbusMessage::toSerialString() {
+    String s = "";
+    s += this->category->name;
+    s += ";";
+    s += String(this->messageId);
+    s += ";";
+    s += this->getValueToString();
+    s += ";";
+    return s;
+};

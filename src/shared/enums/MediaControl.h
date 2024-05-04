@@ -1,10 +1,10 @@
 #pragma once
 
-#include "Enum.h"
+#include "TypedEnum.h"
 
 #define MEDIA_CONTROL_SIZE 5
 
-class MediaControl : public Enum {
+class MediaControl : public TypedEnum {
     public:
         static const MediaControl VOLUME_UP;
         static const MediaControl VOLUME_DOWN;
@@ -14,7 +14,7 @@ class MediaControl : public Enum {
 
         uint8_t pin;
 
-        MediaControl() : Enum() {};
+        MediaControl() : TypedEnum() {};
 
         uint16_t getMessageId() {
             // TODO: replace this fix
@@ -24,7 +24,7 @@ class MediaControl : public Enum {
             return id;
         };
 
-        static const Enum* getValueById(uint8_t id) {
+        static const TypedEnum* getValueById(uint8_t id) {
             for(uint8_t i = 0; i < getSize(); i++) {
                 if(MediaControl::values[i]->id == id) {
                     return MediaControl::values[i];
@@ -33,7 +33,7 @@ class MediaControl : public Enum {
             return nullptr;
         }
 
-        static const Enum* getValueByName(char *n) {
+        static const TypedEnum* getValueByName(char *n) {
             for(uint8_t i = 0; i < getSize(); i++) {
                 if(strcmp(MediaControl::values[i]->name, n) == 0) {
                     return MediaControl::values[i];
@@ -46,18 +46,18 @@ class MediaControl : public Enum {
             return MediaControl::index;
         }
 
-        static const Enum** getValues() {
+        static const TypedEnum** getValues() {
             return MediaControl::values;
         }
 
-        MediaControl(uint8_t id, const char *name, uint8_t pin) : Enum(id, name) {
+        MediaControl(uint8_t id, const char *name, uint8_t pin) : TypedEnum(id, name, &CanbusMessageType::BOOL) {
             MediaControl::values[MediaControl::index] = this;
             MediaControl::index++;
 
             this->pin = pin;
         };
 
-        MediaControl(uint8_t id, const char *name) : Enum(id, name) {
+        MediaControl(uint8_t id, const char *name) : TypedEnum(id, name, &CanbusMessageType::BOOL) {
             MediaControl::values[MediaControl::index] = this;
             MediaControl::index++;
 
@@ -65,11 +65,11 @@ class MediaControl : public Enum {
         };
 
     private:
-        static const Enum* values[];
+        static const TypedEnum* values[];
         static uint8_t index;
 };
 
-inline const Enum* MediaControl::values [MEDIA_CONTROL_SIZE] = { 0 };
+inline const TypedEnum* MediaControl::values [MEDIA_CONTROL_SIZE] = { 0 };
 inline uint8_t MediaControl::index = 0;
 inline const MediaControl MediaControl::VOLUME_UP = MediaControl(0x00, "VOLUME_UP", 0);
 inline const MediaControl MediaControl::VOLUME_DOWN = MediaControl(0x01, "VOLUME_DOWN", 1);

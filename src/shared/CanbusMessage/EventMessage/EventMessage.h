@@ -16,4 +16,5 @@ class EventMessage : public TypedCanbusMessage {
         EventMessage(CanbusMessage *canbusMessage);
 
         String toSerialString();
+        static EventMessage* createSpecializedCopy(CanbusMessage*);
 };

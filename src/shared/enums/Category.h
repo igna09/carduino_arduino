@@ -3,9 +3,12 @@
 #include "Enum.h"
 #include "Carstatus.h"
 #include "Setting.h"
+#include "MediaControl.h"
+#include "Event.h"
 
 #define CATEGORY_SIZE 7
 
+class CanbusMessage;
 class Category : public Enum {
     public:
         static const Category CAR_STATUS;
@@ -17,6 +20,9 @@ class Category : public Enum {
         static const Category EVENT;
         static const Category GET_SETTINGS; // used to start reading all settings
 
+
+        std::function<CanbusMessage*(CanbusMessage*)> createSpecializedCopyFunction;
+        std::function<const TypedEnum**()> getCategoryValuesFunction;
         std::function<const TypedEnum*(char*)> getEnumFromNameFunction;
 
         Category() : Enum() {};
@@ -51,29 +57,21 @@ class Category : public Enum {
         static const Enum* values[];
         static uint8_t index;
 
-        Category(uint8_t id, const char *name) : Enum(id, name) {
+        Category(uint8_t id, const char *name, std::function<const TypedEnum**()> getCategoryValuesFunction, std::function<CanbusMessage*(CanbusMessage*)> createSpecializedCopyFunction) : Enum(id, name) {
             Category::values[Category::index] = this;
             Category::index++;
 
+            this->createSpecializedCopyFunction = createSpecializedCopyFunction;
+            this->getCategoryValuesFunction = getCategoryValuesFunction;
             this->getEnumFromNameFunction = nullptr;
         };
 
-        Category(uint8_t id, const char *name, std::function<const TypedEnum*(char*)> convertCallback) : Enum(id, name) {
-            this->getEnumFromNameFunction = convertCallback;
-
+        Category(uint8_t id, const char *name, std::function<const TypedEnum**()> getCategoryValuesFunction, std::function<CanbusMessage*(CanbusMessage*)> createSpecializedCopyFunction, std::function<const TypedEnum*(char*)> convertCallback) : Enum(id, name) {
             Category::values[Category::index] = this;
             Category::index++;
+
+            this->createSpecializedCopyFunction = createSpecializedCopyFunction;
+            this->getCategoryValuesFunction = getCategoryValuesFunction;
+            this->getEnumFromNameFunction = convertCallback;
         };
 };
-
-//const Enum* Enum::values [] = {&Category::CAR_STATUS, &Category::READ_SETTINGS};
-inline const Enum* Category::values [CATEGORY_SIZE] = { 0 };
-inline uint8_t Category::index = 0;
-inline const Category Category::CAR_STATUS = Category(0x00, "CAR_STATUS");
-inline const Category Category::READ_SETTING = Category(0x01, "READ_SETTING");
-inline const Category Category::MEDIA_CONTROL = Category(0x02, "MEDIA_CONTROL");
-inline const Category Category::WRITE_SETTING = Category(0x03, "WRITE_SETTING", Setting::getValueByName);
-// inline const Category Category::HEARTBEAT = Category(0x04, "HEARTBEAT");
-// inline const Category Category::ERROR = Category(0x05, "ERROR");
-inline const Category Category::EVENT = Category(0x06, "EVENT");
-inline const Category Category::GET_SETTINGS = Category(0x07, "GET_SETTINGS");

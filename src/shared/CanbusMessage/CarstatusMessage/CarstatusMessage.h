@@ -17,4 +17,5 @@ class CarstatusMessage : public TypedCanbusMessage {
         virtual ~CarstatusMessage() = default;
 
         String toSerialString() override;
+        static CarstatusMessage* createSpecializedCopy(CanbusMessage*);
 };

@@ -230,7 +230,10 @@ void CarduinoNode::loop() {
 };
 
 void CarduinoNode::manageReceivedCanbusMessage(CanbusMessage *message) {
-    this->printlnWrapper("CarduinoNode::manageReceivedCanbusMessage " + message->toSerialString());
+    if(this->_logOnSerial || this->_logOnServer) {
+        CanbusMessage *specialized = ((Category*)Category::getValueById(message->categoryId))->createSpecializedCopyFunction(message);
+        this->printlnWrapper("CarduinoNode::manageReceivedCanbusMessage " + specialized->toSerialString());
+    }
     this->canExecutors->execute(this, message);
 };
 

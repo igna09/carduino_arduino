@@ -1,8 +1,6 @@
 #pragma once
 
 #include <Arduino.h>
-#include "../enums/Category.h"
-#include "../enums/Carstatus.h"
 #include "../utils.h"
 
 /**
@@ -24,6 +22,9 @@ class CanbusMessage {
         CanbusMessage(uint16_t id, uint8_t *payload, uint8_t payloadLength);
         virtual ~CanbusMessage();
 
+        static CanbusMessage* createSpecializedCopy(CanbusMessage* message) {
+            return new CanbusMessage(message->id, message->payload, message->payloadLength);
+        };
         virtual String toSerialString() {
             String returnValue = "";
             returnValue += categoryId;

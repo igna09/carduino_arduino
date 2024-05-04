@@ -16,7 +16,11 @@ String EventMessage::toSerialString() {
     s += ";";
     s += this->event->name;
     s += ";";
-    s += "0";
+    s += String(this->senderId);
     s += ";";
     return s;
+};
+
+EventMessage* EventMessage::createSpecializedCopy(CanbusMessage* canbusMessage) {
+    return new EventMessage(canbusMessage);
 };
