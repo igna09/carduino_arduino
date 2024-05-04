@@ -38,7 +38,13 @@ void KlineCarduinoNode::readValues() {
 	// Serial.println("KlineCarduinoNode::readValues() start");
 	// unsigned long start = millis();
 	// Serial.println("start readValues()");
-	if(!this->otaMode) {
+	if(this->otaMode) {
+		if(klineConnected) {
+			kLine->disconnect();
+			this->klineConnected = false;
+			this->lastConnectedEcu = nullptr;
+		}
+	} else { // i can connect & read
 		// Serial.print("KlineCarduinoNode::readValues() this->otaMode ");
 		// Serial.println(this->otaMode ? "true" : "false");
 		uint8_t ecusToReadSize = ValueToReadEnum::getEcusToReadSize();
