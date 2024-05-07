@@ -52,7 +52,7 @@ class MainCarduinoNode : public CarduinoNode {
         std::map<uint8_t, NodeInformation*> *nodeInformations;
         bool isRadioOn;
         bool isKeyOn;
-        bool canTurnOff;
+        // bool canTurnOff;
         Task *turnOffRadioTask;
 
         MainCarduinoNode(uint8_t id, int cs, int interruptPin, char *ssid,  char *password);
@@ -87,4 +87,5 @@ class MainCarduinoNode : public CarduinoNode {
         void startSwcPairing();
         void luminanceCallback();
         void temperatureCallback();
+        void voltageCallback();
 };

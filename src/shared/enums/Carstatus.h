@@ -6,7 +6,7 @@
 
 // TODO: add unit of measurement (even if not used)
 
-#define CARSTATUS_SIZE 16
+#define CARSTATUS_SIZE 17
 
 class Carstatus : public TypedEnum {
     public:
@@ -29,6 +29,7 @@ class Carstatus : public TypedEnum {
         static const Carstatus BATTERY_VOLTAGE;
         // static const Carstatus BATTERY_VOLTAGE_2;
         static const Carstatus REVERSE;
+        static const Carstatus IS_KEY_ON;
 
         Carstatus() : TypedEnum() {};
 
@@ -97,3 +98,4 @@ inline const Carstatus Carstatus::FUEL_CONSUMPTION = Carstatus(0x0D, "FUEL_CONSU
 inline const Carstatus Carstatus::BATTERY_VOLTAGE = Carstatus(0x0E, "BATTERY_VOLTAGE", &CanbusMessageType::FLOAT);
 // inline const Carstatus Carstatus::BATTERY_VOLTAGE_2 = Carstatus(0x0F, "BATTERY_VOLTAGE_2", &CanbusMessageType::FLOAT);
 inline const Carstatus Carstatus::REVERSE = Carstatus(0x10, "REVERSE", &CanbusMessageType::BOOL);
+inline const Carstatus Carstatus::IS_KEY_ON = Carstatus(0x11, "IS_KEY_ON", &CanbusMessageType::BOOL);

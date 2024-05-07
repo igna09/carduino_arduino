@@ -7,6 +7,9 @@ DoorCarduinoNode::DoorCarduinoNode(uint8_t id, int cs, int interruptPin, const c
     StopMovingMirrorsCallback<void(void)>::func = std::bind(&DoorCarduinoNode::stopMoveMirrors, this);
     this->stopMoveMirrorsTask = new Task(MIRRORS_MOVING_TIME, 1, static_cast<TaskCallback>(StopMovingMirrorsCallback<void(void)>::callback), this->scheduler, false);
 
+    BatteryVoltageCallback<void(void)>::func = std::bind(&DoorCarduinoNode::voltageCallback, this);
+    temperatureTask = new Task(VOLTAGE_READING_INTERVAL, TASK_FOREVER, static_cast<TaskCallback>(BatteryVoltageCallback<void(void)>::callback), this->scheduler, true);
+
 	this->lastReceivedEvent = nullptr;
 
 	this->canExecutors->addExecutor(new DoorNodeGetSettings());
@@ -119,3 +122,15 @@ void DoorCarduinoNode::pcfSetup() {
     this->pcf8574->digitalWrite(PIN_ENABLE, LOW);
     this->pcf8574->digitalWrite(PIN_OPEN_MIRRORS, LOW);
 }
+
+
+
+void DoorCarduinoNode::voltageCallback() {
+	/**
+	 * TODO: fix this calculation
+	*/
+    float volts = analogRead(A0) * 3.3 / 1024.0;
+    
+    CarstatusMessage m(&Carstatus::BATTERY_VOLTAGE, volts);
+    this->sendCanbusMessage(&m);
+};

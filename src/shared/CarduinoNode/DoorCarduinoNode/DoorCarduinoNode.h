@@ -11,7 +11,8 @@
 #include "shared/CanbusMessage/MediaControlMessage/MediaControlMessage.h"
 #include "shared/SharedDefinitions.h"
 #include <PCF8574.h>
-#include "callbacks/StopMovingMirrorsCallback.h"
+#include "shared/CarduinoNode/DoorCarduinoNode/callbacks/StopMovingMirrorsCallback.h"
+#include "shared/CarduinoNode/DoorCarduinoNode/callbacks/BatteryVoltageCallback.h"
 
 #define PIN_A P0
 #define PIN_B P1
@@ -19,6 +20,8 @@
 #define PIN_CLOSED_MIRRORS P3
 #define PIN_OPEN_MIRRORS P4
 #define MIRRORS_MOVING_TIME 500
+
+#define VOLTAGE_READING_INTERVAL 1000
 
 class DoorCarduinoNode : public CarduinoNode {
     public:
@@ -45,4 +48,6 @@ class DoorCarduinoNode : public CarduinoNode {
         void stopMoveMirrors();
         void pcfSetup();
         bool usingMirrors();
+
+        void voltageCallback();
 };
