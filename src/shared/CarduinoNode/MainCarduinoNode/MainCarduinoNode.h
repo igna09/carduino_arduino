@@ -53,7 +53,6 @@ class MainCarduinoNode : public CarduinoNode {
         void handleReceivedSerialMessage(String message);
         void startTurnOffSystem();
         void manageRadioPower();
-        void pcfSetup();
         NodeInformation* getNodeInformation(uint8_t id);
         NodeInformation* createOrGetNodeInformation(uint8_t id);
 
@@ -70,6 +69,7 @@ class MainCarduinoNode : public CarduinoNode {
         uint8_t pressedPin;
         unsigned long lastPressedMillis;
 
+        void pcfSetup();
         void executeSwcCommand(MediaControl *mediaControl);
         void manageSwc();
         void startSwcPairing();
