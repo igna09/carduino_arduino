@@ -129,7 +129,7 @@ void DoorCarduinoNode::voltageCallback() {
 	/**
 	 * TODO: fix this calculation
 	*/
-    float volts = analogRead(A0) * 3.3 / 1024.0;
+    float volts = analogRead(VOLTAGE_READING_PIN) * 3.3 / 1024.0;
     
     CarstatusMessage m(&Carstatus::BATTERY_VOLTAGE, volts);
     this->sendCanbusMessage(&m);
