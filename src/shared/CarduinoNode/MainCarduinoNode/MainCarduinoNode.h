@@ -32,6 +32,9 @@
 #define SWC_FIRST_WAITING_PAIRING_INTERVAL  5000
 #define SWC_PIN_SIZE 8
 
+#define RADIO_MOSFET_PIN D4
+#define ACCESSORY_12_V_PIN D5
+
 struct SplittedUsbMessage {
     bool isValid;
     String messages[3];
@@ -49,6 +52,7 @@ class MainCarduinoNode : public CarduinoNode {
         std::map<uint8_t, NodeInformation*> *nodeInformations;
         bool isRadioOn;
         bool isKeyOn;
+        bool canTurnOff;
         Task *turnOffRadioTask;
 
         MainCarduinoNode(uint8_t id, int cs, int interruptPin, char *ssid,  char *password);
@@ -59,7 +63,7 @@ class MainCarduinoNode : public CarduinoNode {
         void sendSerialMessage(CanbusMessage *message);
         SplittedUsbMessage* splitReceivedUsbMessage(String message);
         void handleReceivedSerialMessage(String message);
-        void startTurnOffSystem();
+        void turnOffSystem();
         void manageRadioPower();
         NodeInformation* getNodeInformation(uint8_t id);
         NodeInformation* createOrGetNodeInformation(uint8_t id);

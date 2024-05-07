@@ -29,14 +29,15 @@ MainCarduinoNode::MainCarduinoNode(uint8_t id, int cs, int interruptPin, char *s
     this->usbExecutors->addExecutor(new WriteSettingExecutor());
     this->usbExecutors->addExecutor(new MainNodeSerialGetSettings());
 
-    TurnOffRadioCallback<void(void)>::func = std::bind(&MainCarduinoNode::startTurnOffSystem, this);
+    TurnOffRadioCallback<void(void)>::func = std::bind(&MainCarduinoNode::turnOffSystem, this);
     turnOffRadioTask = new Task(RADIO_TURN_OFF_TIMER, 1, static_cast<TaskCallback>(TurnOffRadioCallback<void(void)>::callback), this->scheduler, false);
 
     this->sendEvent(&Event::GET_HELLOS);
 
+    pinMode(ACCESSORY_12_V_PIN, INPUT);
     //turn ON MOSFET on remote line
-    //pinMode(pin, OUT);
-    //digitalWrite(pin, HIGH);
+    pinMode(RADIO_MOSFET_PIN, OUTPUT);
+    digitalWrite(RADIO_MOSFET_PIN, HIGH);
     this->isRadioOn = true;
     this->isKeyOn = true;
     this->sendEvent(&Event::TURN_ON);
@@ -200,26 +201,26 @@ void MainCarduinoNode::manageSwc() {
     }
 }
 
-void MainCarduinoNode::startTurnOffSystem() {
-    this->sendEvent(&Event::TURN_OFF);
-
-    //when all turn off events happened (i receive TURN_OFF_COMPLETE from important nodes like door one) turn off also the radio
+void MainCarduinoNode::turnOffSystem() {
+    //TODO: when all turn off events happened (i receive TURN_OFF_COMPLETE from important nodes like door one) turn off also the radio??
     this->isRadioOn = false;
-    // digitalWrite(pin, LOW);
+    digitalWrite(RADIO_MOSFET_PIN, LOW);
 }
 
 void MainCarduinoNode::manageRadioPower() {
+    bool accessoryLineIsOff = digitalRead(ACCESSORY_12_V_PIN) == LOW;
     /**
      * read digital input +12v ACC line to manage events
     */
-    if(/*digitalRead(pin) == LOW*/true && this->isKeyOn) {
+    if(accessoryLineIsOff && this->isKeyOn) {
         this->isKeyOn = false;
         // this->turnOffRadioTask-> // reset remaining timer
         this->turnOffRadioTask->enable();
-    }
-    
-    if(this->turnOffRadioTask->isEnabled() && /*digitalRead(pin) == HIGH*/true) {
+        this->sendEvent(&Event::TURN_OFF);
+    } else if(!accessoryLineIsOff && this->turnOffRadioTask->isEnabled()) {
         this->turnOffRadioTask->disable();
+        this->isKeyOn = true;
+        this->sendEvent(&Event::TURN_OFF_INTERRUPT);
     }
 }
 
