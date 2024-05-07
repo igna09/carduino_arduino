@@ -24,6 +24,14 @@
 #include "shared/CarduinoNode/MainCarduinoNode/executors/MainNodeSerialGetSettings.h"
 #include "shared/CarduinoNode/MainCarduinoNode/executors/MainNodeCanEvent/MainNodeCanEvent.h"
 
+#define RADIO_TURN_OFF_TIMER 15000
+
+#define SWC_PRESS_INTERVAL  65
+#define SWC_PAIRING_INTERVAL  5000
+#define SWC_WAITING_PAIRING_INTERVAL  1000
+#define SWC_FIRST_WAITING_PAIRING_INTERVAL  5000
+#define SWC_PIN_SIZE 8
+
 struct SplittedUsbMessage {
     bool isValid;
     String messages[3];
