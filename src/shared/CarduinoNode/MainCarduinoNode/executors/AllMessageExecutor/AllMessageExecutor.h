@@ -1,10 +1,10 @@
 #pragma once
 
 #include <Arduino.h>
-#include "../../../CanbusMessage/CanbusMessage.h"
-#include "../../CarduinoNode/CarduinoNode.h"
-#include "../../../executors/CarduinoNodeExecutorInterface.h"
-#include "../../../enums/Setting.h"
+#include "shared/CanbusMessage/CanbusMessage.h"
+#include "shared/CarduinoNode/CarduinoNode/CarduinoNode.h"
+#include "shared/executors/CarduinoNodeExecutorInterface.h"
+#include "shared/enums/Setting.h"
 // #include "../../../CanbusMessage/SettingMessage/SettingMessage.h"
 
 class AllMessageExecutor : public CarduinoNodeExecutorInterface {

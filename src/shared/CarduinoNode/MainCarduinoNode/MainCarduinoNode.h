@@ -10,19 +10,19 @@
 #include "callbacks/LuminanceCallback.h"
 #include "callbacks/TurnOffRadioCallback.h"
 #include "shared/CarduinoNode/CarduinoNode/CarduinoNode.h"
-#include "executors/CarstatusExecutor.h"
-#include "executors/AllMessageExecutor.h"
-#include "executors/WriteSettingExecutor.h"
-#include "executors/MediaControlExecutor.h"
 #include "shared/executors/Executors.h"
-#include "./executors/HeartbeatExecutor.h"
+#include "shared/CarduinoNode/MainCarduinoNode/executors/CarstatusExecutor/CarstatusExecutor.h"
+#include "shared/CarduinoNode/MainCarduinoNode/executors/AllMessageExecutor/AllMessageExecutor.h"
+#include "shared/CarduinoNode/MainCarduinoNode/executors/WriteSettingExecutor/WriteSettingExecutor.h"
+#include "shared/CarduinoNode/MainCarduinoNode/executors/MediaControlExecutor/MediaControlExecutor.h"
+#include "shared/CarduinoNode/MainCarduinoNode/executors/MainNodeCanReadSettingExecutor/MainNodeCanReadSettingExecutor.h"
+#include "shared/CarduinoNode/MainCarduinoNode/executors/MainNodeSerialGetSettings/MainNodeSerialGetSettings.h"
+#include "shared/CarduinoNode/MainCarduinoNode/executors/MainNodeCanEvent/MainNodeCanEvent.h"
+#include "shared/CarduinoNode/MainCarduinoNode/executors/HeartbeatExecutor/HeartbeatExecutor.h"
 #include <map>              // user must include to use std::map (see above comment)
 #include <PCF8574.h>
 #include "shared/SharedDefinitions.h"
 #include "shared/enums/Event.h"
-#include "shared/CarduinoNode/MainCarduinoNode/executors/MainNodeCanReadSettingExecutor.h"
-#include "shared/CarduinoNode/MainCarduinoNode/executors/MainNodeSerialGetSettings.h"
-#include "shared/CarduinoNode/MainCarduinoNode/executors/MainNodeCanEvent/MainNodeCanEvent.h"
 
 #define RADIO_TURN_OFF_TIMER 15000
 

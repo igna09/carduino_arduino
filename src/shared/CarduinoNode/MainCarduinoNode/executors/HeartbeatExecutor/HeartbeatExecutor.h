@@ -1,0 +1,18 @@
+#pragma once
+
+#include <Arduino.h>
+#include "shared/CanbusMessage/CanbusMessage.h"
+#include "shared/CarduinoNode/CarduinoNode/CarduinoNode.h"
+#include "shared/CarduinoNode/MainCarduinoNode/MainCarduinoNode.h"
+#include "shared/executors/CarduinoNodeExecutorInterface.h"
+#include "shared/enums/Setting.h"
+#include "shared/CanbusMessage/EventMessage/EventMessage.h"
+#include "shared/enums/Category.h"
+#include "shared/CarduinoNode/MainCarduinoNode/MainCarduinoNode.h"
+#include <map>
+
+class HeartbeatExecutor : public CarduinoNodeExecutorInterface {
+    public:
+        HeartbeatExecutor();
+        void execute(CarduinoNode *node, CanbusMessage *message);
+};

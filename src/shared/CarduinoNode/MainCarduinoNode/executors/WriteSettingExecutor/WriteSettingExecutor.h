@@ -1,13 +1,13 @@
 #pragma once
 
 #include <Arduino.h>
-#include "../../../CanbusMessage/CanbusMessage.h"
-#include "../../CarduinoNode/CarduinoNode.h"
+#include "shared/CanbusMessage/CanbusMessage.h"
+#include "shared/CarduinoNode/CarduinoNode/CarduinoNode.h"
 #include "shared/CarduinoNode/MainCarduinoNode/MainCarduinoNode.h"
-#include "../../../executors/CarduinoNodeExecutorInterface.h"
-#include "../../../enums/Setting.h"
+#include "shared/executors/CarduinoNodeExecutorInterface.h"
+#include "shared/enums/Setting.h"
 #include "shared/CanbusMessage/WriteSettingMessage/WriteSettingMessage.h"
-#include "../../../enums/Category.h"
+#include "shared/enums/Category.h"
 
 class WriteSettingExecutor : public CarduinoNodeExecutorInterface {
     public:
