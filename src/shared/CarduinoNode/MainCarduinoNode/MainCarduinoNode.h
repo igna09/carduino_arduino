@@ -32,8 +32,8 @@
 #define SWC_FIRST_WAITING_PAIRING_INTERVAL  5000
 #define SWC_PIN_SIZE 8
 
-#define RADIO_MOSFET_PIN D3
-#define ACCESSORY_12_V_PIN D4
+#define RADIO_MOSFET_PIN D4
+#define ACCESSORY_12_V_PIN D3
 
 struct SplittedUsbMessage {
     bool isValid;

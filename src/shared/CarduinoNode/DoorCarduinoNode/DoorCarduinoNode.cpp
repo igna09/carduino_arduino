@@ -66,7 +66,7 @@ void DoorCarduinoNode::startMoveMirrorsDown() {
 
 	this->movingMirrors = true;
 
-	this->stopMoveMirrorsTask->restart();
+	this->stopMoveMirrorsTask->restartDelayed();
 };
 
 void DoorCarduinoNode::startMoveMirrorsUp() {
@@ -76,7 +76,7 @@ void DoorCarduinoNode::startMoveMirrorsUp() {
 
 	this->movingMirrors = true;
 
-	this->stopMoveMirrorsTask->restart();
+	this->stopMoveMirrorsTask->restartDelayed();
 };
 
 void DoorCarduinoNode::stopMoveMirrors() {

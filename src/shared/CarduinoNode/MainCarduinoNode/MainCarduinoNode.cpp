@@ -217,7 +217,7 @@ void MainCarduinoNode::manageRadioPower() {
     if(accessoryLineIsOff && this->isKeyOn) {
         this->isKeyOn = false;
         // this->turnOffRadioTask-> // reset remaining timer
-        this->turnOffRadioTask->enable();
+        this->turnOffRadioTask->restartDelayed();
         this->sendEvent(&Event::TURN_OFF);
     } else if(!accessoryLineIsOff && this->turnOffRadioTask->isEnabled()) {
         this->turnOffRadioTask->disable();
