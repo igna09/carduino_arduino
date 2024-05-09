@@ -13,4 +13,6 @@ void DoorNodeEvent::execute(CarduinoNode *node, CanbusMessage *message) {
     }
 
     doorCarduinoNode->lastReceivedEvent = (Event*) eventMessage->event;
+
+    delete eventMessage;
 };

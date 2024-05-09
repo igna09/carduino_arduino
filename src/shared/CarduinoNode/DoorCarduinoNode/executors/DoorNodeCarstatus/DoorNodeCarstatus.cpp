@@ -5,6 +5,7 @@ DoorNodeCarstatus::DoorNodeCarstatus() : CarduinoNodeExecutorInterface(&Category
 void DoorNodeCarstatus::execute(CarduinoNode *node, CanbusMessage *message) {
     DoorCarduinoNode *doorCarduinoNode = (DoorCarduinoNode*) node;
     CarstatusMessage *carstatusMessage = new CarstatusMessage(&CanbusMessageType::BOOL, message);
+
     bool isReverse = carstatusMessage->getBoolValue();
     doorCarduinoNode->reverse = isReverse;
     if(isReverse) {
@@ -12,4 +13,6 @@ void DoorNodeCarstatus::execute(CarduinoNode *node, CanbusMessage *message) {
     } else {
         doorCarduinoNode->startMoveMirrorsUp();
     }
+    
+    delete carstatusMessage;
 };
