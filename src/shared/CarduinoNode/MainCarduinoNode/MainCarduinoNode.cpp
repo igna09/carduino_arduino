@@ -82,11 +82,8 @@ void MainCarduinoNode::loop() {
         handleReceivedSerialMessage("READ_SETTINGS;OTA_MODE;false;");
     }*/
 
-// Serial.println("test1");
     manageSwc();
-// Serial.println("test2");
     manageRadioPower();
-// Serial.println("test3");
 }
 
 void MainCarduinoNode::handleReceivedSerialMessage(String receivedMessage) {
