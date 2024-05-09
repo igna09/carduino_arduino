@@ -60,9 +60,9 @@ void DoorCarduinoNode::setdown() {
 };
 
 void DoorCarduinoNode::startMoveMirrorsDown() {
-	digitalWrite(PIN_A, LOW);
-	digitalWrite(PIN_B, HIGH);
-	digitalWrite(PIN_ENABLE, HIGH);
+	this->pcf8574->digitalWrite(PIN_A, LOW);
+	this->pcf8574->digitalWrite(PIN_B, HIGH);
+	this->pcf8574->digitalWrite(PIN_ENABLE, HIGH);
 
 	this->movingMirrors = true;
 
@@ -70,9 +70,9 @@ void DoorCarduinoNode::startMoveMirrorsDown() {
 };
 
 void DoorCarduinoNode::startMoveMirrorsUp() {
-	digitalWrite(PIN_A, HIGH);
-	digitalWrite(PIN_B, LOW);
-	digitalWrite(PIN_ENABLE, HIGH);
+	this->pcf8574->digitalWrite(PIN_A, HIGH);
+	this->pcf8574->digitalWrite(PIN_B, LOW);
+	this->pcf8574->digitalWrite(PIN_ENABLE, HIGH);
 
 	this->movingMirrors = true;
 
@@ -80,25 +80,25 @@ void DoorCarduinoNode::startMoveMirrorsUp() {
 };
 
 void DoorCarduinoNode::stopMoveMirrors() {
-	digitalWrite(PIN_ENABLE, LOW);
+	this->pcf8574->digitalWrite(PIN_ENABLE, LOW);
 
 	this->movingMirrors = false;
 };
 
 void DoorCarduinoNode::openMirrors() {
-	digitalWrite(PIN_OPEN_MIRRORS, HIGH);
+	this->pcf8574->digitalWrite(PIN_OPEN_MIRRORS, HIGH);
 
 	this->foldingMirrors = true;
 };
 
 void DoorCarduinoNode::closeMirrors() {
-	digitalWrite(PIN_OPEN_MIRRORS, LOW);
+	this->pcf8574->digitalWrite(PIN_OPEN_MIRRORS, LOW);
 
 	this->foldingMirrors = true;
 };
 
 bool DoorCarduinoNode::readClosedMirrors() {
-	return digitalRead(PIN_CLOSED_MIRRORS);
+	return this->pcf8574->digitalRead(PIN_CLOSED_MIRRORS);
 };
 
 bool DoorCarduinoNode::usingMirrors() {
@@ -126,10 +126,7 @@ void DoorCarduinoNode::pcfSetup() {
 
 
 void DoorCarduinoNode::voltageCallback() {
-	/**
-	 * TODO: fix this calculation
-	*/
-    float volts = analogRead(VOLTAGE_READING_PIN) * 3.3 / 1024.0;
+    float volts = analogRead(VOLTAGE_READING_PIN) * 15 / 1024.0;
     
     CarstatusMessage m(&Carstatus::BATTERY_VOLTAGE, volts);
     this->sendCanbusMessage(&m);
