@@ -53,3 +53,5 @@ extern void startElapsedTime();
 extern unsigned long stopElapsedTime();
 
 extern void printElapsedTime(char *s);
+
+extern float calculateVoltage(float voltage1VReference, float r1, float r2);

@@ -189,3 +189,7 @@ uint8_t getByteArraySize(bool value) {
 uint8_t getByteArraySize(float value) {
   return 5;
 };
+
+float calculateVoltage(float voltage1VReference, float r1, float r2) {
+	return voltage1VReference * ((r1 + r2) / r2);
+}

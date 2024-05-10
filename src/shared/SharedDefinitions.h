@@ -13,3 +13,6 @@ union ValueType
 
 #define HEARTBEAT_INTERVAL 10000
 #define HEARTBEAT_INTERVAL_TOLERANCE 150
+
+#define WEMOS_D1_MINI_VOLTAGE_DIVIDER_R1 (220000 * 1.0) //220K OHM multiplyed by 1.0 to keep float precision
+#define WEMOS_D1_MINI_VOLTAGE_DIVIDER_R2 (100000 * 1.0) //100K OHM multiplyed by 1.0 to keep float precision

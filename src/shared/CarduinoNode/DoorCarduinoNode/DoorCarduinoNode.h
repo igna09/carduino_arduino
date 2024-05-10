@@ -23,6 +23,7 @@
 
 #define VOLTAGE_READING_INTERVAL 1000
 #define VOLTAGE_READING_PIN A0
+#define VOLTAGE_READING_PIN_RESISTOR 220000 //220K OHM
 
 class DoorCarduinoNode : public CarduinoNode {
     public:
