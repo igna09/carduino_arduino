@@ -44,7 +44,7 @@ MainCarduinoNode::MainCarduinoNode(uint8_t id, int cs, int interruptPin, char *s
 };
 
 void MainCarduinoNode::luminanceCallback() {
-    float volts = analogRead(A0) * 3.3 / 1024.0;
+    float volts = calculateVoltage(analogRead(A0) / 1024.0, WEMOS_D1_MINI_VOLTAGE_DIVIDER_R1, WEMOS_D1_MINI_VOLTAGE_DIVIDER_R2);
     float amps = volts / 10000.0; // across 10,000 Ohms
     float microamps = amps * 1000000;
     // 0 --> 1000 lux
