@@ -28,7 +28,7 @@ class Carstatus : public TypedEnum {
         static const Carstatus FUEL_CONSUMPTION;
         static const Carstatus BATTERY_VOLTAGE;
         // static const Carstatus BATTERY_VOLTAGE_2;
-        static const Carstatus REVERSE;
+        static const Carstatus IS_REVERSE;
         static const Carstatus IS_KEY_ON;
 
         Carstatus() : TypedEnum() {};
@@ -97,5 +97,5 @@ inline const Carstatus Carstatus::INJECTED_QUANTITY = Carstatus(0x0C, "INJECTED_
 inline const Carstatus Carstatus::FUEL_CONSUMPTION = Carstatus(0x0D, "FUEL_CONSUMPTION", &CanbusMessageType::FLOAT);
 inline const Carstatus Carstatus::BATTERY_VOLTAGE = Carstatus(0x0E, "BATTERY_VOLTAGE", &CanbusMessageType::FLOAT);
 // inline const Carstatus Carstatus::BATTERY_VOLTAGE_2 = Carstatus(0x0F, "BATTERY_VOLTAGE_2", &CanbusMessageType::FLOAT);
-inline const Carstatus Carstatus::REVERSE = Carstatus(0x10, "REVERSE", &CanbusMessageType::BOOL);
+inline const Carstatus Carstatus::IS_REVERSE = Carstatus(0x10, "IS_REVERSE", &CanbusMessageType::BOOL);
 inline const Carstatus Carstatus::IS_KEY_ON = Carstatus(0x11, "IS_KEY_ON", &CanbusMessageType::BOOL);

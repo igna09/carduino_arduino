@@ -1,6 +1,6 @@
 #include "DoorNodeCarstatus.h"
 
-DoorNodeCarstatus::DoorNodeCarstatus() : CarduinoNodeExecutorInterface(&Category::CAR_STATUS, Carstatus::REVERSE.id) {};
+DoorNodeCarstatus::DoorNodeCarstatus() : CarduinoNodeExecutorInterface(&Category::CAR_STATUS, Carstatus::IS_REVERSE.id) {};
 
 void DoorNodeCarstatus::execute(CarduinoNode *node, CanbusMessage *message) {
     DoorCarduinoNode *doorCarduinoNode = (DoorCarduinoNode*) node;
