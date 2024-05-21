@@ -10,11 +10,14 @@
 #include <ESPAsyncWebServer.h>
 #include <ArduinoJson.h>
 #include <LittleFS.h>
+#include <PCF8574.h>
+#include <map>              // user must include to use std::map (see above comment)
 
 #include "../../utils.h"
 #include "../../CanbusMessage/CanbusMessage.h"
 #include "../../SharedDefinitions.h"
 #include "callbacks/SendHearbeatCallback.h"
+#include "callbacks/ReadDigitalPinsCallback.h"
 #include "../../Logger/Logger.h"
 #include "shared/enums/Event.h"
 #include "shared/CanbusMessage/EventMessage/EventMessage.h"
@@ -52,6 +55,16 @@ const char FALLBACK_PAGE[] PROGMEM = R"rawliteral(
 </html>
 )rawliteral";
 
+#define DIGITAL_PINS_UPDATE_INTERVAL 20
+
+struct PinInformation {
+    uint8_t pin;
+    PCF8574 *pcf8574;
+    bool isHigh;
+    bool hasChanged;
+    std::function<void(PinInformation*)> onChange;
+};
+
 // class Executors; // forward declaration to avoid circular dependency
 class CarduinoNode : public Logger {
     private:
@@ -74,6 +87,7 @@ class CarduinoNode : public Logger {
         bool initializedCan;
         Scheduler *scheduler;
         Task *temperatureTask;
+        std::map<uint8_t, PinInformation*> *pinInformations;
 
         CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssid, const char *password, bool logOnServer, bool logOnSerial);
         
@@ -91,6 +105,10 @@ class CarduinoNode : public Logger {
         void restart();
         void sendHeartbeat();
         void sendEvent(const Event *event);
+        // virtual void secondaryLoopCallback();
+        void addPinToRead(uint8_t pin, PCF8574 *pcf8574 = nullptr, std::function<void(PinInformation*)> onChange = nullptr);
+        PinInformation* getPinInformation(uint8_t pin);
+        void readDigitalPins();
 
         static uint16_t generateId(const Category category, const Enum messageEnum);
         static uint16_t generateId(const Category category, uint8_t messageId);

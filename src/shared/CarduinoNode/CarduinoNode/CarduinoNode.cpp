@@ -43,11 +43,19 @@ CarduinoNode::CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssi
     this->canExecutors->addExecutor(new CarduinoNodeCanGetHellos());
 
     this->scheduler = new Scheduler();
+    
     SendHeartbeatCallback<void(void)>::func = std::bind(&CarduinoNode::sendHeartbeat, this);
     new Task(HEARTBEAT_INTERVAL, TASK_FOREVER, static_cast<TaskCallback>(SendHeartbeatCallback<void(void)>::callback), this->scheduler, true);
+    // SecondaryLoopCallback<void(void)>::func = std::bind(&CarduinoNode::secondaryLoopCallback, this);
+    // new Task(100, TASK_FOREVER, static_cast<TaskCallback>(SecondaryLoopCallback<void(void)>::callback), this->scheduler, true);
+    ReadDigitalPinsCallback<void(void)>::func = std::bind(&CarduinoNode::readDigitalPins, this);
+    new Task(DIGITAL_PINS_UPDATE_INTERVAL, TASK_FOREVER, static_cast<TaskCallback>(ReadDigitalPinsCallback<void(void)>::callback), this->scheduler, true);
+
     this->scheduler->startNow();
 
     this->sendEvent(&Event::HELLO);
+
+    this->pinInformations = new std::map<uint8_t, PinInformation*>();
     
     // otaStartup();
 };
@@ -311,4 +319,49 @@ void CarduinoNode::sendEvent(const Event *event) {
     EventMessage *eventMessage = new EventMessage(event, this->id);
     this->sendCanbusMessage(eventMessage);
     delete eventMessage;
+}
+
+// void CarduinoNode::secondaryLoopCallback() {}
+
+void CarduinoNode::addPinToRead(uint8_t pin, PCF8574 *pcf8574, std::function<void(PinInformation*)> onChange) {
+    PinInformation *pinInformation = new PinInformation();
+    pinInformation->pin = pin;
+    pinInformation->pcf8574 = pcf8574;
+    pinInformation->isHigh = false;
+    pinInformation->hasChanged = false;
+    pinInformation->onChange = onChange;
+
+    (*this->pinInformations)[pin] = pinInformation;
+}
+
+PinInformation* CarduinoNode::getPinInformation(uint8_t pin) {
+    std::map<uint8_t, PinInformation*>::iterator it = this->pinInformations->find(id);
+    if (it != this->pinInformations->end()) {
+        return it->second;
+    } else {
+        return nullptr;
+    }
+}
+
+void CarduinoNode::readDigitalPins() {
+    std::map<uint8_t, PinInformation*>::iterator it;
+
+    for (it = this->pinInformations->begin(); it != this->pinInformations->end(); it++) {
+        PinInformation *pinInformation = it->second;
+        bool isHigh;
+
+        if(pinInformation->pcf8574 == nullptr) {
+            isHigh = digitalRead(pinInformation->pin) == HIGH;
+        } else {
+            isHigh = pinInformation->pcf8574->digitalRead(pinInformation->pin, true) == HIGH;
+        }
+
+        bool hasChanged = pinInformation->isHigh != isHigh;
+        pinInformation->isHigh = isHigh;
+        pinInformation->hasChanged = hasChanged;
+
+        if(hasChanged && pinInformation->onChange != nullptr) {
+            pinInformation->onChange(it->second);
+        }
+    }
 }

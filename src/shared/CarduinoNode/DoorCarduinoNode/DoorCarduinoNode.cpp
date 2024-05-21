@@ -112,7 +112,7 @@ void DoorCarduinoNode::closeMirrors() {
 
 bool DoorCarduinoNode::readClosedMirrors() {
 	printlnWrapper("DoorCarduinoNode::readClosedMirrors");
-	return this->pcf8574->digitalRead(PIN_CLOSED_MIRRORS) == HIGH;
+	return this->pcf8574->digitalRead(PIN_CLOSED_MIRRORS_RELAY, true) == HIGH;
 };
 
 bool DoorCarduinoNode::usingMirrors() {
@@ -126,7 +126,7 @@ void DoorCarduinoNode::pcfSetup() {
 	this->pcf8574->pinMode(PIN_A, OUTPUT);
     this->pcf8574->pinMode(PIN_B, OUTPUT);
     this->pcf8574->pinMode(PIN_ENABLE, OUTPUT);
-	this->pcf8574->pinMode(PIN_CLOSED_MIRRORS, INPUT);
+	this->pcf8574->pinMode(PIN_CLOSED_MIRRORS_RELAY, INPUT);
     this->pcf8574->pinMode(PIN_OPEN_MIRRORS, OUTPUT);
 
     this->pcf8574->begin();
@@ -135,6 +135,10 @@ void DoorCarduinoNode::pcfSetup() {
     this->pcf8574->digitalWrite(PIN_B, LOW);
     this->pcf8574->digitalWrite(PIN_ENABLE, LOW);
     this->pcf8574->digitalWrite(PIN_OPEN_MIRRORS, LOW);
+
+	// this->addPinToRead(PIN_CLOSED_MIRRORS_RELAY, this->pcf8574, [&](PinInformation *pinInformation){
+
+	// });
 }
 
 void DoorCarduinoNode::voltageCallback() {

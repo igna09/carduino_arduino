@@ -32,8 +32,8 @@
 #define SWC_FIRST_WAITING_PAIRING_INTERVAL  5000
 #define SWC_PIN_SIZE 8
 
-#define RADIO_MOSFET_PIN D4
-#define ACCESSORY_12_V_PIN D3
+#define RADIO_POWER_MOSFET_PIN P0
+#define ACCESSORY_12_V_PIN P2
 
 struct SplittedUsbMessage {
     bool isValid;
@@ -52,8 +52,14 @@ class MainCarduinoNode : public CarduinoNode {
         std::map<uint8_t, NodeInformation*> *nodeInformations;
         bool isRadioOn;
         bool isKeyOn;
-        // bool canTurnOff;
         Task *turnOffRadioTask;
+        PCF8574 *pcf8574Swc;
+        PCF8574 *pcf8574DigitalPins;
+        bool isPressing;
+        bool isPairing;
+        bool isWaitingPairing;
+        uint8_t pressedPin;
+        unsigned long lastPressedMillis;
 
         MainCarduinoNode(uint8_t id, int cs, int interruptPin, char *ssid,  char *password);
 
@@ -64,9 +70,15 @@ class MainCarduinoNode : public CarduinoNode {
         SplittedUsbMessage* splitReceivedUsbMessage(String message);
         void handleReceivedSerialMessage(String message);
         void turnOffSystem();
-        void manageRadioPower();
+        // void manageRadioPower();
         NodeInformation* getNodeInformation(uint8_t id);
         NodeInformation* createOrGetNodeInformation(uint8_t id);
+        // void secondaryLoopCallback() override;
+        void pcfSwcSetup();
+        void pcfDigitalPinsSetup();
+        void executeSwcCommand(MediaControl *mediaControl);
+        void manageSwc();
+        void startSwcPairing();
 
         /**
          * TODO: move to new node to relief main node
@@ -74,17 +86,7 @@ class MainCarduinoNode : public CarduinoNode {
         Adafruit_AHTX0 *aht;
         Task *temperatureTask;
         Task *luminanceTask;
-        PCF8574 *pcf8574;
-        bool isPressing;
-        bool isPairing;
-        bool isWaitingPairing;
-        uint8_t pressedPin;
-        unsigned long lastPressedMillis;
-
-        void pcfSetup();
-        void executeSwcCommand(MediaControl *mediaControl);
-        void manageSwc();
-        void startSwcPairing();
+        
         void luminanceCallback();
         void temperatureCallback();
         void voltageCallback();

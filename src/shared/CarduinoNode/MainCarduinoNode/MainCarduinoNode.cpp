@@ -1,10 +1,11 @@
 #include "MainCarduinoNode.h"
 
-MainCarduinoNode::MainCarduinoNode(uint8_t id, int cs, int interruptPin, char *ssid, char *password) : CarduinoNode(id, cs, interruptPin, ssid, password, true, false) {
+MainCarduinoNode::MainCarduinoNode(uint8_t id, int cs, int interruptPin, char *ssid, char *password) : CarduinoNode(id, cs, interruptPin, ssid, password, true, true) {
     this->aht = new Adafruit_AHTX0();
     this->aht->begin();
 
-    this->pcfSetup();
+    this->pcfSwcSetup();
+    this->pcfDigitalPinsSetup();
 
     this->lastPressedMillis = 0;
     this->isPressing = false;
@@ -34,12 +35,12 @@ MainCarduinoNode::MainCarduinoNode(uint8_t id, int cs, int interruptPin, char *s
 
     this->sendEvent(&Event::GET_HELLOS);
 
-    pinMode(ACCESSORY_12_V_PIN, INPUT);
     //turn ON MOSFET on remote line
-    pinMode(RADIO_MOSFET_PIN, OUTPUT);
-    digitalWrite(RADIO_MOSFET_PIN, HIGH);
+    this->pcf8574DigitalPins->digitalWrite(RADIO_POWER_MOSFET_PIN, HIGH);
+    
     this->isRadioOn = true;
     this->isKeyOn = true;
+
     this->sendEvent(&Event::TURN_ON);
 };
 
@@ -83,7 +84,7 @@ void MainCarduinoNode::loop() {
     }*/
 
     manageSwc();
-    manageRadioPower();
+    // manageRadioPower();
 }
 
 void MainCarduinoNode::handleReceivedSerialMessage(String receivedMessage) {
@@ -150,7 +151,7 @@ void MainCarduinoNode::executeSwcCommand(MediaControl *mediaControl) {
     if(!this->isPressing && mediaControl->pin != 255) {
         this->isPressing = true;
         this->pressedPin = mediaControl->pin;
-        this->pcf8574->digitalWrite(mediaControl->pin, LOW);
+        this->pcf8574Swc->digitalWrite(mediaControl->pin, LOW);
         this->lastPressedMillis = millis();
     }
 }
@@ -166,12 +167,12 @@ void MainCarduinoNode::startSwcPairing() {
 void MainCarduinoNode::manageSwc() {
     if(this->isPressing) {
         if(millis() > this->lastPressedMillis + SWC_PRESS_INTERVAL) {
-            this->pcf8574->digitalWrite(this->pressedPin, HIGH);
+            this->pcf8574Swc->digitalWrite(this->pressedPin, HIGH);
             this->isPressing = false;
         }
     } else if(this->isPairing) {
         if(millis() > this->lastPressedMillis + SWC_PAIRING_INTERVAL) {
-            this->pcf8574->digitalWrite(this->pressedPin, HIGH);
+            this->pcf8574Swc->digitalWrite(this->pressedPin, HIGH);
             this->printlnWrapper("Stop pressing PIN " + String(this->pressedPin) + " " + String(millis()));
             this->isPairing = false;
             if(this->pressedPin < SWC_PIN_SIZE - 1) {
@@ -191,7 +192,7 @@ void MainCarduinoNode::manageSwc() {
         }
 
         if(millis() > this->lastPressedMillis + intervalToWait) {
-            this->pcf8574->digitalWrite(this->pressedPin, LOW);
+            this->pcf8574Swc->digitalWrite(this->pressedPin, LOW);
             this->lastPressedMillis = millis();
             this->isWaitingPairing = false;
             this->isPairing = true;
@@ -203,48 +204,73 @@ void MainCarduinoNode::manageSwc() {
 void MainCarduinoNode::turnOffSystem() {
     //TODO: when all turn off events happened (i receive TURN_OFF_COMPLETE from important nodes like door one) turn off also the radio??
     this->isRadioOn = false;
-    digitalWrite(RADIO_MOSFET_PIN, LOW);
+    this->pcf8574DigitalPins->digitalWrite(RADIO_POWER_MOSFET_PIN, LOW);
 }
 
-void MainCarduinoNode::manageRadioPower() {
-    bool accessoryLineIsOff = digitalRead(ACCESSORY_12_V_PIN) == LOW;
-    /**
-     * read digital input +12v ACC line to manage events
-    */
-    if(accessoryLineIsOff && this->isKeyOn) {
-        this->isKeyOn = false;
-        // this->turnOffRadioTask-> // reset remaining timer
-        this->turnOffRadioTask->restartDelayed();
-        this->sendEvent(&Event::TURN_OFF);
-    } else if(!accessoryLineIsOff && this->turnOffRadioTask->isEnabled()) {
-        this->turnOffRadioTask->disable();
-        this->isKeyOn = true;
-        this->sendEvent(&Event::TURN_OFF_INTERRUPT);
-    }
+// void MainCarduinoNode::manageRadioPower() {
+//     PinInformation *pinInformation = this->getPinInformation(ACCESSORY_12_V_PIN);
+//     /**
+//      * read digital input +12v ACC line to manage events
+//     */
+//     if(!pinInformation->isHigh && this->isKeyOn) {
+//         this->isKeyOn = false;
+//         // this->turnOffRadioTask-> // reset remaining timer
+//         this->turnOffRadioTask->restartDelayed();
+//         this->sendEvent(&Event::TURN_OFF);
+//     } else if(!pinInformation->isHigh && this->turnOffRadioTask->isEnabled()) {
+//         this->turnOffRadioTask->disable();
+//         this->isKeyOn = true;
+//         this->sendEvent(&Event::TURN_OFF_INTERRUPT);
+//     }
+// }
+
+void MainCarduinoNode::pcfSwcSetup() {
+    this->pcf8574Swc = new PCF8574(0x20);
+
+	this->pcf8574Swc->pinMode(P0, OUTPUT);
+    this->pcf8574Swc->pinMode(P1, OUTPUT);
+    this->pcf8574Swc->pinMode(P2, OUTPUT);
+    this->pcf8574Swc->pinMode(P3, OUTPUT);
+    this->pcf8574Swc->pinMode(P4, OUTPUT);
+    this->pcf8574Swc->pinMode(P5, OUTPUT);
+    this->pcf8574Swc->pinMode(P6, OUTPUT);
+    this->pcf8574Swc->pinMode(P7, OUTPUT);
+
+    this->pcf8574Swc->begin();
+
+    this->pcf8574Swc->digitalWrite(P0, HIGH);
+    this->pcf8574Swc->digitalWrite(P1, HIGH);
+    this->pcf8574Swc->digitalWrite(P2, HIGH);
+    this->pcf8574Swc->digitalWrite(P3, HIGH);
+    this->pcf8574Swc->digitalWrite(P4, HIGH);
+    this->pcf8574Swc->digitalWrite(P5, HIGH);
+    this->pcf8574Swc->digitalWrite(P6, HIGH);
+    this->pcf8574Swc->digitalWrite(P7, HIGH);
 }
 
-void MainCarduinoNode::pcfSetup() {
-    this->pcf8574 = new PCF8574(0x20);
+void MainCarduinoNode::pcfDigitalPinsSetup() {
+    this->pcf8574DigitalPins = new PCF8574(0x21);
 
-	this->pcf8574->pinMode(P0, OUTPUT);
-    this->pcf8574->pinMode(P1, OUTPUT);
-    this->pcf8574->pinMode(P2, OUTPUT);
-    this->pcf8574->pinMode(P3, OUTPUT);
-    this->pcf8574->pinMode(P4, OUTPUT);
-    this->pcf8574->pinMode(P5, OUTPUT);
-    this->pcf8574->pinMode(P6, OUTPUT);
-    this->pcf8574->pinMode(P7, OUTPUT);
+	this->pcf8574DigitalPins->pinMode(RADIO_POWER_MOSFET_PIN, OUTPUT);
+    this->pcf8574DigitalPins->pinMode(ACCESSORY_12_V_PIN, INPUT);
 
-    this->pcf8574->begin();
+    this->pcf8574DigitalPins->begin();
 
-    this->pcf8574->digitalWrite(P0, HIGH);
-    this->pcf8574->digitalWrite(P1, HIGH);
-    this->pcf8574->digitalWrite(P2, HIGH);
-    this->pcf8574->digitalWrite(P3, HIGH);
-    this->pcf8574->digitalWrite(P4, HIGH);
-    this->pcf8574->digitalWrite(P5, HIGH);
-    this->pcf8574->digitalWrite(P6, HIGH);
-    this->pcf8574->digitalWrite(P7, HIGH);
+    this->pcf8574DigitalPins->digitalWrite(RADIO_POWER_MOSFET_PIN, LOW);
+
+    this->addPinToRead(ACCESSORY_12_V_PIN, this->pcf8574DigitalPins, [&](PinInformation *pinInformation){
+        // printlnWrapper("ACCESSORY_12_V_PIN changed from " + String(!pinInformation->isHigh) + " to " + String(pinInformation->isHigh));
+        this->isKeyOn = pinInformation->isHigh;
+        //PIN STATE CHANGED
+        if(!pinInformation->isHigh) {
+            // this->turnOffRadioTask-> // reset remaining timer
+            this->turnOffRadioTask->restartDelayed();
+            this->sendEvent(&Event::TURN_OFF);
+        } else if(pinInformation->isHigh && this->turnOffRadioTask->isEnabled()) {
+            this->turnOffRadioTask->disable();
+            this->sendEvent(&Event::TURN_OFF_INTERRUPT);
+        }
+    });
 }
 
 NodeInformation* MainCarduinoNode::getNodeInformation(uint8_t id) {
@@ -270,3 +296,7 @@ NodeInformation* MainCarduinoNode::createOrGetNodeInformation(uint8_t id) {
 
     return nodeInformation;
 }
+
+// void MainCarduinoNode::secondaryLoopCallback() {
+//     this->printlnWrapper("MainCarduinoNode::secondaryLoopCallback");
+// }
