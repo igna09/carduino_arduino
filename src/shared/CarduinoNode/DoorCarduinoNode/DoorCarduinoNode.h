@@ -14,13 +14,13 @@
 #include "shared/CarduinoNode/DoorCarduinoNode/callbacks/StopMovingMirrorsCallback.h"
 #include "shared/CarduinoNode/DoorCarduinoNode/callbacks/BatteryVoltageCallback.h"
 
-#define PIN_A P0
-#define PIN_B P1
-#define PIN_ENABLE P2
+#define PIN_MIRROR_A P0
+#define PIN_MIRROR_B P1
+#define PIN_MIRROR_ENABLE P2
 #define PIN_CLOSED_MIRRORS_RELAY P3 // CHECK IF MIRROR IS CLOSED (MIRROR RELAY)
 #define PIN_OPEN_MIRRORS P4 // PIN TO CONTROL OPENING/CLOSING MIRRORS
-#define PIN_SELECTOR_CLOSED P5 // PIN TO CHECK IF SELECTOR IS ON CLOSED
-#define MIRRORS_MOVING_TIME 500
+#define PIN_MIRROR_SELECTOR_ON_CLOSED P5 // PIN TO CHECK IF SELECTOR IS ON CLOSED
+#define MIRRORS_MOVING_TIME 2500
 
 #define VOLTAGE_READING_INTERVAL 1000
 #define VOLTAGE_READING_PIN A0
