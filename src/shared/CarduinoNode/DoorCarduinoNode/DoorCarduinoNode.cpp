@@ -145,6 +145,12 @@ void DoorCarduinoNode::pcfSetup() {
 
 	this->addPinToRead(PIN_MIRROR_SELECTOR_ON_CLOSED, this->pcf8574, [&](PinInformation *pinInformation){
 		this->closedSelector = !pinInformation->isHigh;
+
+		if(this->closedSelector) {
+			this->closeMirrors();
+		} else {
+			this->openMirrors();
+		}
 	});
 }
 
