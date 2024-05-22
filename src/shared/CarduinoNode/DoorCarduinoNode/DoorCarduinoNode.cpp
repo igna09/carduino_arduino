@@ -158,7 +158,7 @@ void DoorCarduinoNode::voltageCallback() {
     float tension1voltReference = read / 1024.0; // voltage on esp8266 adc pin
 	// float volts = tension1voltReference * 5.4; // max Vin = 5.4 = vOut * ((R1 + R2) / R2) = 1 * (((220k + 220k) + 100k) / 100k) ---- vOut = maxVOut = 1 (max input voltage on esp8266 adc)
 	// float volts = tension1voltReference * (((WEMOS_D1_MINI_VOLTAGE_DIVIDER_R1 + VOLTAGE_READING_PIN_RESISTOR) + WEMOS_D1_MINI_VOLTAGE_DIVIDER_R2) / WEMOS_D1_MINI_VOLTAGE_DIVIDER_R2);
-	float volts = calculateVoltage(tension1voltReference, WEMOS_D1_MINI_VOLTAGE_DIVIDER_R1 + VOLTAGE_READING_PIN_RESISTOR, WEMOS_D1_MINI_VOLTAGE_DIVIDER_R2);
+	float volts = calculateVoltage(tension1voltReference, WEMOS_D1_MINI_VOLTAGE_DIVIDER_R1 + VOLTAGE_READING_PIN_RESISTOR, WEMOS_D1_MINI_VOLTAGE_DIVIDER_R2) * VOLTAGE_READING_PIN_COMPENSATION;
     
     CarstatusMessage m(&Carstatus::BATTERY_VOLTAGE, volts);
     this->sendCanbusMessage(&m);
