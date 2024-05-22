@@ -355,6 +355,7 @@ void CarduinoNode::readDigitalPins() {
         } else {
             isHigh = pinInformation->pcf8574->digitalRead(pinInformation->pin, true) == HIGH;
         }
+        // printlnWrapper(String(pinInformation->pin) + " " + String(isHigh));
 
         bool hasChanged = pinInformation->isHigh != isHigh;
         pinInformation->isHigh = isHigh;

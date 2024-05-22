@@ -20,7 +20,7 @@ DoorCarduinoNode::DoorCarduinoNode(uint8_t id, int cs, int interruptPin, const c
 	this->pcfSetup();
 
 	// this->closedMirrors = this->readClosedMirrors();
-	this->closedSelector = this->readSelectorClosed();
+	this->mirrorSelectorOnClosed = this->readSelectorClosed();
 
 	this->setup();
 };
@@ -44,15 +44,15 @@ void DoorCarduinoNode::loop() {
 
 	}
 
-	// if(this->closedSelector != this->readSelectorClosed()) {
-	// 	this->closedSelector = this->readSelectorClosed();
+	// if(this->mirrorSelectorOnClosed != this->readSelectorClosed()) {
+	// 	this->mirrorSelectorOnClosed = this->readSelectorClosed();
 	// }
 };
 
 void DoorCarduinoNode::setup() {
 	printlnWrapper("DoorCarduinoNode::setup");
-	// if(!this->closedSelector && this->closedMirrors) {
-	if(!this->closedSelector) {
+	// if(!this->mirrorSelectorOnClosed && this->closedMirrors) {
+	if(!this->mirrorSelectorOnClosed) {
 		printlnWrapper("DoorCarduinoNode::setup openMirrors");
 		this->openMirrors();
 	}
@@ -63,8 +63,8 @@ void DoorCarduinoNode::setup() {
 
 void DoorCarduinoNode::setdown() {
 	printlnWrapper("DoorCarduinoNode::setdown");
-	// if(!this->closedSelector && !this->closedMirrors) {
-	if(!this->closedSelector) {
+	// if(!this->mirrorSelectorOnClosed && !this->closedMirrors) {
+	if(!this->mirrorSelectorOnClosed) {
 		printlnWrapper("DoorCarduinoNode::setdown closeMirrors");
 		this->closeMirrors();
 	}
@@ -77,7 +77,6 @@ void DoorCarduinoNode::startMoveMirrorsDown() {
 	printlnWrapper("DoorCarduinoNode::startMoveMirrorsDown");
 	this->pcf8574->digitalWrite(PIN_MIRROR_A, LOW);
 	this->pcf8574->digitalWrite(PIN_MIRROR_B, HIGH);
-	this->pcf8574->digitalWrite(PIN_MIRROR_ENABLE, HIGH);
 
 	this->movingMirrors = true;
 
@@ -88,7 +87,6 @@ void DoorCarduinoNode::startMoveMirrorsUp() {
 	printlnWrapper("DoorCarduinoNode::startMoveMirrorsUp");
 	this->pcf8574->digitalWrite(PIN_MIRROR_A, HIGH);
 	this->pcf8574->digitalWrite(PIN_MIRROR_B, LOW);
-	this->pcf8574->digitalWrite(PIN_MIRROR_ENABLE, HIGH);
 
 	this->movingMirrors = true;
 
@@ -97,21 +95,22 @@ void DoorCarduinoNode::startMoveMirrorsUp() {
 
 void DoorCarduinoNode::stopMoveMirrors() {
 	printlnWrapper("DoorCarduinoNode::stopMoveMirrors");
-	this->pcf8574->digitalWrite(PIN_MIRROR_ENABLE, LOW);
+	this->pcf8574->digitalWrite(PIN_MIRROR_A, LOW);
+	this->pcf8574->digitalWrite(PIN_MIRROR_B, LOW);
 
 	this->movingMirrors = false;
 };
 
 void DoorCarduinoNode::openMirrors() {
 	printlnWrapper("DoorCarduinoNode::openMirrors");
-	this->pcf8574->digitalWrite(PIN_OPEN_MIRRORS, HIGH);
+	this->pcf8574->digitalWrite(PIN_OPEN_MIRRORS, LOW);
 
 	this->foldingMirrors = true;
 };
 
 void DoorCarduinoNode::closeMirrors() {
 	printlnWrapper("DoorCarduinoNode::closeMirrors");
-	this->pcf8574->digitalWrite(PIN_OPEN_MIRRORS, LOW);
+	this->pcf8574->digitalWrite(PIN_OPEN_MIRRORS, HIGH);
 
 	this->foldingMirrors = true;
 };
@@ -131,7 +130,8 @@ void DoorCarduinoNode::pcfSetup() {
 
 	this->pcf8574->pinMode(PIN_MIRROR_A, OUTPUT);
     this->pcf8574->pinMode(PIN_MIRROR_B, OUTPUT);
-    this->pcf8574->pinMode(PIN_MIRROR_ENABLE, OUTPUT);
+	this->pcf8574->pinMode(PIN_C, OUTPUT);
+    this->pcf8574->pinMode(PIN_D, OUTPUT);
 	this->pcf8574->pinMode(PIN_CLOSED_MIRRORS_RELAY, INPUT);
     this->pcf8574->pinMode(PIN_OPEN_MIRRORS, OUTPUT);
     this->pcf8574->pinMode(PIN_MIRROR_SELECTOR_ON_CLOSED, INPUT);
@@ -140,13 +140,12 @@ void DoorCarduinoNode::pcfSetup() {
 
     this->pcf8574->digitalWrite(PIN_MIRROR_A, LOW);
     this->pcf8574->digitalWrite(PIN_MIRROR_B, LOW);
-    this->pcf8574->digitalWrite(PIN_MIRROR_ENABLE, LOW);
     this->pcf8574->digitalWrite(PIN_OPEN_MIRRORS, LOW);
 
 	this->addPinToRead(PIN_MIRROR_SELECTOR_ON_CLOSED, this->pcf8574, [&](PinInformation *pinInformation){
-		this->closedSelector = !pinInformation->isHigh;
+		this->mirrorSelectorOnClosed = !pinInformation->isHigh;
 
-		if(this->closedSelector) {
+		if(this->mirrorSelectorOnClosed) {
 			this->closeMirrors();
 		} else {
 			this->openMirrors();

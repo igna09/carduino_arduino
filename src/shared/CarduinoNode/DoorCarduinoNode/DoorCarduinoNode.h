@@ -16,13 +16,14 @@
 
 #define PIN_MIRROR_A P0
 #define PIN_MIRROR_B P1
-#define PIN_MIRROR_ENABLE P2
-#define PIN_CLOSED_MIRRORS_RELAY P3 // CHECK IF MIRROR IS CLOSED (MIRROR RELAY)
+#define PIN_C P2
+#define PIN_D P3
+#define PIN_CLOSED_MIRRORS_RELAY P7 // CHECK IF MIRROR IS CLOSED (MIRROR RELAY)
 #define PIN_OPEN_MIRRORS P4 // PIN TO CONTROL OPENING/CLOSING MIRRORS
 #define PIN_MIRROR_SELECTOR_ON_CLOSED P5 // PIN TO CHECK IF SELECTOR IS ON CLOSED
 #define MIRRORS_MOVING_TIME 500
 
-#define VOLTAGE_READING_INTERVAL 1000
+#define VOLTAGE_READING_INTERVAL 5000
 #define VOLTAGE_READING_PIN A0
 #define VOLTAGE_READING_PIN_RESISTOR 220000 //220K OHM
 
@@ -39,7 +40,7 @@ class DoorCarduinoNode : public CarduinoNode {
         Task *stopMoveMirrorsTask;
         Event *lastReceivedEvent;
         bool reverse;
-        bool closedSelector;
+        bool mirrorSelectorOnClosed;
 
         void loop();
         void setup();
