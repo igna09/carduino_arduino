@@ -151,7 +151,8 @@ void DoorCarduinoNode::pcfSetup() {
     this->pcf8574->digitalWrite(PIN_OPEN_MIRRORS, LOW);
 
 	this->addPinToRead(PIN_MIRROR_SELECTOR_ON_CLOSED, this->pcf8574, [&](PinInformation *pinInformation){
-		this->mirrorSelectorOnClosed = !pinInformation->isHigh;
+		printlnWrapper("PIN_MIRROR_SELECTOR_ON_CLOSED changed from " + String(!pinInformation->isHigh) + " to " + String(pinInformation->isHigh));
+		this->mirrorSelectorOnClosed = pinInformation->isHigh;
 
 		if(this->mirrorSelectorOnClosed) {
 			this->closeMirrors();
@@ -173,5 +174,5 @@ void DoorCarduinoNode::voltageCallback() {
 };
 
 bool DoorCarduinoNode::readSelectorClosed() {
-	return this->pcf8574->digitalRead(PIN_MIRROR_SELECTOR_ON_CLOSED, true) == LOW;
+	return this->pcf8574->digitalRead(PIN_MIRROR_SELECTOR_ON_CLOSED, true) == HIGH;
 }
