@@ -33,7 +33,7 @@
 #define SWC_PIN_SIZE 8
 
 #define RADIO_POWER_MOSFET_PIN P0
-#define ACCESSORY_12_V_PIN P2
+#define ACCESSORY_12_V_PIN P1
 
 struct SplittedUsbMessage {
     bool isValid;

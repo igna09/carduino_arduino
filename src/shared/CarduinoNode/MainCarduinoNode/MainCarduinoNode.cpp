@@ -1,6 +1,6 @@
 #include "MainCarduinoNode.h"
 
-MainCarduinoNode::MainCarduinoNode(uint8_t id, int cs, int interruptPin, char *ssid, char *password) : CarduinoNode(id, cs, interruptPin, ssid, password, true, true) {
+MainCarduinoNode::MainCarduinoNode(uint8_t id, int cs, int interruptPin, char *ssid, char *password) : CarduinoNode(id, cs, interruptPin, ssid, password, true, false) {
     this->aht = new Adafruit_AHTX0();
     this->aht->begin();
 
@@ -34,9 +34,6 @@ MainCarduinoNode::MainCarduinoNode(uint8_t id, int cs, int interruptPin, char *s
     turnOffRadioTask = new Task(RADIO_TURN_OFF_TIMER, 1, static_cast<TaskCallback>(TurnOffRadioCallback<void(void)>::callback), this->scheduler, false);
 
     this->sendEvent(&Event::GET_HELLOS);
-
-    //turn ON MOSFET on remote line
-    this->pcf8574DigitalPins->digitalWrite(RADIO_POWER_MOSFET_PIN, HIGH);
     
     this->isRadioOn = true;
     this->isKeyOn = true;
@@ -202,6 +199,7 @@ void MainCarduinoNode::manageSwc() {
 }
 
 void MainCarduinoNode::turnOffSystem() {
+    printlnWrapper("MainCarduinoNode::turnOffSystem");
     //TODO: when all turn off events happened (i receive TURN_OFF_COMPLETE from important nodes like door one) turn off also the radio??
     this->isRadioOn = false;
     this->pcf8574DigitalPins->digitalWrite(RADIO_POWER_MOSFET_PIN, LOW);
@@ -256,17 +254,17 @@ void MainCarduinoNode::pcfDigitalPinsSetup() {
 
     this->pcf8574DigitalPins->begin();
 
-    this->pcf8574DigitalPins->digitalWrite(RADIO_POWER_MOSFET_PIN, LOW);
+    this->pcf8574DigitalPins->digitalWrite(RADIO_POWER_MOSFET_PIN, HIGH);
 
     this->addPinToRead(ACCESSORY_12_V_PIN, this->pcf8574DigitalPins, [&](PinInformation *pinInformation){
-        // printlnWrapper("ACCESSORY_12_V_PIN changed from " + String(!pinInformation->isHigh) + " to " + String(pinInformation->isHigh));
-        this->isKeyOn = pinInformation->isHigh;
+        printlnWrapper("ACCESSORY_12_V_PIN changed from " + String(!pinInformation->isHigh) + " to " + String(pinInformation->isHigh));
+        this->isKeyOn = !pinInformation->isHigh;
         //PIN STATE CHANGED
-        if(!pinInformation->isHigh) {
+        if(!this->isKeyOn) {
             // this->turnOffRadioTask-> // reset remaining timer
             this->turnOffRadioTask->restartDelayed();
             this->sendEvent(&Event::TURN_OFF);
-        } else if(pinInformation->isHigh && this->turnOffRadioTask->isEnabled()) {
+        } else if(this->isKeyOn && this->turnOffRadioTask->isEnabled()) {
             this->turnOffRadioTask->disable();
             this->sendEvent(&Event::TURN_OFF_INTERRUPT);
         }
