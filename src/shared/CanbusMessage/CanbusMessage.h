@@ -35,7 +35,7 @@ class CanbusMessage {
                 returnValue += payload[i];
                 if(i != (payloadLength - 1)) {
                     returnValue += " ";
-                
+                }
             }
             returnValue += ";";
             return returnValue;
