@@ -33,7 +33,9 @@ class CanbusMessage {
             returnValue += ";";
             for(int i=0; i < payloadLength; i++){
                 returnValue += payload[i];
-                returnValue += " ";
+                if(i != (payloadLength - 1)) {
+                    returnValue += " ";
+                
             }
             returnValue += ";";
             return returnValue;
