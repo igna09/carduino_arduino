@@ -10,7 +10,7 @@ class ReadSettingMessage : public TypedCanbusMessage {
     public:
         const Setting *setting;
 
-        ReadSettingMessage(CanbusMessage canbusMessage);
+        ReadSettingMessage(CanbusMessage *canbusMessage);
         ReadSettingMessage(const Setting *setting, int value);
         ReadSettingMessage(const Setting *setting, bool value);
         ReadSettingMessage(const Setting *setting, float value);

@@ -4,6 +4,8 @@ MainNodeCanReadSettingExecutor::MainNodeCanReadSettingExecutor() : CarduinoNodeE
 
 void MainNodeCanReadSettingExecutor::execute(CarduinoNode *node, CanbusMessage *message) {
     MainCarduinoNode *mainCarduinoNode = (MainCarduinoNode*) node;
-
-    mainCarduinoNode->sendSerialMessage(message);
+    
+    ReadSettingMessage *readSettingMessage = new ReadSettingMessage(message);
+    mainCarduinoNode->sendSerialMessage(readSettingMessage);
+    delete readSettingMessage;
 };

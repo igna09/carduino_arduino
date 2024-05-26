@@ -97,16 +97,20 @@ void MainCarduinoNode::handleReceivedSerialMessage(String receivedMessage) {
             const TypedEnum *typedEnumMessage = (const TypedEnum*) c->getEnumFromNameFunction((char*) splittedUsbMessage->messages[1].c_str());
 
             if(typedEnumMessage != nullptr) {
-            if(typedEnumMessage->type->id == CanbusMessageType::BOOL.id) {
-                canbusMessage = new CanbusMessage(generateId(*c, *typedEnumMessage), convertValueToByteArray(splittedUsbMessage->messages[2].equals("true")), 1);
-            } else if(typedEnumMessage->type->id == CanbusMessageType::INT.id) {
-                canbusMessage = new CanbusMessage(generateId(*c, *typedEnumMessage), convertValueToByteArray((int) splittedUsbMessage->messages[2].toInt()), 4);
-            } else if(typedEnumMessage->type->id == CanbusMessageType::FLOAT.id) {
-                canbusMessage = new CanbusMessage(generateId(*c, *typedEnumMessage), convertValueToByteArray(splittedUsbMessage->messages[2].toFloat()), 5);
+                if(typedEnumMessage->type->id == CanbusMessageType::BOOL.id) {
+                    canbusMessage = new CanbusMessage(generateId(*c, *typedEnumMessage), convertValueToByteArray(splittedUsbMessage->messages[2].equals("true")), 1);
+                } else if(typedEnumMessage->type->id == CanbusMessageType::INT.id) {
+                    canbusMessage = new CanbusMessage(generateId(*c, *typedEnumMessage), convertValueToByteArray((int) splittedUsbMessage->messages[2].toInt()), 4);
+                } else if(typedEnumMessage->type->id == CanbusMessageType::FLOAT.id) {
+                    canbusMessage = new CanbusMessage(generateId(*c, *typedEnumMessage), convertValueToByteArray(splittedUsbMessage->messages[2].toFloat()), 5);
                 }
             }
         } else {
-            canbusMessage = new CanbusMessage(generateId(*c, 0), {}, 0);
+            // this->printlnWrapper("CarduinoNode::handleReceivedSerialMessage is nullptr");
+            canbusMessage = new TypedCanbusMessage(generateId(*c, 0), false);
+            // uint8_t value[1] = {0};
+            // canbusMessage = new CanbusMessage(generateId(*c, 0), value, 1);
+            // this->printlnWrapper("CarduinoNode::handleReceivedSerialMessage created message");
         }
 
         if(canbusMessage != nullptr) {

@@ -3,8 +3,8 @@
 /**
  * TODO: improve SettingMessage constructor, ((Setting*) Setting::getValueById(canbusMessage.messageId)) gives nullptr if setting is not existing (this error is valid for every message constructor)
 */
-ReadSettingMessage::ReadSettingMessage(CanbusMessage canbusMessage) : TypedCanbusMessage(((Setting*) Setting::getValueById(canbusMessage.messageId))->type, canbusMessage.id, canbusMessage.payload, canbusMessage.payloadLength) {
-    this->setting = (Setting*) Setting::getValueById(canbusMessage.messageId);
+ReadSettingMessage::ReadSettingMessage(CanbusMessage *canbusMessage) : TypedCanbusMessage(((Setting*) Setting::getValueById(canbusMessage->messageId))->type, canbusMessage->id, canbusMessage->payload, canbusMessage->payloadLength) {
+    this->setting = (Setting*) Setting::getValueById(canbusMessage->messageId);
 };
 
 ReadSettingMessage::ReadSettingMessage(const Setting *setting, int value) : TypedCanbusMessage(CarduinoNode::generateId(Category::READ_SETTING, *setting), value) {

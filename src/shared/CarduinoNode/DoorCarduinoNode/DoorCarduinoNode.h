@@ -34,7 +34,7 @@ class DoorCarduinoNode : public CarduinoNode {
 
         PCF8574 *pcf8574;
         bool lowerMirrorsOnReverse;
-        // bool disabledKeyboard;
+        bool autoCloseMirrors;
         bool closedMirrors;
         bool foldingMirrors;
         bool movingMirrors;

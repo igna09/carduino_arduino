@@ -13,4 +13,4 @@ inline const Category Category::WRITE_SETTING = Category(0x03, "WRITE_SETTING", 
 // inline const Category Category::HEARTBEAT = Category(0x04, "HEARTBEAT");
 // inline const Category Category::ERROR = Category(0x05, "ERROR");
 inline const Category Category::EVENT = Category(0x06, "EVENT", Event::getValues, EventMessage::createSpecializedCopy);
-inline const Category Category::GET_SETTINGS = Category(0x07, "GET_SETTINGS", Setting::getValues, nullptr);
+inline const Category Category::GET_SETTINGS = Category(0x07, "GET_SETTINGS", nullptr, nullptr);

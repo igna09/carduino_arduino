@@ -2,7 +2,7 @@
 
 DoorCarduinoNode::DoorCarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssid, const char *password) : CarduinoNode(id, cs, interruptPin, ssid,  password, true, true) {
     this->lowerMirrorsOnReverse = true;
-	
+	this->autoCloseMirrors = true;
 	
     StopMovingMirrorsCallback<void(void)>::func = std::bind(&DoorCarduinoNode::stopMoveMirrors, this);
     this->stopMoveMirrorsTask = new Task(MIRRORS_MOVING_TIME, 1, static_cast<TaskCallback>(StopMovingMirrorsCallback<void(void)>::callback), this->scheduler, false);
@@ -52,7 +52,7 @@ void DoorCarduinoNode::loop() {
 void DoorCarduinoNode::setup() {
 	printlnWrapper("DoorCarduinoNode::setup");
 	// if(!this->mirrorSelectorOnClosed && this->closedMirrors) {
-	if(!this->mirrorSelectorOnClosed) {
+	if(!this->mirrorSelectorOnClosed && this->autoCloseMirrors) {
 		printlnWrapper("DoorCarduinoNode::setup openMirrors");
 		this->openMirrors();
 	}
