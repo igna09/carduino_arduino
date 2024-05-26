@@ -52,7 +52,7 @@ void DoorCarduinoNode::loop() {
 void DoorCarduinoNode::setup() {
 	printlnWrapper("DoorCarduinoNode::setup");
 	// if(!this->mirrorSelectorOnClosed && this->closedMirrors) {
-	if(!this->mirrorSelectorOnClosed && this->autoCloseMirrors) {
+	if(!this->mirrorSelectorOnClosed) {
 		printlnWrapper("DoorCarduinoNode::setup openMirrors");
 		this->openMirrors();
 	}
@@ -109,16 +109,18 @@ void DoorCarduinoNode::stopMoveMirrors() {
 
 void DoorCarduinoNode::openMirrors() {
 	printlnWrapper("DoorCarduinoNode::openMirrors");
-	this->pcf8574->digitalWrite(PIN_OPEN_MIRRORS, LOW);
-
-	this->foldingMirrors = true;
+	if(this->autoCloseMirrors) {
+		printlnWrapper("DoorCarduinoNode::openMirrors opening");
+		this->pcf8574->digitalWrite(PIN_OPEN_MIRRORS, LOW);
+	}
 };
 
 void DoorCarduinoNode::closeMirrors() {
 	printlnWrapper("DoorCarduinoNode::closeMirrors");
-	this->pcf8574->digitalWrite(PIN_OPEN_MIRRORS, HIGH);
-
-	this->foldingMirrors = true;
+	if(this->autoCloseMirrors) {
+		printlnWrapper("DoorCarduinoNode::openMirrors closing");
+		this->pcf8574->digitalWrite(PIN_OPEN_MIRRORS, HIGH);
+	}
 };
 
 bool DoorCarduinoNode::readClosedMirrors() {
@@ -127,7 +129,7 @@ bool DoorCarduinoNode::readClosedMirrors() {
 };
 
 bool DoorCarduinoNode::usingMirrors() {
-	return this->foldingMirrors || this->movingMirrors;
+	return this->movingMirrors;
 };
 
 

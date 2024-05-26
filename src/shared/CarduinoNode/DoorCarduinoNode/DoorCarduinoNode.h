@@ -36,7 +36,6 @@ class DoorCarduinoNode : public CarduinoNode {
         bool lowerMirrorsOnReverse;
         bool autoCloseMirrors;
         bool closedMirrors;
-        bool foldingMirrors;
         bool movingMirrors;
         Task *stopMoveMirrorsTask;
         Event *lastReceivedEvent;
