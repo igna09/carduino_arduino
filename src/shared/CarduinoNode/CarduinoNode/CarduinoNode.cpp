@@ -57,7 +57,9 @@ CarduinoNode::CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssi
 
     this->pinInformations = new std::map<uint8_t, PinInformation*>();
     
-    // otaStartup();
+    if(!this->initializedCan) {
+        this->otaStartup();
+    }
 };
 
 String CarduinoNode::fallbackPageProcessor(const String& var) {
