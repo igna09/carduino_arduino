@@ -41,6 +41,7 @@ CarduinoNode::CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssi
     this->canExecutors = new Executors();
     this->canExecutors->addExecutor(new CarduinoNodeWriteSetting());
     this->canExecutors->addExecutor(new CarduinoNodeCanGetHellos());
+    this->canExecutors->addExecutor(new CarduinoNodeCanPowerEvents());
 
     this->scheduler = new Scheduler();
 
@@ -321,12 +322,25 @@ void CarduinoNode::sendHeartbeat() {
 }
 
 void CarduinoNode::sendEvent(const Event *event) {
-    EventMessage *eventMessage = new EventMessage(event, this->id);
+    this->sendEvent(event, this->id);
+}
+
+void CarduinoNode::sendEvent(const Event *event, int senderReceiverId) {
+    Serial.println("here 1");
+    EventMessage *eventMessage = new EventMessage(event, senderReceiverId);
+    Serial.println("here 2");
     this->sendCanbusMessage(eventMessage);
+    Serial.println("here 3");
     delete eventMessage;
 }
 
-// void CarduinoNode::secondaryLoopCallback() {}
+void CarduinoNode::turnOn() {}
+
+void CarduinoNode::turnOff() {}
+
+void CarduinoNode::turnOnInterrupt() {}
+
+void CarduinoNode::turnOffInterrupt() {}
 
 void CarduinoNode::addPinToRead(uint8_t pin, PCF8574 *pcf8574, std::function<void(PinInformation*)> onChange) {
     PinInformation *pinInformation = new PinInformation();

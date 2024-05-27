@@ -23,6 +23,7 @@
 #include "shared/CanbusMessage/EventMessage/EventMessage.h"
 #include "shared/CarduinoNode/CarduinoNode/executors/CarduinoNodeWriteSetting/CarduinoNodeWriteSetting.h"
 #include "shared/CarduinoNode/CarduinoNode/executors/CarduinoNodeCanGetHellos/CarduinoNodeCanGetHellos.h"
+#include "shared/CarduinoNode/CarduinoNode/executors/CarduinoNodeCanPowerEvents/CarduinoNodeCanPowerEvents.h"
 #include "shared/executors/Executors.h"
 
 /**
@@ -105,10 +106,14 @@ class CarduinoNode : public Logger {
         void restart();
         void sendHeartbeat();
         void sendEvent(const Event *event);
-        // virtual void secondaryLoopCallback();
+        void sendEvent(const Event *event, int receiverId);
         void addPinToRead(uint8_t pin, PCF8574 *pcf8574 = nullptr, std::function<void(PinInformation*)> onChange = nullptr);
         PinInformation* getPinInformation(uint8_t pin);
         void readDigitalPins();
+        virtual void turnOn();
+        virtual void turnOff();
+        virtual void turnOnInterrupt();
+        virtual void turnOffInterrupt();
 
         static uint16_t generateId(const Category category, const Enum messageEnum);
         static uint16_t generateId(const Category category, uint8_t messageId);

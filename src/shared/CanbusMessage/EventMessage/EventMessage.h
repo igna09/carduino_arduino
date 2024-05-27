@@ -10,9 +10,9 @@
 class EventMessage : public TypedCanbusMessage {
     public:
         const Event *event;
-        int senderId;
+        int senderReceiverId;
 
-        EventMessage(const Event *event, int senderId);
+        EventMessage(const Event *event, int senderReceiverId);
         EventMessage(CanbusMessage *canbusMessage);
 
         String toSerialString();

@@ -8,7 +8,7 @@ void HeartbeatExecutor::execute(CarduinoNode *node, CanbusMessage *message) {
     /**
      * get from node last time received heartbeat message from sender
     */
-    NodeInformation *nodeInformation = ((MainCarduinoNode*)node)->getNodeInformation(eventMessage->senderId);
+    NodeInformation *nodeInformation = ((MainCarduinoNode*)node)->getNodeInformation(eventMessage->senderReceiverId);
     if(nodeInformation != nullptr) {
         if(nodeInformation->lastTimeReceivedHeartBeat != 0 && millis() - nodeInformation->lastTimeReceivedHeartBeat > HEARTBEAT_INTERVAL + HEARTBEAT_INTERVAL_TOLERANCE) { // ERROR
             //TODO: error management

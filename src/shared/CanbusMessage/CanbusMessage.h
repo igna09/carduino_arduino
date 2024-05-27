@@ -25,6 +25,10 @@ class CanbusMessage {
         static CanbusMessage* createSpecializedCopy(CanbusMessage* message) {
             return new CanbusMessage(message->id, message->payload, message->payloadLength);
         };
+
+        /**
+         * TODO: replace with numbers?
+        */
         virtual String toSerialString() {
             String returnValue = "";
             returnValue += categoryId;

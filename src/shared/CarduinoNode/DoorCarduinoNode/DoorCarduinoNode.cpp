@@ -178,3 +178,11 @@ void DoorCarduinoNode::voltageCallback() {
 bool DoorCarduinoNode::readSelectorClosed() {
 	return this->pcf8574->digitalRead(PIN_MIRROR_SELECTOR_ON_CLOSED, true) == HIGH;
 }
+
+void DoorCarduinoNode::turnOn() {
+	printlnWrapper("DoorCarduinoNode::turnOn");
+}
+
+void DoorCarduinoNode::turnOff() {
+	printlnWrapper("DoorCarduinoNode::turnOff");
+}
