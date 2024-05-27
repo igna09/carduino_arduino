@@ -288,7 +288,7 @@ NodeInformation* MainCarduinoNode::createOrGetNodeInformation(uint8_t id) {
     NodeInformation *nodeInformation = this->getNodeInformation(id);
 
     if (nodeInformation == nullptr) {
-        NodeInformation *nodeInformation = new NodeInformation();
+        nodeInformation = new NodeInformation();
         nodeInformation->id = id;
         nodeInformation->lastCompletedEvent = nullptr;
         nodeInformation->lastTimeReceivedHeartBeat = 0;
