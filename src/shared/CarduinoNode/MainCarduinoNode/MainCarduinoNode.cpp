@@ -1,6 +1,6 @@
 #include "MainCarduinoNode.h"
 
-MainCarduinoNode::MainCarduinoNode(uint8_t id, int cs, int interruptPin, char *ssid, char *password) : CarduinoNode(id, cs, interruptPin, ssid, password, true, false) {
+MainCarduinoNode::MainCarduinoNode(uint8_t id, int cs, int interruptPin, char *ssid, char *password) : CarduinoNode(id, cs, interruptPin, ssid, password, true, true) {
     this->aht = new Adafruit_AHTX0();
     this->aht->begin();
 
@@ -82,16 +82,16 @@ void MainCarduinoNode::loop() {
 }
 
 void MainCarduinoNode::handleReceivedSerialMessage(String receivedMessage) {
-    this->printlnWrapper("CarduinoNode::handleReceivedSerialMessage " + receivedMessage);
+    this->printlnWrapper("MainCarduinoNode::handleReceivedSerialMessage " + receivedMessage);
     SplittedUsbMessage *splittedUsbMessage = splitReceivedUsbMessage(receivedMessage);
 
     if(splittedUsbMessage->isValid) {
-        const Category *c = (const Category*) Category::getValueByName((char*) splittedUsbMessage->messages[0].c_str());
+        const Category *c = (const Category*) Category::getValueById(splittedUsbMessage->messages[0].toInt());
 
         CanbusMessage *canbusMessage = nullptr;
         // TODO: replace with a factory
-        if(c->getEnumFromNameFunction != nullptr) {
-            const TypedEnum *typedEnumMessage = (const TypedEnum*) c->getEnumFromNameFunction((char*) splittedUsbMessage->messages[1].c_str());
+        if(c->getEnumFromIdFunction != nullptr) {
+            const TypedEnum *typedEnumMessage = (const TypedEnum*) c->getEnumFromIdFunction(splittedUsbMessage->messages[1].toInt());
 
             if(typedEnumMessage != nullptr) {
                 if(typedEnumMessage->type->id == CanbusMessageType::BOOL.id) {
@@ -114,6 +114,8 @@ void MainCarduinoNode::handleReceivedSerialMessage(String receivedMessage) {
             usbExecutors->execute(this, canbusMessage);
             delete canbusMessage;
         }
+    } else {
+        this->printlnWrapper("MainCarduinoNode::handleReceivedSerialMessage malformed message " + receivedMessage);
     }
 
     delete splittedUsbMessage;

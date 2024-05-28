@@ -24,6 +24,7 @@ class Category : public Enum {
         std::function<CanbusMessage*(CanbusMessage*)> createSpecializedCopyFunction;
         std::function<const TypedEnum**()> getCategoryValuesFunction;
         std::function<const TypedEnum*(char*)> getEnumFromNameFunction;
+        std::function<const TypedEnum*(uint8_t)> getEnumFromIdFunction;
 
         Category() : Enum() {};
 
@@ -64,14 +65,16 @@ class Category : public Enum {
             this->createSpecializedCopyFunction = createSpecializedCopyFunction;
             this->getCategoryValuesFunction = getCategoryValuesFunction;
             this->getEnumFromNameFunction = nullptr;
+            this->getEnumFromIdFunction = nullptr;
         };
 
-        Category(uint8_t id, const char *name, std::function<const TypedEnum**()> getCategoryValuesFunction, std::function<CanbusMessage*(CanbusMessage*)> createSpecializedCopyFunction, std::function<const TypedEnum*(char*)> convertCallback) : Enum(id, name) {
+        Category(uint8_t id, const char *name, std::function<const TypedEnum**()> getCategoryValuesFunction, std::function<CanbusMessage*(CanbusMessage*)> createSpecializedCopyFunction, std::function<const TypedEnum*(char*)> getEnumFromNameFunction, std::function<const TypedEnum*(uint8_t)> getEnumFromIdFunction) : Enum(id, name) {
             Category::values[Category::index] = this;
             Category::index++;
 
             this->createSpecializedCopyFunction = createSpecializedCopyFunction;
             this->getCategoryValuesFunction = getCategoryValuesFunction;
-            this->getEnumFromNameFunction = convertCallback;
+            this->getEnumFromNameFunction = getEnumFromNameFunction;
+            this->getEnumFromIdFunction = getEnumFromIdFunction;
         };
 };

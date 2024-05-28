@@ -3,6 +3,7 @@
 MainNodeSerialGetSettings::MainNodeSerialGetSettings() : CarduinoNodeExecutorInterface(&Category::GET_SETTINGS) {};
 
 void MainNodeSerialGetSettings::execute(CarduinoNode *node, CanbusMessage *message) {
+    // Serial.println("MainNodeSerialGetSettings::execute");
     node->sendCanbusMessage(message);
 
     TypedCanbusMessage otaModeTypedCanbusMessage = TypedCanbusMessage(node->generateId(Category::READ_SETTING, Setting::OTA_MODE), node->otaMode);
