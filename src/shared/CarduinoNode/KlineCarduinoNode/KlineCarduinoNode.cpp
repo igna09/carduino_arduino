@@ -61,11 +61,16 @@ void KlineCarduinoNode::readValues() {
 					this->klineConnected = kLine->attemptConnect(klineEcuEnum->address, klineEcuEnum->baud) == KLineKWP1281Lib::SUCCESS; // connect here to avoid connection to ecus that won't read any value
 					// Serial.print("KlineCarduinoNode::readValues() this->klineConnected ");
 					// Serial.println(this->klineConnected ? "true" : "false");
-					if(this->klineConnected) {
-						lastConnectedEcu = klineEcuEnum;
-					}
+					// if(this->klineConnected) {
+					// 	lastConnectedEcu = klineEcuEnum;
+					// }
 				}
 				if(this->klineConnected) {
+					if(this->otaMode) {
+						this->otaShutdown();
+					}
+
+					lastConnectedEcu = klineEcuEnum;
 					for(uint8_t blockValuesByEcuIndex = 0; blockValuesByEcuIndex < blockValuesByEcuSize; blockValuesByEcuIndex++) {
 						uint8_t block = blockValuesByEcu[blockValuesByEcuIndex];
 						uint8_t valuesByEcuBlockSize = ValueToReadEnum::getValuesByEcuBlockSize(*klineEcuEnum, block);
