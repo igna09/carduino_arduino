@@ -326,21 +326,26 @@ void CarduinoNode::sendEvent(const Event *event) {
 }
 
 void CarduinoNode::sendEvent(const Event *event, int senderReceiverId) {
-    Serial.println("here 1");
     EventMessage *eventMessage = new EventMessage(event, senderReceiverId);
-    Serial.println("here 2");
     this->sendCanbusMessage(eventMessage);
-    Serial.println("here 3");
     delete eventMessage;
 }
 
-void CarduinoNode::turnOn() {}
+void CarduinoNode::turnOn() {
+    this->printlnWrapper("CarduinoNode::turnOn");
+}
 
-void CarduinoNode::turnOff() {}
+void CarduinoNode::turnOff() {
+    this->printlnWrapper("CarduinoNode::turnOff");
+}
 
-void CarduinoNode::turnOnInterrupt() {}
+void CarduinoNode::turnOnInterrupt() {
+    this->printlnWrapper("CarduinoNode::turnOnInterrupt");
+}
 
-void CarduinoNode::turnOffInterrupt() {}
+void CarduinoNode::turnOffInterrupt() {
+    this->printlnWrapper("CarduinoNode::turnOffInterrupt");
+}
 
 void CarduinoNode::addPinToRead(uint8_t pin, PCF8574 *pcf8574, std::function<void(PinInformation*)> onChange) {
     PinInformation *pinInformation = new PinInformation();

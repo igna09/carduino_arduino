@@ -43,8 +43,6 @@ class DoorCarduinoNode : public CarduinoNode {
         bool mirrorSelectorOnClosed;
 
         void loop();
-        void setup();
-        void setdown();
         void closeMirrors();
         void openMirrors();
         bool readClosedMirrors();
@@ -56,6 +54,8 @@ class DoorCarduinoNode : public CarduinoNode {
         bool readSelectorClosed();
         void turnOn() override;
         void turnOff() override;
+        void turnOffInterrupt() override;
+        void turnOnInterrupt() override;
 
         void voltageCallback();
 };

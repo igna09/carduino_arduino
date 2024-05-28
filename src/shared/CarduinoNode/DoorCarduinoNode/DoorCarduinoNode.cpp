@@ -21,8 +21,6 @@ DoorCarduinoNode::DoorCarduinoNode(uint8_t id, int cs, int interruptPin, const c
 
 	// this->closedMirrors = this->readClosedMirrors();
 	this->mirrorSelectorOnClosed = this->readSelectorClosed();
-
-	this->setup();
 };
 
 void DoorCarduinoNode::loop() {
@@ -47,30 +45,6 @@ void DoorCarduinoNode::loop() {
 	// if(this->mirrorSelectorOnClosed != this->readSelectorClosed()) {
 	// 	this->mirrorSelectorOnClosed = this->readSelectorClosed();
 	// }
-};
-
-void DoorCarduinoNode::setup() {
-	printlnWrapper("DoorCarduinoNode::setup");
-	// if(!this->mirrorSelectorOnClosed && this->closedMirrors) {
-	if(!this->mirrorSelectorOnClosed) {
-		printlnWrapper("DoorCarduinoNode::setup openMirrors");
-		this->openMirrors();
-	}
-
-	//if finished send completed
-	// this->sendEvent(&Event::TURN_ON_FINISH);
-};
-
-void DoorCarduinoNode::setdown() {
-	printlnWrapper("DoorCarduinoNode::setdown");
-	// if(!this->mirrorSelectorOnClosed && !this->closedMirrors) {
-	if(!this->mirrorSelectorOnClosed) {
-		printlnWrapper("DoorCarduinoNode::setdown closeMirrors");
-		this->closeMirrors();
-	}
-
-	//if finished send completed
-	// this->sendEvent(&Event::TURN_OFF_FINISH);
 };
 
 void DoorCarduinoNode::startMoveMirrorsDown() {
@@ -180,9 +154,37 @@ bool DoorCarduinoNode::readSelectorClosed() {
 }
 
 void DoorCarduinoNode::turnOn() {
+	CarduinoNode::turnOn();
 	printlnWrapper("DoorCarduinoNode::turnOn");
+
+	if(!this->mirrorSelectorOnClosed) {
+		this->openMirrors();
+	}
 }
 
 void DoorCarduinoNode::turnOff() {
+	CarduinoNode::turnOff();
 	printlnWrapper("DoorCarduinoNode::turnOff");
+
+	if(!this->mirrorSelectorOnClosed) {
+		this->closeMirrors();
+	}
+}
+
+void DoorCarduinoNode::turnOffInterrupt() {
+	CarduinoNode::turnOffInterrupt();
+	printlnWrapper("DoorCarduinoNode::turnOffInterrupt");
+
+	if(!this->mirrorSelectorOnClosed) {
+		this->openMirrors();
+	}
+}
+
+void DoorCarduinoNode::turnOnInterrupt() {
+	CarduinoNode::turnOnInterrupt();
+	printlnWrapper("DoorCarduinoNode::turnOnInterrupt");
+
+	if(!this->mirrorSelectorOnClosed) {
+		this->closeMirrors();
+	}
 }

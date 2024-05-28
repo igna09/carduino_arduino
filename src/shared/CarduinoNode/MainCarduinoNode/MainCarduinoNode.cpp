@@ -37,8 +37,6 @@ MainCarduinoNode::MainCarduinoNode(uint8_t id, int cs, int interruptPin, char *s
     
     this->isRadioOn = true;
     this->isKeyOn = true;
-
-    // this->sendEvent(&Event::TURN_ON);
 };
 
 void MainCarduinoNode::luminanceCallback() {
@@ -298,7 +296,3 @@ NodeInformation* MainCarduinoNode::createOrGetNodeInformation(uint8_t id) {
 
     return nodeInformation;
 }
-
-// void MainCarduinoNode::secondaryLoopCallback() {
-//     this->printlnWrapper("MainCarduinoNode::secondaryLoopCallback");
-// }
