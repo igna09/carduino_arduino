@@ -4,7 +4,7 @@ MediaControlMessage::MediaControlMessage(const MediaControl *mediaControl) : Typ
     this->mediaControl = mediaControl;
 };
 
-String MediaControlMessage::toSerialString() {
+String MediaControlMessage::toSerialHumanString() {
     String s = "";
     s += this->category->name;
     s += ";";

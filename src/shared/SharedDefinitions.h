@@ -2,8 +2,7 @@
 
 #include "Arduino.h"
 
-union ValueType
-{
+union ValueType {
     int intValue;
     float floatValue;
     bool boolValue;

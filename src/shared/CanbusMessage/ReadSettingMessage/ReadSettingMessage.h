@@ -15,5 +15,5 @@ class ReadSettingMessage : public TypedCanbusMessage {
         ReadSettingMessage(const Setting *setting, bool value);
         ReadSettingMessage(const Setting *setting, float value);
 
-        String toSerialString();
+        String toSerialHumanString() override;
 };

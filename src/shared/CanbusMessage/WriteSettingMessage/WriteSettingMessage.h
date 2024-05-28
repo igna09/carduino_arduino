@@ -15,5 +15,5 @@ class WriteSettingMessage : public TypedCanbusMessage {
         WriteSettingMessage(const Setting *setting, bool value);
         WriteSettingMessage(const Setting *setting, float value);
 
-        String toSerialString();
+        String toSerialHumanString() override;
 };

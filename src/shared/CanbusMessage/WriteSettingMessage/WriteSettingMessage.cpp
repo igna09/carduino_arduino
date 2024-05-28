@@ -19,7 +19,7 @@ WriteSettingMessage::WriteSettingMessage(const Setting *setting, bool value) : T
     this->setting = setting;
 };
 
-String WriteSettingMessage::toSerialString() {
+String WriteSettingMessage::toSerialHumanString() {
     String s = "";
     s += this->category->name;
     s += ";";

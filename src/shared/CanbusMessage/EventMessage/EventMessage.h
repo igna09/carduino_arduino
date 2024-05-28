@@ -15,6 +15,6 @@ class EventMessage : public TypedCanbusMessage {
         EventMessage(const Event *event, int senderReceiverId);
         EventMessage(CanbusMessage *canbusMessage);
 
-        String toSerialString();
+        String toSerialHumanString() override;
         static EventMessage* createSpecializedCopy(CanbusMessage*);
 };

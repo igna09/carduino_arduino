@@ -10,7 +10,7 @@ EventMessage::EventMessage(CanbusMessage *canbusMessage) : TypedCanbusMessage(((
     this->senderReceiverId = this->getIntValue();
 }
 
-String EventMessage::toSerialString() {
+String EventMessage::toSerialHumanString() {
     String s = "";
     s += this->category->name;
     s += ";";

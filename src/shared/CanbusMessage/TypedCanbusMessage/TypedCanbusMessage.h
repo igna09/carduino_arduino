@@ -26,5 +26,6 @@ public:
     TypedCanbusMessage();
     virtual ~TypedCanbusMessage() = default;
     
+    String toSerialHumanString() override;
     String toSerialString() override;
 };

@@ -18,7 +18,7 @@ CarstatusMessage::CarstatusMessage(const Carstatus *carstatus, float value) : Ty
 
 CarstatusMessage::CarstatusMessage() : TypedCanbusMessage() {};
 
-String CarstatusMessage::toSerialString() {
+String CarstatusMessage::toSerialHumanString() {
     String s = "";
     s += this->category->name;
     s += ";";

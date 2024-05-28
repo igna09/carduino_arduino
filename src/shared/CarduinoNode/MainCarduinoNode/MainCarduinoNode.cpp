@@ -79,7 +79,6 @@ void MainCarduinoNode::loop() {
     }*/
 
     manageSwc();
-    // manageRadioPower();
 }
 
 void MainCarduinoNode::handleReceivedSerialMessage(String receivedMessage) {

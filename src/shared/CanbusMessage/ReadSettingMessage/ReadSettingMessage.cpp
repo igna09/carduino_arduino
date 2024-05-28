@@ -19,7 +19,7 @@ ReadSettingMessage::ReadSettingMessage(const Setting *setting, bool value) : Typ
     this->setting = setting;
 };
 
-String ReadSettingMessage::toSerialString() {
+String ReadSettingMessage::toSerialHumanString() {
     String s = "";
     s += this->category->name;
     s += ";";

@@ -245,7 +245,7 @@ void CarduinoNode::manageReceivedCanbusMessage(CanbusMessage *message) {
         Category *category = (Category*)Category::getValueById(message->categoryId);
         if(category->createSpecializedCopyFunction != nullptr) {
             CanbusMessage *specialized = category->createSpecializedCopyFunction(message);
-            this->printlnWrapper("CarduinoNode::manageReceivedCanbusMessage " + specialized->toSerialString());
+            this->printlnWrapper("CarduinoNode::manageReceivedCanbusMessage " + specialized->toSerialHumanString());
             delete specialized;
         }
     }
@@ -303,10 +303,10 @@ bool CarduinoNode::availableCanbusMessages() {
 
 void CarduinoNode::sendCanbusMessage(CanbusMessage *message) {
     if(initializedCan) {
-        this->printlnWrapper("CarduinoNode::sendCanbusMessage " + message->toSerialString());
+        this->printlnWrapper("CarduinoNode::sendCanbusMessage " + message->toSerialHumanString());
         sendByteCanbus(message->id, message->payloadLength, message->payload);
     } else {
-        this->printlnWrapper("CarduinoNode::sendCanbusMessage CAN not initialized, cannot send message " + message->toSerialString());
+        this->printlnWrapper("CarduinoNode::sendCanbusMessage CAN not initialized, cannot send message " + message->toSerialHumanString());
     }
 }
 

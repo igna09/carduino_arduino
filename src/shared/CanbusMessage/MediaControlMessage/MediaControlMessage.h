@@ -12,5 +12,5 @@ class MediaControlMessage : public TypedCanbusMessage {
         const MediaControl *mediaControl;
 
         MediaControlMessage(const MediaControl*);
-        String toSerialString();
+        String toSerialHumanString() override;
 };

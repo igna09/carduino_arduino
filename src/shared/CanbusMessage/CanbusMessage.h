@@ -26,9 +26,22 @@ class CanbusMessage {
             return new CanbusMessage(message->id, message->payload, message->payloadLength);
         };
 
-        /**
-         * TODO: replace with numbers?
-        */
+        virtual String toSerialHumanString() {
+            String returnValue = "";
+            returnValue += categoryId;
+            returnValue += ";";
+            returnValue += messageId;
+            returnValue += ";";
+            for(int i=0; i < payloadLength; i++){
+                returnValue += payload[i];
+                if(i != (payloadLength - 1)) {
+                    returnValue += " ";
+                }
+            }
+            returnValue += ";";
+            return returnValue;
+        };
+
         virtual String toSerialString() {
             String returnValue = "";
             returnValue += categoryId;

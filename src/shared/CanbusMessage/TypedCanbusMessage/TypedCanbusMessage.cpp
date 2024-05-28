@@ -40,11 +40,20 @@ TypedCanbusMessage::TypedCanbusMessage(const CanbusMessageType *type, CanbusMess
     }
 };
 
-
+String TypedCanbusMessage::toSerialHumanString() {
+    String s = "";
+    s += this->category->name;
+    s += ";";
+    s += String(this->messageId);
+    s += ";";
+    s += this->getValueToString();
+    s += ";";
+    return s;
+};
 
 String TypedCanbusMessage::toSerialString() {
     String s = "";
-    s += this->category->name;
+    s += this->category->id;
     s += ";";
     s += String(this->messageId);
     s += ";";
