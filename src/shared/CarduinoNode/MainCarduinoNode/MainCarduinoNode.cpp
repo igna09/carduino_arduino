@@ -12,11 +12,8 @@ MainCarduinoNode::MainCarduinoNode(uint8_t id, int cs, int interruptPin, char *s
     this->isPairing = false;
     this->isWaitingPairing = false;
 
-    LuminanceCallback<void(void)>::func = std::bind(&MainCarduinoNode::luminanceCallback, this);
-    luminanceTask = new Task(1000, TASK_FOREVER, static_cast<TaskCallback>(LuminanceCallback<void(void)>::callback), this->scheduler, true);
-
-    TemperatureCallback<void(void)>::func = std::bind(&MainCarduinoNode::temperatureCallback, this);
-    temperatureTask = new Task(30000, TASK_FOREVER, static_cast<TaskCallback>(TemperatureCallback<void(void)>::callback), this->scheduler, true);
+    luminanceTask = new Task(1000, TASK_FOREVER, std::bind(&MainCarduinoNode::luminanceCallback, this), this->scheduler, true);
+    temperatureTask = new Task(30000, TASK_FOREVER, std::bind(&MainCarduinoNode::temperatureCallback, this), this->scheduler, true);
 
     this->nodeInformations = new std::map<uint8_t, NodeInformation*>();
 
@@ -30,8 +27,7 @@ MainCarduinoNode::MainCarduinoNode(uint8_t id, int cs, int interruptPin, char *s
     this->usbExecutors->addExecutor(new WriteSettingExecutor());
     this->usbExecutors->addExecutor(new MainNodeSerialGetSettings());
 
-    TurnOffRadioCallback<void(void)>::func = std::bind(&MainCarduinoNode::turnOffSystem, this);
-    turnOffRadioTask = new Task(RADIO_TURN_OFF_TIMER, 1, static_cast<TaskCallback>(TurnOffRadioCallback<void(void)>::callback), this->scheduler, false);
+    turnOffRadioTask = new Task(RADIO_TURN_OFF_TIMER, 1, std::bind(&MainCarduinoNode::turnOffSystem, this), this->scheduler, false);
 
     this->sendEvent(&Event::GET_HELLOS);
     

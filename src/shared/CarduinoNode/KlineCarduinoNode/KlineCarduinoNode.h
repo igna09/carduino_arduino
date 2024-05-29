@@ -1,5 +1,8 @@
 #pragma once
 
+#define _TASK_STD_FUNCTION   // Compile with support for std::function 
+#define _TASK_SELF_DESTRUCT      // Enable tasks to "self-destruct" after disable
+
 #include <Arduino.h>
 #include <SoftwareSerial.h>
 #include <TaskSchedulerDeclarations.h>
@@ -9,7 +12,6 @@
 #include "ValueToReadEnum.h"
 #include "../../enums/CanbusMessageType.h"
 #include "../../CanbusMessage/CarstatusMessage/CarstatusMessage.h"
-#include "KlineCallback.h"
 #include "AfterReadExecutor/AfterReadExecutors.h"
 #include "AfterReadExecutor/FuelConsumptionExecutor.h"
 

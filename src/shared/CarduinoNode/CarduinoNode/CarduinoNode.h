@@ -1,9 +1,10 @@
 #pragma once
 
+#define _TASK_STD_FUNCTION   // Compile with support for std::function 
+#define _TASK_SELF_DESTRUCT      // Enable tasks to "self-destruct" after disable
+
 #include <Arduino.h>
-
 #include <ESP8266WiFi.h>
-
 #include "mcp_can.h"
 #include <SPI.h>
 #include <TaskSchedulerDeclarations.h>
@@ -16,8 +17,6 @@
 #include "../../utils.h"
 #include "../../CanbusMessage/CanbusMessage.h"
 #include "../../SharedDefinitions.h"
-#include "callbacks/SendHearbeatCallback.h"
-#include "callbacks/ReadDigitalPinsCallback.h"
 #include "../../Logger/Logger.h"
 #include "shared/enums/Event.h"
 #include "shared/CanbusMessage/EventMessage/EventMessage.h"
@@ -114,6 +113,7 @@ class CarduinoNode : public Logger {
         virtual void turnOff();
         virtual void turnOnInterrupt();
         virtual void turnOffInterrupt();
+        void delayTask(int delay, std::function<void()> lambdaCallback);
 
         static uint16_t generateId(const Category category, const Enum messageEnum);
         static uint16_t generateId(const Category category, uint8_t messageId);

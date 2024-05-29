@@ -1,6 +1,10 @@
 #pragma once
 
+#define _TASK_STD_FUNCTION   // Compile with support for std::function 
+#define _TASK_SELF_DESTRUCT      // Enable tasks to "self-destruct" after disable
+
 #include <Arduino.h>
+#include <TaskSchedulerDeclarations.h>
 #include "shared/CarduinoNode/CarduinoNode/CarduinoNode.h"
 #include "shared/CarduinoNode/DoorCarduinoNode/executors/DoorNodeWriteSetting/DoorNodeWriteSetting.h"
 #include "shared/CarduinoNode/DoorCarduinoNode/executors/DoorNodeGetSettings/DoorNodeGetSettings.h"
@@ -11,8 +15,6 @@
 #include "shared/CanbusMessage/MediaControlMessage/MediaControlMessage.h"
 #include "shared/SharedDefinitions.h"
 #include <PCF8574.h>
-#include "shared/CarduinoNode/DoorCarduinoNode/callbacks/StopMovingMirrorsCallback.h"
-#include "shared/CarduinoNode/DoorCarduinoNode/callbacks/BatteryVoltageCallback.h"
 
 #define PIN_MIRROR_A P0
 #define PIN_MIRROR_B P1

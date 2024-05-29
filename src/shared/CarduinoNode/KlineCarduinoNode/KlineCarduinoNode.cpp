@@ -25,8 +25,7 @@ KlineCarduinoNode::KlineCarduinoNode(uint8_t id, uint8_t pin_rx, uint8_t pin_tx,
     this->kLine = new KLineKWP1281Lib(beginFunction, endFunction, sendFunction, receiveFunction, pin_tx, true);
 	this->lastConnectedEcu = nullptr;
 
-    KlineCallback<void(void)>::func = std::bind(&KlineCarduinoNode::readValues, this);
-    readValuesTask = new Task(500, TASK_FOREVER, static_cast<TaskCallback>(KlineCallback<void(void)>::callback), scheduler, true);
+    readValuesTask = new Task(500, TASK_FOREVER, std::bind(&KlineCarduinoNode::readValues, this), scheduler, true);
 
 	this->afterReadExecutors = new AfterReadExecutors();
 	this->afterReadExecutors->addExecutor(new FuelConsumptionExecutor());

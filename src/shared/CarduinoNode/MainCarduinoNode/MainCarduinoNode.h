@@ -1,14 +1,14 @@
 #pragma once
 
+#define _TASK_STD_FUNCTION   // Compile with support for std::function 
+#define _TASK_SELF_DESTRUCT      // Enable tasks to "self-destruct" after disable
+
 #include <TaskSchedulerDeclarations.h>
 #include <Adafruit_AHTX0.h>
 #include <functional>
 #include "shared/enums/Setting.h"
 #include "shared/enums/CanbusMessageType.h"
 #include "shared/enums/TypedEnum.h"
-#include "callbacks/TemperatureCallback.h"
-#include "callbacks/LuminanceCallback.h"
-#include "callbacks/TurnOffRadioCallback.h"
 #include "shared/CarduinoNode/CarduinoNode/CarduinoNode.h"
 #include "shared/executors/Executors.h"
 #include "shared/CarduinoNode/MainCarduinoNode/executors/CarstatusExecutor/CarstatusExecutor.h"

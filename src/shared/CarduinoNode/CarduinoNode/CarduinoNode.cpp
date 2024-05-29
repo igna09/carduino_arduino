@@ -45,12 +45,10 @@ CarduinoNode::CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssi
 
     this->scheduler = new Scheduler();
 
-    SendHeartbeatCallback<void(void)>::func = std::bind(&CarduinoNode::sendHeartbeat, this);
-    new Task(HEARTBEAT_INTERVAL, TASK_FOREVER, static_cast<TaskCallback>(SendHeartbeatCallback<void(void)>::callback), this->scheduler, true);
+    new Task(HEARTBEAT_INTERVAL, TASK_FOREVER, std::bind(&CarduinoNode::sendHeartbeat, this), this->scheduler, true);
     // SecondaryLoopCallback<void(void)>::func = std::bind(&CarduinoNode::secondaryLoopCallback, this);
     // new Task(100, TASK_FOREVER, static_cast<TaskCallback>(SecondaryLoopCallback<void(void)>::callback), this->scheduler, true);
-    ReadDigitalPinsCallback<void(void)>::func = std::bind(&CarduinoNode::readDigitalPins, this);
-    new Task(DIGITAL_PINS_UPDATE_INTERVAL, TASK_FOREVER, static_cast<TaskCallback>(ReadDigitalPinsCallback<void(void)>::callback), this->scheduler, true);
+    new Task(DIGITAL_PINS_UPDATE_INTERVAL, TASK_FOREVER, std::bind(&CarduinoNode::readDigitalPins, this), this->scheduler, true);
 
     this->scheduler->startNow();
 
@@ -389,4 +387,10 @@ void CarduinoNode::readDigitalPins() {
             pinInformation->onChange(it->second);
         }
     }
+}
+
+void CarduinoNode::delayTask(int delay, std::function<void()> lambdaCallback) {
+    Task *lambdaTask = new Task(delay, 1, lambdaCallback, this->scheduler, false);
+    lambdaTask->setSelfDestruct(true);
+    lambdaTask->enableDelayed();
 }

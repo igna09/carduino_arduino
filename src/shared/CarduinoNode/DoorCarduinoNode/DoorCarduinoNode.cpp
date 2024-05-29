@@ -4,11 +4,9 @@ DoorCarduinoNode::DoorCarduinoNode(uint8_t id, int cs, int interruptPin, const c
     this->lowerMirrorsOnReverse = true;
 	this->autoCloseMirrors = true;
 	
-    StopMovingMirrorsCallback<void(void)>::func = std::bind(&DoorCarduinoNode::stopMoveMirrors, this);
-    this->stopMoveMirrorsTask = new Task(MIRRORS_MOVING_TIME, 1, static_cast<TaskCallback>(StopMovingMirrorsCallback<void(void)>::callback), this->scheduler, false);
+    this->stopMoveMirrorsTask = new Task(MIRRORS_MOVING_TIME, 1, std::bind(&DoorCarduinoNode::stopMoveMirrors, this), this->scheduler, false);
 
-    BatteryVoltageCallback<void(void)>::func = std::bind(&DoorCarduinoNode::voltageCallback, this);
-    temperatureTask = new Task(VOLTAGE_READING_INTERVAL, TASK_FOREVER, static_cast<TaskCallback>(BatteryVoltageCallback<void(void)>::callback), this->scheduler, true);
+    temperatureTask = new Task(VOLTAGE_READING_INTERVAL, TASK_FOREVER, std::bind(&DoorCarduinoNode::voltageCallback, this), this->scheduler, true);
 
 	this->lastReceivedEvent = nullptr;
 
@@ -157,18 +155,22 @@ void DoorCarduinoNode::turnOn() {
 	CarduinoNode::turnOn();
 	printlnWrapper("DoorCarduinoNode::turnOn");
 
-	if(!this->mirrorSelectorOnClosed) {
-		this->openMirrors();
-	}
+	delayTask(1500, [&](){
+		if(!this->mirrorSelectorOnClosed) {
+			this->openMirrors();
+		}
+	});
 }
 
 void DoorCarduinoNode::turnOff() {
 	CarduinoNode::turnOff();
 	printlnWrapper("DoorCarduinoNode::turnOff");
 
-	if(!this->mirrorSelectorOnClosed) {
-		this->closeMirrors();
-	}
+	delayTask(1500, [&](){
+		if(!this->mirrorSelectorOnClosed) {
+			this->closeMirrors();
+		}
+	});
 }
 
 void DoorCarduinoNode::turnOffInterrupt() {

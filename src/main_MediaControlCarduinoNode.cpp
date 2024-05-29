@@ -1,4 +1,7 @@
 #include <Arduino.h>
+
+#define _TASK_STD_FUNCTION   // Compile with support for std::function 
+#define _TASK_SELF_DESTRUCT      // Enable tasks to "self-destruct" after disable
 #include <TaskScheduler.h>
 
 #include "./shared/SharedDefinitions.h"
