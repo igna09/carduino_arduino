@@ -24,7 +24,7 @@
 #include "shared/SharedDefinitions.h"
 #include "shared/enums/Event.h"
 
-#define RADIO_TURN_OFF_TIMER 15000
+#define RADIO_TURN_OFF_TIMER 10000
 
 #define SWC_PRESS_INTERVAL  65
 #define SWC_PAIRING_INTERVAL  5000
