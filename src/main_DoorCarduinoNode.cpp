@@ -20,11 +20,11 @@ unsigned long lastSent = millis();
 
 void loop(void) {
   	doorCarduinoNode->loop();
-	if(millis() > lastSent + 1000) {
-			lastSent = millis();
-			printFreeHeap("loop");
+	// if(millis() > lastSent + 1000) {
+	// 		lastSent = millis();
+	// 		printFreeHeap("loop");
 	// 		const MediaControl *mc = (const MediaControl*) MediaControl::getValueById(random(3));
 	// 		Serial.println(mc->name);
 	// 		mediaControlCarduinoNode->sendMediaControlMessage(mc);
-	}
+	// }
 }
