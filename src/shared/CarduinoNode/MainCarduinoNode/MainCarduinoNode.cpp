@@ -1,6 +1,6 @@
 #include "MainCarduinoNode.h"
 
-MainCarduinoNode::MainCarduinoNode(uint8_t id, int cs, int interruptPin, char *ssid, char *password) : CarduinoNode(id, cs, interruptPin, ssid, password, true, false) {
+MainCarduinoNode::MainCarduinoNode(uint8_t id, int cs, int interruptPin, char *ssid, char *password) : CarduinoNode(id, cs, interruptPin, ssid, password, true, true) {
     this->aht = new Adafruit_AHTX0();
     this->aht->begin();
 
@@ -86,12 +86,26 @@ void MainCarduinoNode::handleReceivedSerialMessage(String receivedMessage) {
     SplittedUsbMessage *splittedUsbMessage = splitReceivedUsbMessage(receivedMessage);
 
     if(splittedUsbMessage->isValid) {
-        const Category *c = (const Category*) Category::getValueById(splittedUsbMessage->messages[0].toInt());
+        bool isNumericMode = isNumeric(splittedUsbMessage->messages[0]);
+
+        const Category *c;
+
+        if(isNumericMode) {
+            c = (const Category*) Category::getValueById(splittedUsbMessage->messages[0].toInt());
+        } else {
+            c = (const Category*) Category::getValueByName((char*) splittedUsbMessage->messages[0].c_str());
+        }
 
         CanbusMessage *canbusMessage = nullptr;
         // TODO: replace with a factory
-        if(c->getEnumFromIdFunction != nullptr) {
-            const TypedEnum *typedEnumMessage = (const TypedEnum*) c->getEnumFromIdFunction(splittedUsbMessage->messages[1].toInt());
+        if(c->getEnumFromNameFunction != nullptr && c->getEnumFromIdFunction != nullptr) {
+            const TypedEnum *typedEnumMessage;
+
+            if(isNumericMode) {
+                typedEnumMessage = (const TypedEnum*) c->getEnumFromIdFunction(splittedUsbMessage->messages[1].toInt());
+            } else {
+                typedEnumMessage = (const TypedEnum*) c->getEnumFromNameFunction((char*) splittedUsbMessage->messages[1].c_str());
+            }
 
             if(typedEnumMessage != nullptr) {
                 if(typedEnumMessage->type->id == CanbusMessageType::BOOL.id) {
