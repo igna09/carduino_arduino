@@ -10,5 +10,5 @@ void AllMessageExecutor::execute(CarduinoNode *node, CanbusMessage *message) {
     for(uint8_t i = 0; i < message->payloadLength; i++) {
         Serial.print(message->payload[i]);
     }
-    Serial.println();
+    // Serial.println();
 };
