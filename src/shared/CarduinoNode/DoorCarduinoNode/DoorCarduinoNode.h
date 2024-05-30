@@ -6,8 +6,6 @@
 #include <Arduino.h>
 #include <TaskSchedulerDeclarations.h>
 #include "shared/CarduinoNode/CarduinoNode/CarduinoNode.h"
-#include "shared/CarduinoNode/DoorCarduinoNode/executors/DoorNodeWriteSetting/DoorNodeWriteSetting.h"
-#include "shared/CarduinoNode/DoorCarduinoNode/executors/DoorNodeGetSettings/DoorNodeGetSettings.h"
 #include "shared/CarduinoNode/DoorCarduinoNode/executors/DoorNodeEvent/DoorNodeEvent.h"
 #include "shared/CarduinoNode/DoorCarduinoNode/executors/DoorNodeCarstatus/DoorNodeCarstatus.h"
 #include "Versatile_RotaryEncoder.h"
@@ -35,8 +33,6 @@ class DoorCarduinoNode : public CarduinoNode {
         DoorCarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssid, const char *password);
 
         PCF8574 *pcf8574;
-        bool lowerMirrorsOnReverse;
-        bool autoCloseMirrors;
         bool closedMirrors;
         bool movingMirrors;
         Task *stopMoveMirrorsTask;

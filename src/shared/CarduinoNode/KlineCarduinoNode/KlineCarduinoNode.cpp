@@ -37,7 +37,7 @@ void KlineCarduinoNode::readValues() {
 	// Serial.println("KlineCarduinoNode::readValues() start");
 	// unsigned long start = millis();
 	// Serial.println("start readValues()");
-	if(this->otaMode) {
+	if(this->getSettingValue(Setting::OTA_MODE)->valueType->boolValue) {
 		if(klineConnected) {
 			kLine->disconnect();
 			this->klineConnected = false;
@@ -65,7 +65,7 @@ void KlineCarduinoNode::readValues() {
 					// }
 				}
 				if(this->klineConnected) {
-					if(this->otaMode) {
+					if(this->getSettingValue(Setting::OTA_MODE)->valueType->boolValue) {
 						this->otaShutdown();
 					}
 

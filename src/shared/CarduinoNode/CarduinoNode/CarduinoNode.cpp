@@ -35,13 +35,30 @@ CarduinoNode::CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssi
     can->setMode(MCP_NORMAL);                     // Set operation mode to normal so the MCP2515 sends acks to received data.
     pinMode(interruptPin, INPUT);                            // Configuring pin for /INT input
 
-    this->otaMode = false;
+    this->pinInformations = new std::map<uint8_t, PinInformation*>();
+    this->settings = new std::map<uint8_t, SettingInformation*>();
+
+    this->addSetting(Setting::RESTART, false, [&](SettingInformation *settingInformation){
+        if(settingInformation->valueType->boolValue) {
+            this->delayTask(1000, [&](){
+                this->restart();
+            });
+        }
+    });
+    this->addSetting(Setting::OTA_MODE, false, [&](SettingInformation *settingInformation){
+        if(settingInformation->valueType->boolValue) {
+            this->otaStartup();
+        } else {
+            this->otaShutdown();
+        }
+    });
     WiFi.mode(WIFI_OFF);
     
     this->canExecutors = new Executors();
     this->canExecutors->addExecutor(new CarduinoNodeWriteSetting());
     this->canExecutors->addExecutor(new CarduinoNodeCanGetHellos());
     this->canExecutors->addExecutor(new CarduinoNodeCanPowerEvents());
+    this->canExecutors->addExecutor(new CarduinoNodeCanGetSettings());
 
     this->scheduler = new Scheduler();
 
@@ -53,8 +70,6 @@ CarduinoNode::CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssi
     this->scheduler->startNow();
 
     this->sendEvent(&Event::HELLO);
-
-    this->pinInformations = new std::map<uint8_t, PinInformation*>();
     
     if(!this->initializedCan) {
         this->otaStartup();
@@ -269,7 +284,7 @@ void CarduinoNode::otaStartup() {
     this->server->begin();
     this->_logOnServer = _originalLogOnWebserver && !this->_fallbackPage;
 
-    this->otaMode = true;
+    this->putSettingValue(Setting::OTA_MODE, true);
 };
 
 void CarduinoNode::otaShutdown() {
@@ -279,7 +294,7 @@ void CarduinoNode::otaShutdown() {
     WiFi.softAPdisconnect(true);
     WiFi.mode(WIFI_OFF);
 
-    this->otaMode = false;
+    this->putSettingValue(Setting::OTA_MODE, false);
 };
 
 uint16_t CarduinoNode::generateId(const Category category, const Enum messageEnum) {
@@ -393,4 +408,80 @@ void CarduinoNode::delayTask(int delay, std::function<void()> lambdaCallback) {
     Task *lambdaTask = new Task(delay, 1, lambdaCallback, this->scheduler, false);
     lambdaTask->setSelfDestruct(true);
     lambdaTask->enableDelayed();
+}
+
+void CarduinoNode::addSetting(Setting setting, bool value, std::function<void(SettingInformation*)> onChange) {
+    SettingInformation *settingInformation = new SettingInformation();
+    settingInformation->valueType = new ValueType();
+    
+    (*this->settings)[setting.id] = settingInformation;
+
+    settingInformation->setting = &setting;
+    settingInformation->onChange = onChange;
+    settingInformation->valueType->boolValue = value;
+}
+
+void CarduinoNode::addSetting(Setting setting, int value, std::function<void(SettingInformation*)> onChange) {
+    SettingInformation *settingInformation = new SettingInformation();
+    settingInformation->valueType = new ValueType();
+    
+    (*this->settings)[setting.id] = settingInformation;
+
+    settingInformation->setting = &setting;
+    settingInformation->onChange = onChange;
+    settingInformation->valueType->intValue = value;
+}
+
+void CarduinoNode::addSetting(Setting setting, float value, std::function<void(SettingInformation*)> onChange) {
+    SettingInformation *settingInformation = new SettingInformation();
+    settingInformation->valueType = new ValueType();
+    
+    (*this->settings)[setting.id] = settingInformation;
+
+    settingInformation->setting = &setting;
+    settingInformation->onChange = onChange;
+    settingInformation->valueType->floatValue = value;
+}
+
+void CarduinoNode::putSettingValue(Setting setting, bool value) {
+    SettingInformation *settingInformation = getSettingValue(setting);
+
+    if(settingInformation != nullptr) {
+        settingInformation->valueType->boolValue = value;
+        if(settingInformation->onChange != nullptr) {
+            settingInformation->onChange(settingInformation);
+        }
+    }
+}
+
+void CarduinoNode::putSettingValue(Setting setting, float value) {
+    SettingInformation *settingInformation = getSettingValue(setting);
+
+    if(settingInformation != nullptr) {
+        settingInformation->valueType->floatValue = value;
+        if(settingInformation->onChange != nullptr) {
+            settingInformation->onChange(settingInformation);
+        }
+    }
+}
+
+void CarduinoNode::putSettingValue(Setting setting, int value) {
+    SettingInformation *settingInformation = getSettingValue(setting);
+
+    if(settingInformation != nullptr) {
+        settingInformation->valueType->intValue = value;
+        if(settingInformation->onChange != nullptr) {
+            settingInformation->onChange(settingInformation);
+        }
+    }
+}
+
+SettingInformation* CarduinoNode::getSettingValue(Setting setting) {
+    std::map<uint8_t, SettingInformation*>::iterator it = this->settings->find(setting.id);
+
+    if(it == this->settings->end()) {
+        return nullptr;
+    } else {
+        return it->second;
+    }
 }

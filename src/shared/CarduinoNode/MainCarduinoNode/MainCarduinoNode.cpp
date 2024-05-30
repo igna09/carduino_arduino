@@ -1,6 +1,12 @@
 #include "MainCarduinoNode.h"
 
 MainCarduinoNode::MainCarduinoNode(uint8_t id, int cs, int interruptPin, char *ssid, char *password) : CarduinoNode(id, cs, interruptPin, ssid, password, true, false) {
+    this->addSetting(Setting::SWC_PAIR, false, [&](SettingInformation *settingInformation){
+        if(settingInformation->valueType->boolValue) {
+            this->startSwcPairing();
+        }
+    });
+    
     this->aht = new Adafruit_AHTX0();
     this->aht->begin();
 

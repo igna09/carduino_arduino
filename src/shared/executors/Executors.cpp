@@ -7,6 +7,12 @@ void Executors::addExecutor(CarduinoNodeExecutorInterface* executor) {
 
 void Executors::execute(CarduinoNode *node, CanbusMessage *message) {
     for(uint8_t i = 0; i < this->size; i++) {
+        // Serial.print("Executors::execute ");
+        //     Serial.print(executors[i]->categoryFilter->name);
+        //     Serial.print(" ");
+        //     Serial.print(executors[i]->filterMessage ? "TRUE" : "FALSE");
+        //     Serial.print(" ");
+        //     Serial.println(executors[i]->messageId);
         if(
             executors[i]->categoryFilter == nullptr
             || (

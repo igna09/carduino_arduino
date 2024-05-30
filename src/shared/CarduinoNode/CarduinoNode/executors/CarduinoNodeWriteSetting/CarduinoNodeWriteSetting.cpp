@@ -5,16 +5,12 @@ CarduinoNodeWriteSetting::CarduinoNodeWriteSetting() : CarduinoNodeExecutorInter
 void CarduinoNodeWriteSetting::execute(CarduinoNode *node, CanbusMessage *message) {
     WriteSettingMessage *settingMessage = new WriteSettingMessage(*message);
 
-    if(settingMessage->setting->id == Setting::OTA_MODE.id) {
-        if(settingMessage->getBoolValue()) {
-            node->otaStartup();
-        } else {
-            node->otaShutdown();
-        }
-    } else if(settingMessage->setting->id == Setting::RESTART.id) {
-        if(settingMessage->getBoolValue()) {
-            node->restart();
-        }
+    if(settingMessage->setting->type->id == CanbusMessageType::INT.id) {
+        node->putSettingValue(*settingMessage->setting, settingMessage->getIntValue());
+    } else if (settingMessage->setting->type->id == CanbusMessageType::FLOAT.id) {
+        node->putSettingValue(*settingMessage->setting, settingMessage->getFloatValue());
+    } else if (settingMessage->setting->type->id == CanbusMessageType::BOOL.id) {
+        node->putSettingValue(*settingMessage->setting, settingMessage->getBoolValue());
     }
 
     delete settingMessage;

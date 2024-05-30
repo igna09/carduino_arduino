@@ -5,7 +5,10 @@
 #include "CarduinoNodeExecutorInterface.h"
 // #include "../CarduinoNode/CarduinoNode/CarduinoNode.h"
 
-#define EXECUTORS_SIZE 8
+/**
+ * TODO: change so that is not necessary size anymore
+*/
+#define EXECUTORS_SIZE 16
 
 class CarduinoNode; //forward declaration to avoid circular dependency
 class Executors {

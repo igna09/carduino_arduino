@@ -23,6 +23,7 @@
 #include "shared/CarduinoNode/CarduinoNode/executors/CarduinoNodeWriteSetting/CarduinoNodeWriteSetting.h"
 #include "shared/CarduinoNode/CarduinoNode/executors/CarduinoNodeCanGetHellos/CarduinoNodeCanGetHellos.h"
 #include "shared/CarduinoNode/CarduinoNode/executors/CarduinoNodeCanPowerEvents/CarduinoNodeCanPowerEvents.h"
+#include "shared/CarduinoNode/CarduinoNode/executors/CarduinoNodeCanGetSettings/CarduinoNodeCanGetSettings.h"
 #include "shared/executors/Executors.h"
 
 /**
@@ -65,6 +66,12 @@ struct PinInformation {
     std::function<void(PinInformation*)> onChange;
 };
 
+struct SettingInformation {
+    Setting *setting;
+    ValueType *valueType;
+    std::function<void(SettingInformation*)> onChange;
+};
+
 // class Executors; // forward declaration to avoid circular dependency
 class CarduinoNode : public Logger {
     private:
@@ -81,13 +88,13 @@ class CarduinoNode : public Logger {
         AsyncWebServer *server;
         String ssid;
         String password;
-        bool otaMode;
         int interruptPin;
         Executors *canExecutors;
         bool initializedCan;
         Scheduler *scheduler;
         Task *temperatureTask;
         std::map<uint8_t, PinInformation*> *pinInformations;
+        std::map<uint8_t, SettingInformation*> *settings;
 
         CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssid, const char *password, bool logOnServer, bool logOnSerial);
         
@@ -114,6 +121,13 @@ class CarduinoNode : public Logger {
         virtual void turnOnInterrupt();
         virtual void turnOffInterrupt();
         void delayTask(int delay, std::function<void()> lambdaCallback);
+        void addSetting(Setting setting, bool value, std::function<void(SettingInformation*)> onChange = nullptr);
+        void addSetting(Setting setting, int value, std::function<void(SettingInformation*)> onChange = nullptr);
+        void addSetting(Setting setting, float value, std::function<void(SettingInformation*)> onChange = nullptr);
+        void putSettingValue(Setting setting, bool value);
+        void putSettingValue(Setting setting, int value);
+        void putSettingValue(Setting setting, float value);
+        SettingInformation* getSettingValue(Setting setting);
 
         static uint16_t generateId(const Category category, const Enum messageEnum);
         static uint16_t generateId(const Category category, uint8_t messageId);
