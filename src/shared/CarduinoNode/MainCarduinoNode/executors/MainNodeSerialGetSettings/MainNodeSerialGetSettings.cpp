@@ -5,12 +5,12 @@ MainNodeSerialGetSettings::MainNodeSerialGetSettings() : CarduinoNodeExecutorInt
 void MainNodeSerialGetSettings::execute(CarduinoNode *node, CanbusMessage *message) {
     node->sendCanbusMessage(message);
 
-    SettingMessage *otaModeSettingMessage = new SettingMessage(&Setting::OTA_MODE, true, node->getSettingValue(Setting::OTA_MODE)->valueType->boolValue);
+    SettingMessage *otaModeSettingMessage = new SettingMessage(&Setting::OTA_MODE, true, node->getSettingValue(&Setting::OTA_MODE)->valueType->boolValue);
     ((MainCarduinoNode*)node)->sendSerialMessage(otaModeSettingMessage);
     delete otaModeSettingMessage;
 
 
-    SettingMessage *restartSettingMessage = new SettingMessage(&Setting::RESTART, true, node->getSettingValue(Setting::RESTART)->valueType->boolValue);
+    SettingMessage *restartSettingMessage = new SettingMessage(&Setting::RESTART, true, node->getSettingValue(&Setting::RESTART)->valueType->boolValue);
     ((MainCarduinoNode*)node)->sendSerialMessage(restartSettingMessage);
     delete restartSettingMessage;
 

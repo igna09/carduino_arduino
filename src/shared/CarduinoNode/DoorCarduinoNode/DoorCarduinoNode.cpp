@@ -1,8 +1,8 @@
 #include "DoorCarduinoNode.h"
 
 DoorCarduinoNode::DoorCarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssid, const char *password) : CarduinoNode(id, cs, interruptPin, ssid,  password, true, true) {
-    this->addSetting(Setting::AUTO_CLOSE_REARVIEW_MIRRORS, true);
-    this->addSetting(Setting::ON_REVERSE_LOWER_MIRRORS, true);
+    this->addSetting(&Setting::AUTO_CLOSE_REARVIEW_MIRRORS, true);
+    this->addSetting(&Setting::ON_REVERSE_LOWER_MIRRORS, true);
 	
     this->stopMoveMirrorsTask = new Task(MIRRORS_MOVING_TIME, 1, std::bind(&DoorCarduinoNode::stopMoveMirrors, this), this->scheduler, false);
 
@@ -79,7 +79,7 @@ void DoorCarduinoNode::stopMoveMirrors() {
 
 void DoorCarduinoNode::openMirrors() {
 	printlnWrapper("DoorCarduinoNode::openMirrors");
-	if(this->getSettingValue(Setting::AUTO_CLOSE_REARVIEW_MIRRORS)->valueType->boolValue) {
+	if(this->getSettingValue(&Setting::AUTO_CLOSE_REARVIEW_MIRRORS)->valueType->boolValue) {
 		printlnWrapper("DoorCarduinoNode::openMirrors opening");
 		this->pcf8574->digitalWrite(PIN_OPEN_MIRRORS, LOW);
 	}
@@ -87,7 +87,7 @@ void DoorCarduinoNode::openMirrors() {
 
 void DoorCarduinoNode::closeMirrors() {
 	printlnWrapper("DoorCarduinoNode::closeMirrors");
-	if(this->getSettingValue(Setting::AUTO_CLOSE_REARVIEW_MIRRORS)->valueType->boolValue) {
+	if(this->getSettingValue(&Setting::AUTO_CLOSE_REARVIEW_MIRRORS)->valueType->boolValue) {
 		printlnWrapper("DoorCarduinoNode::openMirrors closing");
 		this->pcf8574->digitalWrite(PIN_OPEN_MIRRORS, HIGH);
 	}

@@ -14,6 +14,7 @@
 #include <PCF8574.h>
 #include <map>              // user must include to use std::map (see above comment)
 
+#include "shared/SettingBase/SettingBase.h"
 #include "../../utils.h"
 #include "../../CanbusMessage/CanbusMessage.h"
 #include "../../SharedDefinitions.h"
@@ -66,14 +67,8 @@ struct PinInformation {
     std::function<void(PinInformation*)> onChange;
 };
 
-struct SettingInformation {
-    Setting *setting;
-    ValueType *valueType;
-    std::function<void(SettingInformation*)> onChange;
-};
-
 // class Executors; // forward declaration to avoid circular dependency
-class CarduinoNode : public Logger {
+class CarduinoNode : public Logger, public SettingBase {
     private:
         String fallbackPageProcessor(const String& var);
         bool existsAllFiles();
@@ -94,7 +89,6 @@ class CarduinoNode : public Logger {
         Scheduler *scheduler;
         Task *temperatureTask;
         std::map<uint8_t, PinInformation*> *pinInformations;
-        std::map<uint8_t, SettingInformation*> *settings;
 
         CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssid, const char *password, bool logOnServer, bool logOnSerial);
         
@@ -121,13 +115,6 @@ class CarduinoNode : public Logger {
         virtual void turnOnInterrupt();
         virtual void turnOffInterrupt();
         void delayTask(int delay, std::function<void()> lambdaCallback);
-        void addSetting(Setting setting, bool value, std::function<void(SettingInformation*)> onChange = nullptr);
-        void addSetting(Setting setting, int value, std::function<void(SettingInformation*)> onChange = nullptr);
-        void addSetting(Setting setting, float value, std::function<void(SettingInformation*)> onChange = nullptr);
-        void putSettingValue(Setting setting, bool value);
-        void putSettingValue(Setting setting, int value);
-        void putSettingValue(Setting setting, float value);
-        SettingInformation* getSettingValue(Setting setting);
 
         static uint16_t generateId(const Category category, const Enum messageEnum);
         static uint16_t generateId(const Category category, uint8_t messageId);
