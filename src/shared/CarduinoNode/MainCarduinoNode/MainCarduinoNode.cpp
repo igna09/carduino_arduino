@@ -111,7 +111,7 @@ void MainCarduinoNode::handleReceivedSerialMessage(String receivedMessage) {
 
             if(typedEnumMessage != nullptr) {
                 if(typedEnumMessage->type->id == CanbusMessageType::BOOL.id) {
-                    canbusMessage = new CanbusMessage(generateId(*c, *typedEnumMessage), convertValueToByteArray(splittedUsbMessage->messages[2].equals("true")), 1);
+                    canbusMessage = new CanbusMessage(generateId(*c, *typedEnumMessage), convertValueToByteArray(splittedUsbMessage->messages[2].equals("TRUE")), 1);
                 } else if(typedEnumMessage->type->id == CanbusMessageType::INT.id) {
                     canbusMessage = new CanbusMessage(generateId(*c, *typedEnumMessage), convertValueToByteArray((int) splittedUsbMessage->messages[2].toInt()), 4);
                 } else if(typedEnumMessage->type->id == CanbusMessageType::FLOAT.id) {

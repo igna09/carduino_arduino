@@ -39,7 +39,7 @@ class ValueTypedBase
 
         String getValueToString() {
             if(this->type->id == CanbusMessageType::BOOL.id) {
-                return this->getBoolValue() ? "true" : "false";
+                return this->getBoolValue() ? "TRUE" : "FALSE";
             } else if(this->type->id == CanbusMessageType::INT.id) {
                 return String(this->getIntValue());
             } else if(this->type->id == CanbusMessageType::FLOAT.id) {
