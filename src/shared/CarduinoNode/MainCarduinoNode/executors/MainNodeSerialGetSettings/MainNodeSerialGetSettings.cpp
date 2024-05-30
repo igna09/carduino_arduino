@@ -5,12 +5,12 @@ MainNodeSerialGetSettings::MainNodeSerialGetSettings() : CarduinoNodeExecutorInt
 void MainNodeSerialGetSettings::execute(CarduinoNode *node, CanbusMessage *message) {
     node->sendCanbusMessage(message);
 
-    ReadSettingMessage *otaModeSettingMessage = new ReadSettingMessage(&Setting::OTA_MODE, node->getSettingValue(Setting::OTA_MODE)->valueType->boolValue);
+    SettingMessage *otaModeSettingMessage = new SettingMessage(&Setting::OTA_MODE, node->getSettingValue(Setting::OTA_MODE)->valueType->boolValue);
     ((MainCarduinoNode*)node)->sendSerialMessage(otaModeSettingMessage);
     delete otaModeSettingMessage;
 
 
-    ReadSettingMessage *restartSettingMessage = new ReadSettingMessage(&Setting::RESTART, node->getSettingValue(Setting::RESTART)->valueType->boolValue);
+    SettingMessage *restartSettingMessage = new SettingMessage(&Setting::RESTART, node->getSettingValue(Setting::RESTART)->valueType->boolValue);
     ((MainCarduinoNode*)node)->sendSerialMessage(restartSettingMessage);
     delete restartSettingMessage;
 
@@ -24,17 +24,17 @@ void MainNodeSerialGetSettings::execute(CarduinoNode *node, CanbusMessage *messa
             SettingInformation *settingInformation = it->second;
             Setting *setting = (Setting*) Setting::getValueById(it->first);
 
-            ReadSettingMessage *readSettingMessage = nullptr;
+            SettingMessage *settingMessage = nullptr;
             if(setting->type->id == CanbusMessageType::INT.id) {
-                readSettingMessage = new ReadSettingMessage(setting, settingInformation->valueType->intValue);
+                settingMessage = new SettingMessage(setting, settingInformation->valueType->intValue);
             } else if (setting->type->id == CanbusMessageType::FLOAT.id) {
-                readSettingMessage = new ReadSettingMessage(setting, settingInformation->valueType->floatValue);
+                settingMessage = new SettingMessage(setting, settingInformation->valueType->floatValue);
             } else if (setting->type->id == CanbusMessageType::BOOL.id) {
-                readSettingMessage = new ReadSettingMessage(setting, settingInformation->valueType->boolValue);
+                settingMessage = new SettingMessage(setting, settingInformation->valueType->boolValue);
             }
             
-            mainCarduinoNode->sendSerialMessage(readSettingMessage);
-            delete readSettingMessage;
+            mainCarduinoNode->sendSerialMessage(settingMessage);
+            delete settingMessage;
         }
     }
 };

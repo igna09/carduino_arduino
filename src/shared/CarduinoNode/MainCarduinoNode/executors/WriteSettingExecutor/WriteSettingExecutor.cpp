@@ -8,7 +8,7 @@ void WriteSettingExecutor::execute(CarduinoNode *node, CanbusMessage *message) {
     /**
      * THIS LOGIC HAS TO BE REPLICATED HERE BECAUSE CarduinoNodeWriteSetting WILL BE CALLED ONLY ON CANBUS MESSAGES (HERE WE ARE ON SERIAL)
     */
-    WriteSettingMessage *settingMessage = new WriteSettingMessage(*message);
+    SettingMessage *settingMessage = new SettingMessage(message);
 
     if(settingMessage->setting->type->id == CanbusMessageType::INT.id) {
         node->putSettingValue(*settingMessage->setting, settingMessage->getIntValue());

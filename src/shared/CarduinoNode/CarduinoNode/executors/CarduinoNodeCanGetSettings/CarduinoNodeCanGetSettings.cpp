@@ -13,17 +13,17 @@ void CarduinoNodeCanGetSettings::execute(CarduinoNode *node, CanbusMessage *mess
             SettingInformation *settingInformation = it->second;
             Setting *setting = (Setting*) Setting::getValueById(it->first);
 
-            ReadSettingMessage *readSettingMessage = nullptr;
+            SettingMessage *settingMessage = nullptr;
             if(setting->type->id == CanbusMessageType::INT.id) {
-                readSettingMessage = new ReadSettingMessage(setting, settingInformation->valueType->intValue);
+                settingMessage = new SettingMessage(setting, settingInformation->valueType->intValue);
             } else if (setting->type->id == CanbusMessageType::FLOAT.id) {
-                readSettingMessage = new ReadSettingMessage(setting, settingInformation->valueType->floatValue);
+                settingMessage = new SettingMessage(setting, settingInformation->valueType->floatValue);
             } else if (setting->type->id == CanbusMessageType::BOOL.id) {
-                readSettingMessage = new ReadSettingMessage(setting, settingInformation->valueType->boolValue);
+                settingMessage = new SettingMessage(setting, settingInformation->valueType->boolValue);
             }
             
-            node->sendCanbusMessage(readSettingMessage);
-            delete readSettingMessage;
+            node->sendCanbusMessage(settingMessage);
+            delete settingMessage;
         }
     }
 };

@@ -2,6 +2,7 @@
 
 #include <Arduino.h>
 #include "shared/CanbusMessage/CanbusMessage.h"
+#include "shared/CanbusMessage/SettingMessage/SettingMessage.h"
 #include "shared/CarduinoNode/CarduinoNode/CarduinoNode.h"
 #include "shared/CarduinoNode/MainCarduinoNode/MainCarduinoNode.h"
 #include "shared/executors/CarduinoNodeExecutorInterface.h"

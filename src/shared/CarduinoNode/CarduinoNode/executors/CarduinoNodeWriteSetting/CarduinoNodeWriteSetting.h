@@ -5,7 +5,7 @@
 #include "shared/CarduinoNode/CarduinoNode/CarduinoNode.h"
 #include "shared/executors/CarduinoNodeExecutorInterface.h"
 #include "shared/enums/Setting.h"
-#include "shared/CanbusMessage/WriteSettingMessage/WriteSettingMessage.h"
+#include "shared/CanbusMessage/SettingMessage/SettingMessage.h"
 #include "shared/enums/Category.h"
 #include "shared/executors/Executors.h"
 
