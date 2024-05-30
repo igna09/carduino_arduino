@@ -7,7 +7,7 @@
 inline const Enum* Category::values [CATEGORY_SIZE] = { 0 };
 inline uint8_t Category::index = 0;
 inline const Category Category::CAR_STATUS = Category(0x00, "CAR_STATUS", Carstatus::getValues, CarstatusMessage::createSpecializedCopy);
-inline const Category Category::READ_SETTING = Category(0x01, "READ_SETTING", Setting::getValues, nullptr);
+inline const Category Category::READ_SETTING = Category(0x01, "READ_SETTING", Setting::getValues, SettingMessage::createSpecializedCopy, Setting::getValueByName, Setting::getValueById);
 inline const Category Category::MEDIA_CONTROL = Category(0x02, "MEDIA_CONTROL", MediaControl::getValues, nullptr);
 inline const Category Category::WRITE_SETTING = Category(0x03, "WRITE_SETTING", Setting::getValues, SettingMessage::createSpecializedCopy, Setting::getValueByName, Setting::getValueById);
 // inline const Category Category::HEARTBEAT = Category(0x04, "HEARTBEAT");

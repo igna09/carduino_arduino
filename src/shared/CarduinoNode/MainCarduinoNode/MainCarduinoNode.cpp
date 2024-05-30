@@ -142,6 +142,7 @@ void MainCarduinoNode::manageReceivedUsbMessage(CanbusMessage message) {
 }
 
 void MainCarduinoNode::sendSerialMessage(CanbusMessage *message) {
+    printlnWrapper("MainCarduinoNode::sendSerialMessage " + message->toSerialHumanString());
     Serial.println(message->toSerialString());
     Serial.flush();
 }

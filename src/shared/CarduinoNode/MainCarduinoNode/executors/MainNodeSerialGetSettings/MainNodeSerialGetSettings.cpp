@@ -5,12 +5,12 @@ MainNodeSerialGetSettings::MainNodeSerialGetSettings() : CarduinoNodeExecutorInt
 void MainNodeSerialGetSettings::execute(CarduinoNode *node, CanbusMessage *message) {
     node->sendCanbusMessage(message);
 
-    SettingMessage *otaModeSettingMessage = new SettingMessage(&Setting::OTA_MODE, node->getSettingValue(Setting::OTA_MODE)->valueType->boolValue);
+    SettingMessage *otaModeSettingMessage = new SettingMessage(&Setting::OTA_MODE, true, node->getSettingValue(Setting::OTA_MODE)->valueType->boolValue);
     ((MainCarduinoNode*)node)->sendSerialMessage(otaModeSettingMessage);
     delete otaModeSettingMessage;
 
 
-    SettingMessage *restartSettingMessage = new SettingMessage(&Setting::RESTART, node->getSettingValue(Setting::RESTART)->valueType->boolValue);
+    SettingMessage *restartSettingMessage = new SettingMessage(&Setting::RESTART, true, node->getSettingValue(Setting::RESTART)->valueType->boolValue);
     ((MainCarduinoNode*)node)->sendSerialMessage(restartSettingMessage);
     delete restartSettingMessage;
 
@@ -26,11 +26,11 @@ void MainNodeSerialGetSettings::execute(CarduinoNode *node, CanbusMessage *messa
 
             SettingMessage *settingMessage = nullptr;
             if(setting->type->id == CanbusMessageType::INT.id) {
-                settingMessage = new SettingMessage(setting, settingInformation->valueType->intValue);
+                settingMessage = new SettingMessage(setting, true, settingInformation->valueType->intValue);
             } else if (setting->type->id == CanbusMessageType::FLOAT.id) {
-                settingMessage = new SettingMessage(setting, settingInformation->valueType->floatValue);
+                settingMessage = new SettingMessage(setting, true, settingInformation->valueType->floatValue);
             } else if (setting->type->id == CanbusMessageType::BOOL.id) {
-                settingMessage = new SettingMessage(setting, settingInformation->valueType->boolValue);
+                settingMessage = new SettingMessage(setting, true, settingInformation->valueType->boolValue);
             }
             
             mainCarduinoNode->sendSerialMessage(settingMessage);

@@ -11,9 +11,9 @@ class SettingMessage : public TypedCanbusMessage {
         const Setting *setting;
 
         SettingMessage(CanbusMessage *canbusMessage);
-        SettingMessage(const Setting *setting, int value);
-        SettingMessage(const Setting *setting, bool value);
-        SettingMessage(const Setting *setting, float value);
+        SettingMessage(const Setting *setting, bool isRead, int value);
+        SettingMessage(const Setting *setting, bool isRead, bool value);
+        SettingMessage(const Setting *setting, bool isRead, float value);
 
         static SettingMessage* createSpecializedCopy(CanbusMessage *canbusMessage);
         String toSerialHumanString() override;

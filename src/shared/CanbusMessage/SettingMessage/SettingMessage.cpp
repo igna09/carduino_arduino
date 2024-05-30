@@ -7,15 +7,15 @@ SettingMessage::SettingMessage(CanbusMessage *canbusMessage) : TypedCanbusMessag
     this->setting = (Setting*) Setting::getValueById(canbusMessage->messageId);
 };
 
-SettingMessage::SettingMessage(const Setting *setting, int value) : TypedCanbusMessage(CarduinoNode::generateId(Category::WRITE_SETTING, *setting), value) {
+SettingMessage::SettingMessage(const Setting *setting, bool isRead, int value) : TypedCanbusMessage(CarduinoNode::generateId(isRead ? Category::READ_SETTING : Category::WRITE_SETTING, *setting), value) {
     this->setting = setting;
 };
 
-SettingMessage::SettingMessage(const Setting *setting, float value) : TypedCanbusMessage(CarduinoNode::generateId(Category::WRITE_SETTING, *setting), value) {
+SettingMessage::SettingMessage(const Setting *setting, bool isRead, float value) : TypedCanbusMessage(CarduinoNode::generateId(isRead ? Category::READ_SETTING : Category::WRITE_SETTING, *setting), value) {
     this->setting = setting;
 };
 
-SettingMessage::SettingMessage(const Setting *setting, bool value) : TypedCanbusMessage(CarduinoNode::generateId(Category::WRITE_SETTING, *setting), value) {
+SettingMessage::SettingMessage(const Setting *setting, bool isRead, bool value) : TypedCanbusMessage(CarduinoNode::generateId(isRead ? Category::READ_SETTING : Category::WRITE_SETTING, *setting), value) {
     this->setting = setting;
 };
 
