@@ -21,6 +21,9 @@ class SettingBase {
     public:
         std::map<uint8_t, SettingInformation*> *settings;
         uint8_t nextAddress;    // next address is based on order of addSetting (so if I change order i have to reset values), TODO: base next address on order of setting id
+        uint8_t settingsMemorySize;
+        bool settingsSetupDone;
+        bool settingsLoaded;
 
         SettingBase();
         void addSetting(const Setting *setting, bool value, std::function<void(SettingInformation*)> onChange = nullptr);
@@ -32,4 +35,5 @@ class SettingBase {
         SettingInformation* getSettingValue(const Setting *setting);
         void saveSettings();
         void loadSettings();
+        void settingsSetup();
 };

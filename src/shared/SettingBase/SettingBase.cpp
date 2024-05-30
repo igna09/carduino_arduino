@@ -3,6 +3,9 @@
 SettingBase::SettingBase() {
     this->settings = new std::map<uint8_t, SettingInformation*>();
     this->nextAddress = 0;
+    this->settingsMemorySize = 0;
+    this->settingsSetupDone = false;
+    this->settingsLoaded = false;
 };
 
 void SettingBase::addSetting(const Setting *setting, bool value, std::function<void(SettingInformation*)> onChange) {
@@ -17,6 +20,7 @@ void SettingBase::addSetting(const Setting *setting, bool value, std::function<v
     settingInformation->address = this->nextAddress;
 
     this->nextAddress = this->nextAddress + sizeof(value);
+    this->settingsMemorySize += sizeof(value);
 }
 
 void SettingBase::addSetting(const Setting *setting, int value, std::function<void(SettingInformation*)> onChange) {
@@ -31,6 +35,7 @@ void SettingBase::addSetting(const Setting *setting, int value, std::function<vo
     settingInformation->address = this->nextAddress;
 
     this->nextAddress = this->nextAddress + sizeof(value);
+    this->settingsMemorySize += sizeof(value);
 }
 
 void SettingBase::addSetting(const Setting *setting, float value, std::function<void(SettingInformation*)> onChange) {
@@ -45,6 +50,7 @@ void SettingBase::addSetting(const Setting *setting, float value, std::function<
     settingInformation->address = this->nextAddress;
 
     this->nextAddress = this->nextAddress + sizeof(value);
+    this->settingsMemorySize += sizeof(value);
 }
 
 void SettingBase::putSettingValue(const Setting *setting, bool value) {
@@ -94,9 +100,9 @@ void SettingBase::saveSettings() {
     std::map<uint8_t, SettingInformation*>::iterator it;
 
     for(it = this->settings->begin(); it != this->settings->end(); it++) {
-        Serial.print(it->second->setting->name);
-        Serial.print(" ");
-        Serial.println(it->second->address);
+        // Serial.print(it->second->setting->name);
+        // Serial.print(" ");
+        // Serial.println(it->second->address);
 
         // if(it->second->setting->type->id == CanbusMessageType::BOOL.id) {
         //     EEPROM.put(it->second->address, it->second->valueType->boolValue);
@@ -111,12 +117,24 @@ void SettingBase::saveSettings() {
 }
 
 void SettingBase::loadSettings() {
+    if(!this->settingsSetupDone) {
+        this->settingsSetup();
+    }
+
     std::map<uint8_t, SettingInformation*>::iterator it;
 
     for(it = this->settings->begin(); it != this->settings->end(); it++) {
-        Serial.print(it->second->setting->name);
-        Serial.print(" ");
-        Serial.println(it->second->address);
+        // Serial.print(it->second->setting->name);
+        // Serial.print(" ");
+        // Serial.print(it->second->address);
+        // Serial.print(" ");
+        // if(it->second->setting->type->id == CanbusMessageType::BOOL.id) {
+        //     Serial.println(sizeof(it->second->valueType->boolValue));
+        // } else if(it->second->setting->type->id == CanbusMessageType::INT.id) {
+        //     Serial.println(sizeof(it->second->valueType->intValue));
+        // } else if(it->second->setting->type->id == CanbusMessageType::FLOAT.id) {
+        //     Serial.println(sizeof(it->second->valueType->floatValue));
+        // }
 
         // if(it->second->setting->type->id == CanbusMessageType::BOOL.id) {
         //     EEPROM.get(it->second->address, it->second->valueType->boolValue);
@@ -126,4 +144,11 @@ void SettingBase::loadSettings() {
         //     EEPROM.get(it->second->address, it->second->valueType->floatValue);
         // }
     }
+
+    this->settingsLoaded = true;
+}
+
+void SettingBase::settingsSetup() {
+    EEPROM.begin(this->settingsMemorySize);
+    this->settingsSetupDone = true;
 }

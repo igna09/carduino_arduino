@@ -346,6 +346,15 @@ void CarduinoNode::sendEvent(const Event *event, int senderReceiverId) {
 
 void CarduinoNode::turnOn() {
     this->printlnWrapper("CarduinoNode::turnOn");
+
+    if(!this->settingsSetupDone) {
+        this->settingsSetup();
+        this->printlnWrapper("CarduinoNode::turnOn settings setup done");
+    }
+    if(!this->settingsLoaded) {
+        this->loadSettings();
+        this->printlnWrapper("CarduinoNode::turnOn settings loaded");
+    }
 }
 
 void CarduinoNode::turnOff() {
