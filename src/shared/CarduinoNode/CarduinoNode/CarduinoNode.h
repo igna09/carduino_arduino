@@ -58,6 +58,7 @@ const char FALLBACK_PAGE[] PROGMEM = R"rawliteral(
 )rawliteral";
 
 #define DIGITAL_PINS_UPDATE_INTERVAL 20
+#define WRITE_SETTINGS_ON_EEPROM_INTERVAL 30000
 
 struct PinInformation {
     uint8_t pin;

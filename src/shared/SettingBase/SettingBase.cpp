@@ -107,12 +107,13 @@ void SettingBase::saveSettings() {
 
     std::map<uint8_t, SettingInformation*>::iterator it;
     for(it = this->settings->begin(); it != this->settings->end(); it++) {
-        if(it->second->setting->type->id == CanbusMessageType::BOOL.id) {
-            EEPROM.put(it->second->address, it->second->valueType->boolValue);
-        } else if(it->second->setting->type->id == CanbusMessageType::INT.id) {
-            EEPROM.put(it->second->address, it->second->valueType->intValue);
-        } else if(it->second->setting->type->id == CanbusMessageType::FLOAT.id) {
-            EEPROM.put(it->second->address, it->second->valueType->floatValue);
+        SettingInformation *settingInformation = it->second;
+        if(settingInformation->setting->type->id == CanbusMessageType::BOOL.id) {
+            EEPROM.put(settingInformation->address, settingInformation->valueType->boolValue);
+        } else if(settingInformation->setting->type->id == CanbusMessageType::INT.id) {
+            EEPROM.put(settingInformation->address, settingInformation->valueType->intValue);
+        } else if(settingInformation->setting->type->id == CanbusMessageType::FLOAT.id) {
+            EEPROM.put(settingInformation->address, settingInformation->valueType->floatValue);
         }
     }
 
