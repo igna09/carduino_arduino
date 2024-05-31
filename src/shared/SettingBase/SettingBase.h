@@ -15,7 +15,8 @@
 
 struct SettingInformation {
     const Setting *setting;
-    ValueType *valueType;
+    ValueType *value;
+    ValueType *defaultValue;
     std::function<void(SettingInformation*)> onChange;
     uint8_t address;
 };
@@ -42,4 +43,5 @@ class SettingBase {
         void loadSettings();
         void settingsSetup();
         uint16_t calculateSettingsCrcFromRam();
+        void resetEepromSettings();
 };

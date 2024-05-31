@@ -10,13 +10,15 @@ SettingBase::SettingBase() {
 
 void SettingBase::addSetting(const Setting *setting, bool value, std::function<void(SettingInformation*)> onChange) {
     SettingInformation *settingInformation = new SettingInformation();
-    settingInformation->valueType = new ValueType();
+    settingInformation->value = new ValueType();
+    settingInformation->defaultValue = new ValueType();
     
     (*this->settings)[setting->id] = settingInformation;
 
     settingInformation->setting = setting;
     settingInformation->onChange = onChange;
-    settingInformation->valueType->boolValue = value;
+    settingInformation->value->boolValue = value;
+    settingInformation->defaultValue->boolValue = value;
     settingInformation->address = this->nextAddress;
 
     this->nextAddress += sizeof(value);
@@ -25,13 +27,15 @@ void SettingBase::addSetting(const Setting *setting, bool value, std::function<v
 
 void SettingBase::addSetting(const Setting *setting, int value, std::function<void(SettingInformation*)> onChange) {
     SettingInformation *settingInformation = new SettingInformation();
-    settingInformation->valueType = new ValueType();
+    settingInformation->value = new ValueType();
+    settingInformation->defaultValue = new ValueType();
     
     (*this->settings)[setting->id] = settingInformation;
 
     settingInformation->setting = setting;
     settingInformation->onChange = onChange;
-    settingInformation->valueType->intValue = value;
+    settingInformation->value->intValue = value;
+    settingInformation->defaultValue->intValue = value;
     settingInformation->address = this->nextAddress;
 
     this->nextAddress += sizeof(value);
@@ -40,13 +44,15 @@ void SettingBase::addSetting(const Setting *setting, int value, std::function<vo
 
 void SettingBase::addSetting(const Setting *setting, float value, std::function<void(SettingInformation*)> onChange) {
     SettingInformation *settingInformation = new SettingInformation();
-    settingInformation->valueType = new ValueType();
+    settingInformation->value = new ValueType();
+    settingInformation->defaultValue = new ValueType();
     
     (*this->settings)[setting->id] = settingInformation;
 
     settingInformation->setting = setting;
     settingInformation->onChange = onChange;
-    settingInformation->valueType->floatValue = value;
+    settingInformation->value->floatValue = value;
+    settingInformation->defaultValue->floatValue = value;
     settingInformation->address = this->nextAddress;
 
     this->nextAddress += sizeof(value);
@@ -57,7 +63,7 @@ void SettingBase::putSettingValue(const Setting *setting, bool value) {
     SettingInformation *settingInformation = getSettingValue(setting);
 
     if(settingInformation != nullptr) {
-        settingInformation->valueType->boolValue = value;
+        settingInformation->value->boolValue = value;
         if(settingInformation->onChange != nullptr) {
             settingInformation->onChange(settingInformation);
         }
@@ -68,7 +74,7 @@ void SettingBase::putSettingValue(const Setting *setting, float value) {
     SettingInformation *settingInformation = getSettingValue(setting);
 
     if(settingInformation != nullptr) {
-        settingInformation->valueType->floatValue = value;
+        settingInformation->value->floatValue = value;
         if(settingInformation->onChange != nullptr) {
             settingInformation->onChange(settingInformation);
         }
@@ -79,7 +85,7 @@ void SettingBase::putSettingValue(const Setting *setting, int value) {
     SettingInformation *settingInformation = getSettingValue(setting);
 
     if(settingInformation != nullptr) {
-        settingInformation->valueType->intValue = value;
+        settingInformation->value->intValue = value;
         if(settingInformation->onChange != nullptr) {
             settingInformation->onChange(settingInformation);
         }
@@ -109,11 +115,11 @@ void SettingBase::saveSettings() {
     for(it = this->settings->begin(); it != this->settings->end(); it++) {
         SettingInformation *settingInformation = it->second;
         if(settingInformation->setting->type->id == CanbusMessageType::BOOL.id) {
-            EEPROM.put(settingInformation->address, settingInformation->valueType->boolValue);
+            EEPROM.put(settingInformation->address, settingInformation->value->boolValue);
         } else if(settingInformation->setting->type->id == CanbusMessageType::INT.id) {
-            EEPROM.put(settingInformation->address, settingInformation->valueType->intValue);
+            EEPROM.put(settingInformation->address, settingInformation->value->intValue);
         } else if(settingInformation->setting->type->id == CanbusMessageType::FLOAT.id) {
-            EEPROM.put(settingInformation->address, settingInformation->valueType->floatValue);
+            EEPROM.put(settingInformation->address, settingInformation->value->floatValue);
         }
     }
 
@@ -152,11 +158,11 @@ void SettingBase::loadSettings() {
         for(it = this->settings->begin(); it != this->settings->end(); it++) {
             SettingInformation *settingInformation = it->second;
             if(settingInformation->setting->type->id == CanbusMessageType::BOOL.id) {
-                EEPROM.get(settingInformation->address, settingInformation->valueType->boolValue);
+                EEPROM.get(settingInformation->address, settingInformation->value->boolValue);
             } else if(settingInformation->setting->type->id == CanbusMessageType::INT.id) {
-                EEPROM.get(settingInformation->address, settingInformation->valueType->intValue);
+                EEPROM.get(settingInformation->address, settingInformation->value->intValue);
             } else if(settingInformation->setting->type->id == CanbusMessageType::FLOAT.id) {
-                EEPROM.get(settingInformation->address, settingInformation->valueType->floatValue);
+                EEPROM.get(settingInformation->address, settingInformation->value->floatValue);
             }
         }
     }
@@ -176,12 +182,28 @@ uint16_t SettingBase::calculateSettingsCrcFromRam() {
     for(it = this->settings->begin(); it != this->settings->end(); it++) {
         SettingInformation *settingInformation = it->second;
         if(settingInformation->setting->type->id == CanbusMessageType::BOOL.id) {
-            crc.add(settingInformation->valueType->boolValue);
+            crc.add(settingInformation->value->boolValue);
         } else if(settingInformation->setting->type->id == CanbusMessageType::INT.id) {
-            crc.add(settingInformation->valueType->intValue);
+            crc.add(settingInformation->value->intValue);
         } else if(settingInformation->setting->type->id == CanbusMessageType::FLOAT.id) {
-            crc.add(settingInformation->valueType->floatValue);
+            crc.add(settingInformation->value->floatValue);
         }
     }
     return crc.calc();
+}
+
+void SettingBase::resetEepromSettings() {
+    std::map<uint8_t, SettingInformation*>::iterator it;
+    for(it = this->settings->begin(); it != this->settings->end(); it++) {
+        SettingInformation *settingInformation = it->second;
+        if(settingInformation->setting->type->id == CanbusMessageType::BOOL.id) {
+            settingInformation->value->boolValue = settingInformation->defaultValue->boolValue;
+        } else if(settingInformation->setting->type->id == CanbusMessageType::INT.id) {
+            settingInformation->value->intValue = settingInformation->defaultValue->intValue;
+        } else if(settingInformation->setting->type->id == CanbusMessageType::FLOAT.id) {
+            settingInformation->value->floatValue = settingInformation->defaultValue->floatValue;
+        }
+    }
+
+    this->saveSettings();
 }

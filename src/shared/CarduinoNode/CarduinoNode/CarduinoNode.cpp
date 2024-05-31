@@ -37,14 +37,14 @@ CarduinoNode::CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssi
     this->pinInformations = new std::map<uint8_t, PinInformation*>();
 
     this->addSetting(&Setting::RESTART, false, [&](SettingInformation *settingInformation){
-        if(settingInformation->valueType->boolValue) {
+        if(settingInformation->value->boolValue) {
             this->delayTask(1000, [&](){
                 this->restart();
             });
         }
     });
     this->addSetting(&Setting::OTA_MODE, false, [&](SettingInformation *settingInformation){
-        if(settingInformation->valueType->boolValue) {
+        if(settingInformation->value->boolValue) {
             this->otaStartup();
         } else {
             this->otaShutdown();

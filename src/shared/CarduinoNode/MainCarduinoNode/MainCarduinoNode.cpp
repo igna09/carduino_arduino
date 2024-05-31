@@ -2,7 +2,7 @@
 
 MainCarduinoNode::MainCarduinoNode(uint8_t id, int cs, int interruptPin, char *ssid, char *password) : CarduinoNode(id, cs, interruptPin, ssid, password, true, false) {
     this->addSetting(&Setting::SWC_PAIR, false, [&](SettingInformation *settingInformation){
-        if(settingInformation->valueType->boolValue) {
+        if(settingInformation->value->boolValue) {
             this->startSwcPairing();
         }
     });

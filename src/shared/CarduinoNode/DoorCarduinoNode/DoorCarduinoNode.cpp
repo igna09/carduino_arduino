@@ -79,7 +79,7 @@ void DoorCarduinoNode::stopMoveMirrors() {
 
 void DoorCarduinoNode::openMirrors() {
 	printlnWrapper("DoorCarduinoNode::openMirrors");
-	if(this->getSettingValue(&Setting::AUTO_CLOSE_REARVIEW_MIRRORS)->valueType->boolValue) {
+	if(this->getSettingValue(&Setting::AUTO_CLOSE_REARVIEW_MIRRORS)->value->boolValue) {
 		printlnWrapper("DoorCarduinoNode::openMirrors opening");
 		this->pcf8574->digitalWrite(PIN_OPEN_MIRRORS, LOW);
 	}
@@ -87,7 +87,7 @@ void DoorCarduinoNode::openMirrors() {
 
 void DoorCarduinoNode::closeMirrors() {
 	printlnWrapper("DoorCarduinoNode::closeMirrors");
-	if(this->getSettingValue(&Setting::AUTO_CLOSE_REARVIEW_MIRRORS)->valueType->boolValue) {
+	if(this->getSettingValue(&Setting::AUTO_CLOSE_REARVIEW_MIRRORS)->value->boolValue) {
 		printlnWrapper("DoorCarduinoNode::openMirrors closing");
 		this->pcf8574->digitalWrite(PIN_OPEN_MIRRORS, HIGH);
 	}
