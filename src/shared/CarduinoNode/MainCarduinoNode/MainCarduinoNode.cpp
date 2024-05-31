@@ -62,8 +62,6 @@ void MainCarduinoNode::temperatureCallback() {
     sendSerialMessage(&m);
 };
 
-unsigned long int next = 0;
-
 void MainCarduinoNode::loop() {
     CarduinoNode::loop();
 
