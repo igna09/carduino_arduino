@@ -4,9 +4,14 @@
 #include <EEPROM.h>
 #include <map>
 #include <functional>
+#include "CRC16.h"
+#include "CRC.h"
 
 #include "shared/SharedDefinitions.h"
 #include "shared/enums/Setting.h"
+
+#define CRC_ADDRESS 0
+#define CRC_SIZE 2
 
 struct SettingInformation {
     const Setting *setting;
@@ -36,4 +41,5 @@ class SettingBase {
         void saveSettings();
         void loadSettings();
         void settingsSetup();
+        uint16_t calculateSettingsCrcFromRam();
 };

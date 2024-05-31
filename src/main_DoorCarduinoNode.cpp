@@ -16,15 +16,17 @@ void setup(void) {
   	doorCarduinoNode = new DoorCarduinoNode(0x03, D8, D0, "SSID_DOOR_CARDUINO_NODE", "pwd12345");
 }
 
-unsigned long lastSent = millis();
+unsigned long lastSent = 0;
 
 void loop(void) {
   	doorCarduinoNode->loop();
-	// if(millis() > lastSent + 1000) {
-	// 		lastSent = millis();
-	// 		printFreeHeap("loop");
-	// 		const MediaControl *mc = (const MediaControl*) MediaControl::getValueById(random(3));
-	// 		Serial.println(mc->name);
-	// 		mediaControlCarduinoNode->sendMediaControlMessage(mc);
+	// if(millis() > lastSent + 15000 && lastSent == 0) {
+	// 	lastSent = millis();
+		// Serial.println("first loop after 15 seconds");
+		// doorCarduinoNode->saveSettings();
+		// printFreeHeap("loop");
+		// const MediaControl *mc = (const MediaControl*) MediaControl::getValueById(random(3));
+		// Serial.println(mc->name);
+		// mediaControlCarduinoNode->sendMediaControlMessage(mc);
 	// }
 }
