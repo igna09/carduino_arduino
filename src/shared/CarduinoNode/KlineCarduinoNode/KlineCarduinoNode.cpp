@@ -25,6 +25,11 @@ KlineCarduinoNode::KlineCarduinoNode(uint8_t id, uint8_t pin_rx, uint8_t pin_tx,
     this->kLine = new KLineKWP1281Lib(beginFunction, endFunction, sendFunction, receiveFunction, pin_tx, true);
 	this->lastConnectedEcu = nullptr;
 
+	/**
+	 * check if overhead is for use of std::Function
+	*/
+	// KlineCallback<void(void)>::func = std::bind(&KlineCarduinoNode::readValues, this);
+    // readValuesTask = new Task(500, TASK_FOREVER, static_cast<TaskCallback>(KlineCallback<void(void)>::callback), scheduler, true);
     readValuesTask = new Task(500, TASK_FOREVER, std::bind(&KlineCarduinoNode::readValues, this), scheduler, true);
 
 	this->afterReadExecutors = new AfterReadExecutors();
@@ -34,6 +39,7 @@ KlineCarduinoNode::KlineCarduinoNode(uint8_t id, uint8_t pin_rx, uint8_t pin_tx,
 };
 
 void KlineCarduinoNode::readValues() {
+	// bool isOtaMode = this->getSettingValue(&Setting::OTA_MODE)->value->boolValue;
 	// Serial.println("KlineCarduinoNode::readValues() start");
 	// unsigned long start = millis();
 	// Serial.println("start readValues()");
@@ -65,9 +71,9 @@ void KlineCarduinoNode::readValues() {
 					// }
 				}
 				if(this->klineConnected) {
-					if(this->getSettingValue(&Setting::OTA_MODE)->value->boolValue) {
-						this->otaShutdown();
-					}
+					// if(this->getSettingValue(&Setting::OTA_MODE)->value->boolValue) {
+					// 	this->otaShutdown();
+					// }
 
 					lastConnectedEcu = klineEcuEnum;
 					for(uint8_t blockValuesByEcuIndex = 0; blockValuesByEcuIndex < blockValuesByEcuSize; blockValuesByEcuIndex++) {
