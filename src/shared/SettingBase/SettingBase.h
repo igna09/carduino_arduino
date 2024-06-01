@@ -39,9 +39,9 @@ class SettingBase {
         void putSettingValue(const Setting *setting, int value);
         void putSettingValue(const Setting *setting, float value);
         SettingInformation* getSettingValue(const Setting *setting);
-        void saveSettings();
-        void loadSettings();
+        void backupSettings();
+        void restoreSettings();
         void settingsSetup();
-        uint16_t calculateSettingsCrcFromRam();
+        uint16_t computeSettingsCrc(std::map<uint8_t, SettingInformation*> *settings);
         void resetEepromSettings();
 };

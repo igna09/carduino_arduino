@@ -102,14 +102,17 @@ SettingInformation* SettingBase::getSettingValue(const Setting *setting) {
     }
 }
 
-void SettingBase::saveSettings() {
-    // Serial.println("SettingBase::saveSettings");
+void SettingBase::backupSettings() {
+    // Serial.println("SettingBase::backupSettings");
     if(!this->settingsSetupDone) {
         this->settingsSetup();
     }
 
-    uint16_t calculateSettingsCrcFromRam = this->calculateSettingsCrcFromRam();
-    EEPROM.put(CRC_ADDRESS, calculateSettingsCrcFromRam);
+    /**
+     * compute CRC from RAM settings
+    */
+    uint16_t computeSettingsCrc = this->computeSettingsCrc(this->settings);
+    EEPROM.put(CRC_ADDRESS, computeSettingsCrc);
 
     std::map<uint8_t, SettingInformation*>::iterator it;
     for(it = this->settings->begin(); it != this->settings->end(); it++) {
@@ -126,11 +129,14 @@ void SettingBase::saveSettings() {
     EEPROM.commit();
 }
 
-void SettingBase::loadSettings() {
+void SettingBase::restoreSettings() {
     if(!this->settingsSetupDone) {
         this->settingsSetup();
     }
 
+    /**
+     * compute CRC from EEPROM settings
+    */
     std::map<uint8_t, SettingInformation*>::iterator it;
     CRC16 crc;
     for(it = this->settings->begin(); it != this->settings->end(); it++) {
@@ -151,6 +157,9 @@ void SettingBase::loadSettings() {
     }
     uint16_t crcCalculatedFromEepromSettings = crc.calc();
 
+    /**
+     * get CRC stored on EEPROM
+    */
     uint16_t crcFromEeprom;
     EEPROM.get(CRC_ADDRESS, crcFromEeprom);
 
@@ -175,11 +184,11 @@ void SettingBase::settingsSetup() {
     this->settingsSetupDone = true;
 }
 
-uint16_t SettingBase::calculateSettingsCrcFromRam() {
+uint16_t SettingBase::computeSettingsCrc(std::map<uint8_t, SettingInformation*> *settings) {
     std::map<uint8_t, SettingInformation*>::iterator it;
     CRC16 crc;
 
-    for(it = this->settings->begin(); it != this->settings->end(); it++) {
+    for(it = settings->begin(); it != settings->end(); it++) {
         SettingInformation *settingInformation = it->second;
         if(settingInformation->setting->type->id == CanbusMessageType::BOOL.id) {
             crc.add(settingInformation->value->boolValue);
@@ -205,5 +214,5 @@ void SettingBase::resetEepromSettings() {
         }
     }
 
-    this->saveSettings();
+    this->backupSettings();
 }
