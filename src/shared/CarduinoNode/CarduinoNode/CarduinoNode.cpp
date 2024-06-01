@@ -64,7 +64,7 @@ CarduinoNode::CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssi
     new Task(HEARTBEAT_INTERVAL, TASK_FOREVER, std::bind(&CarduinoNode::sendHeartbeat, this), this->scheduler, true);
     // SecondaryLoopCallback<void(void)>::func = std::bind(&CarduinoNode::secondaryLoopCallback, this);
     // new Task(100, TASK_FOREVER, static_cast<TaskCallback>(SecondaryLoopCallback<void(void)>::callback), this->scheduler, true);
-    new Task(DIGITAL_PINS_UPDATE_INTERVAL, TASK_FOREVER, std::bind(&CarduinoNode::readDigitalPins, this), this->scheduler, false);
+    new Task(DIGITAL_PINS_UPDATE_INTERVAL, TASK_FOREVER, std::bind(&CarduinoNode::readDigitalPins, this), this->scheduler, true);
     Task *backupSettingsTask = new Task(WRITE_SETTINGS_ON_EEPROM_INTERVAL, TASK_FOREVER, [&](){
         this->saveSettings();
         this->printlnWrapper("CarduinoNode::CarduinoNode LAMBDA settings saved");
