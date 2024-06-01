@@ -7,14 +7,14 @@ void CarduinoNodeCanPowerEvents::execute(CarduinoNode *node, CanbusMessage *mess
     node->printlnWrapper("CarduinoNodeCanPowerEvents::execute");
 
     if(eventMessage->getIntValue() == node->id || eventMessage->getIntValue() == ALL_NODES) {
-        if(eventMessage->event->id == Event::TURN_ON.id) {
-            node->turnOn();
-        } else if(eventMessage->event->id == Event::TURN_OFF.id) {
-            node->turnOff();
-        } else if(eventMessage->event->id == Event::TURN_ON_INTERRUPT.id) {
-            node->turnOnInterrupt();
-        } else if(eventMessage->event->id == Event::TURN_OFF_INTERRUPT.id) {
-            node->turnOffInterrupt();
+        if(eventMessage->event->id == Event::ENABLE.id) {
+            node->enable();
+        } else if(eventMessage->event->id == Event::DISABLE.id) {
+            node->disable();
+        } else if(eventMessage->event->id == Event::ENABLE_INTERRUPT.id) {
+            node->enableInterrupt();
+        } else if(eventMessage->event->id == Event::DISABLE_INTERRUPT.id) {
+            node->disableInterrupt();
         }
     }
 

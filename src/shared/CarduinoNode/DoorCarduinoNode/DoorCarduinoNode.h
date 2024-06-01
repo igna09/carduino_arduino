@@ -50,10 +50,10 @@ class DoorCarduinoNode : public CarduinoNode {
         void pcfSetup();
         bool usingMirrors();
         bool readSelectorClosed();
-        void turnOn() override;
-        void turnOff() override;
-        void turnOffInterrupt() override;
-        void turnOnInterrupt() override;
+        void enable() override;
+        void disable() override;
+        void disableInterrupt() override;
+        void enableInterrupt() override;
 
         void voltageCallback();
 };

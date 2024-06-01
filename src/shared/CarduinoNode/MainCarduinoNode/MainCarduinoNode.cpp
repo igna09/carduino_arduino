@@ -232,11 +232,11 @@ void MainCarduinoNode::turnOffSystem() {
 //         this->isKeyOn = false;
 //         // this->turnOffRadioTask-> // reset remaining timer
 //         this->turnOffRadioTask->restartDelayed();
-//         this->sendEvent(&Event::TURN_OFF);
+//         this->sendEvent(&Event::DISABLE);
 //     } else if(!pinInformation->isHigh && this->turnOffRadioTask->isEnabled()) {
 //         this->turnOffRadioTask->disable();
 //         this->isKeyOn = true;
-//         this->sendEvent(&Event::TURN_OFF_INTERRUPT);
+//         this->sendEvent(&Event::DISABLE_INTERRUPT);
 //     }
 // }
 
@@ -281,10 +281,10 @@ void MainCarduinoNode::pcfDigitalPinsSetup() {
         if(!this->isKeyOn) {
             // this->turnOffRadioTask-> // reset remaining timer
             this->turnOffRadioTask->restartDelayed();
-            this->sendEvent(&Event::TURN_OFF, ALL_NODES);
+            this->sendEvent(&Event::DISABLE, ALL_NODES);
         } else if(this->isKeyOn && this->turnOffRadioTask->isEnabled()) {
             this->turnOffRadioTask->disable();
-            this->sendEvent(&Event::TURN_OFF_INTERRUPT, ALL_NODES);
+            this->sendEvent(&Event::DISABLE_INTERRUPT, ALL_NODES);
         }
     });
 }

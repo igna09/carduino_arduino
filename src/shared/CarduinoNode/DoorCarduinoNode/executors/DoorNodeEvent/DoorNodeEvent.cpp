@@ -8,9 +8,9 @@ void DoorNodeEvent::execute(CarduinoNode *node, CanbusMessage *message) {
 
     // doorCarduinoNode->printlnWrapper("received event " + String(eventMessage->event->name));
     
-    // if(/*eventMessage->event->id == Event::TURN_ON.id ||*/ eventMessage->event->id == Event::TURN_OFF_INTERRUPT.id) {
+    // if(/*eventMessage->event->id == Event::ENABLE.id ||*/ eventMessage->event->id == Event::DISABLE_INTERRUPT.id) {
     //     doorCarduinoNode->openMirrors();
-    // } else if(eventMessage->event->id == Event::TURN_OFF.id || eventMessage->event->id == Event::TURN_ON_INTERRUPT.id) {
+    // } else if(eventMessage->event->id == Event::DISABLE.id || eventMessage->event->id == Event::ENABLE_INTERRUPT.id) {
     //     doorCarduinoNode->setdown();
     // }
 

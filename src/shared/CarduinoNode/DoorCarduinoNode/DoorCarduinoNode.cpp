@@ -149,9 +149,9 @@ bool DoorCarduinoNode::readSelectorClosed() {
 	return this->pcf8574->digitalRead(PIN_MIRROR_SELECTOR_ON_CLOSED, true) == HIGH;
 }
 
-void DoorCarduinoNode::turnOn() {
-	CarduinoNode::turnOn();
-	printlnWrapper("DoorCarduinoNode::turnOn");
+void DoorCarduinoNode::enable() {
+	CarduinoNode::enable();
+	printlnWrapper("DoorCarduinoNode::enable");
 
 	delayTask(1500, [&](){
 		if(!this->mirrorSelectorOnClosed) {
@@ -160,9 +160,9 @@ void DoorCarduinoNode::turnOn() {
 	});
 }
 
-void DoorCarduinoNode::turnOff() {
-	CarduinoNode::turnOff();
-	printlnWrapper("DoorCarduinoNode::turnOff");
+void DoorCarduinoNode::disable() {
+	CarduinoNode::disable();
+	printlnWrapper("DoorCarduinoNode::disable");
 
 	delayTask(1500, [&](){
 		if(!this->mirrorSelectorOnClosed) {
@@ -171,18 +171,18 @@ void DoorCarduinoNode::turnOff() {
 	});
 }
 
-void DoorCarduinoNode::turnOffInterrupt() {
-	CarduinoNode::turnOffInterrupt();
-	printlnWrapper("DoorCarduinoNode::turnOffInterrupt");
+void DoorCarduinoNode::disableInterrupt() {
+	CarduinoNode::disableInterrupt();
+	printlnWrapper("DoorCarduinoNode::disableInterrupt");
 
 	if(!this->mirrorSelectorOnClosed) {
 		this->openMirrors();
 	}
 }
 
-void DoorCarduinoNode::turnOnInterrupt() {
-	CarduinoNode::turnOnInterrupt();
-	printlnWrapper("DoorCarduinoNode::turnOnInterrupt");
+void DoorCarduinoNode::enableInterrupt() {
+	CarduinoNode::enableInterrupt();
+	printlnWrapper("DoorCarduinoNode::enableInterrupt");
 
 	if(!this->mirrorSelectorOnClosed) {
 		this->closeMirrors();

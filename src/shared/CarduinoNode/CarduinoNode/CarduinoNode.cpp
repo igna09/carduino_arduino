@@ -348,29 +348,29 @@ void CarduinoNode::sendEvent(const Event *event, int senderReceiverId) {
     delete eventMessage;
 }
 
-void CarduinoNode::turnOn() {
-    this->printlnWrapper("CarduinoNode::turnOn");
+void CarduinoNode::enable() {
+    this->printlnWrapper("CarduinoNode::enable");
 
     if(!this->settingsSetupDone) {
         this->settingsSetup();
-        this->printlnWrapper("CarduinoNode::turnOn settings setup done");
+        this->printlnWrapper("CarduinoNode::enable settings setup done");
     }
     if(!this->settingsLoaded) {
         this->loadSettings();
-        this->printlnWrapper("CarduinoNode::turnOn settings loaded");
+        this->printlnWrapper("CarduinoNode::enable settings loaded");
     }
 }
 
-void CarduinoNode::turnOff() {
-    this->printlnWrapper("CarduinoNode::turnOff");
+void CarduinoNode::disable() {
+    this->printlnWrapper("CarduinoNode::disable");
 }
 
-void CarduinoNode::turnOnInterrupt() {
-    this->printlnWrapper("CarduinoNode::turnOnInterrupt");
+void CarduinoNode::enableInterrupt() {
+    this->printlnWrapper("CarduinoNode::enableInterrupt");
 }
 
-void CarduinoNode::turnOffInterrupt() {
-    this->printlnWrapper("CarduinoNode::turnOffInterrupt");
+void CarduinoNode::disableInterrupt() {
+    this->printlnWrapper("CarduinoNode::disableInterrupt");
 }
 
 void CarduinoNode::addPinToRead(uint8_t pin, PCF8574 *pcf8574, std::function<void(PinInformation*)> onChange) {

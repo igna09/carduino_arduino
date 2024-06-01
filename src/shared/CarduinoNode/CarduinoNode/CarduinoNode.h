@@ -111,10 +111,10 @@ class CarduinoNode : public Logger, public SettingBase {
         void addPinToRead(uint8_t pin, PCF8574 *pcf8574 = nullptr, std::function<void(PinInformation*)> onChange = nullptr);
         PinInformation* getPinInformation(uint8_t pin);
         void readDigitalPins();
-        virtual void turnOn();
-        virtual void turnOff();
-        virtual void turnOnInterrupt();
-        virtual void turnOffInterrupt();
+        virtual void enable();
+        virtual void disable();
+        virtual void enableInterrupt();
+        virtual void disableInterrupt();
         void delayTask(int delay, std::function<void()> lambdaCallback);
 
         static uint16_t generateId(const Category category, const Enum messageEnum);
