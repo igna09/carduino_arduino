@@ -11,6 +11,7 @@ CarduinoNode::CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssi
     this->_fallbackPage = true;
     this->_originalLogOnSerial = logOnSerial;
     this->_originalLogOnWebserver = logOnServer;
+    this->isEnabled = false;
 
     if (!LittleFS.begin()) {
         Serial.println("An Error has occurred while mounting LittleFS");
@@ -351,6 +352,8 @@ void CarduinoNode::sendEvent(const Event *event, int nodeId) {
 void CarduinoNode::enable() {
     this->printlnWrapper("CarduinoNode::enable");
 
+    this->isEnabled = true;
+
     if(!this->settingsLoaded) {
         this->restoreSettings();
         this->printlnWrapper("CarduinoNode::enable settings loaded");
@@ -359,14 +362,20 @@ void CarduinoNode::enable() {
 
 void CarduinoNode::disable() {
     this->printlnWrapper("CarduinoNode::disable");
+
+    this->isEnabled = false;
 }
 
 void CarduinoNode::enableInterrupt() {
     this->printlnWrapper("CarduinoNode::enableInterrupt");
+
+    this->isEnabled = false;
 }
 
 void CarduinoNode::disableInterrupt() {
     this->printlnWrapper("CarduinoNode::disableInterrupt");
+
+    this->isEnabled = true;
 }
 
 void CarduinoNode::addPinToRead(uint8_t pin, PCF8574 *pcf8574, std::function<void(PinInformation*)> onChange) {

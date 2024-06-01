@@ -77,6 +77,7 @@ class CarduinoNode : public Logger, public SettingBase {
         void setupServerWebapp();
         void setupServerFallback();
         bool _fallbackPage;
+        bool isEnabled;
 
     public:
         uint8_t id;
