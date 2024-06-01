@@ -165,6 +165,7 @@ void DoorCarduinoNode::turnOff() {
 	printlnWrapper("DoorCarduinoNode::turnOff");
 
 	delayTask(1500, [&](){
+		this->printlnWrapper("DoorCarduinoNode::turnOff lambda delayed");
 		if(!this->mirrorSelectorOnClosed) {
 			this->closeMirrors();
 		}

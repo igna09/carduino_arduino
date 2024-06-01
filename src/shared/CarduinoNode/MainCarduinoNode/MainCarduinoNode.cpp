@@ -281,10 +281,10 @@ void MainCarduinoNode::pcfDigitalPinsSetup() {
         if(!this->isKeyOn) {
             // this->turnOffRadioTask-> // reset remaining timer
             this->turnOffRadioTask->restartDelayed();
-            this->sendEvent(&Event::TURN_OFF);
+            this->sendEvent(&Event::TURN_OFF, ALL_NODES);
         } else if(this->isKeyOn && this->turnOffRadioTask->isEnabled()) {
             this->turnOffRadioTask->disable();
-            this->sendEvent(&Event::TURN_OFF_INTERRUPT);
+            this->sendEvent(&Event::TURN_OFF_INTERRUPT, ALL_NODES);
         }
     });
 }

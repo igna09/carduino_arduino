@@ -62,7 +62,7 @@ void SettingBase::addSetting(const Setting *setting, float value, std::function<
 void SettingBase::putSettingValue(const Setting *setting, bool value) {
     SettingInformation *settingInformation = getSettingValue(setting);
 
-    if(settingInformation != nullptr) {
+    if(settingInformation != nullptr && value != settingInformation->value->boolValue) {
         settingInformation->value->boolValue = value;
         if(settingInformation->onChange != nullptr) {
             settingInformation->onChange(settingInformation);
@@ -73,7 +73,7 @@ void SettingBase::putSettingValue(const Setting *setting, bool value) {
 void SettingBase::putSettingValue(const Setting *setting, float value) {
     SettingInformation *settingInformation = getSettingValue(setting);
 
-    if(settingInformation != nullptr) {
+    if(settingInformation != nullptr && value != settingInformation->value->floatValue) {
         settingInformation->value->floatValue = value;
         if(settingInformation->onChange != nullptr) {
             settingInformation->onChange(settingInformation);
@@ -84,7 +84,7 @@ void SettingBase::putSettingValue(const Setting *setting, float value) {
 void SettingBase::putSettingValue(const Setting *setting, int value) {
     SettingInformation *settingInformation = getSettingValue(setting);
 
-    if(settingInformation != nullptr) {
+    if(settingInformation != nullptr && value != settingInformation->value->intValue) {
         settingInformation->value->intValue = value;
         if(settingInformation->onChange != nullptr) {
             settingInformation->onChange(settingInformation);

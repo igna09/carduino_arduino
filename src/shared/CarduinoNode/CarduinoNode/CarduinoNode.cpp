@@ -418,7 +418,7 @@ void CarduinoNode::readDigitalPins() {
 }
 
 void CarduinoNode::delayTask(int delay, std::function<void()> lambdaCallback) {
-    Task *lambdaTask = new Task(delay, 1, lambdaCallback, this->scheduler, false);
+    Task *lambdaTask = new Task(delay, 1, lambdaCallback, this->scheduler);
     lambdaTask->setSelfDestruct(true);
     lambdaTask->enableDelayed();
 }

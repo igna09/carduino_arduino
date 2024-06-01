@@ -4,8 +4,9 @@ CarduinoNodeCanPowerEvents::CarduinoNodeCanPowerEvents() : CarduinoNodeExecutorI
 
 void CarduinoNodeCanPowerEvents::execute(CarduinoNode *node, CanbusMessage *message) {
     EventMessage *eventMessage = new EventMessage(message);
+    node->printlnWrapper("CarduinoNodeCanPowerEvents::execute");
 
-    if(eventMessage->getIntValue() == node->id) {
+    if(eventMessage->getIntValue() == node->id || eventMessage->getIntValue() == ALL_NODES) {
         if(eventMessage->event->id == Event::TURN_ON.id) {
             node->turnOn();
         } else if(eventMessage->event->id == Event::TURN_OFF.id) {
