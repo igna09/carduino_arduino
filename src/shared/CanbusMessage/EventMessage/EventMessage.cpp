@@ -1,13 +1,13 @@
 #include "EventMessage.h"
 
-EventMessage::EventMessage(const Event *event, int senderReceiverId) : TypedCanbusMessage(CarduinoNode::generateId(Category::EVENT, *event), senderReceiverId) {
+EventMessage::EventMessage(const Event *event, int nodeId) : TypedCanbusMessage(CarduinoNode::generateId(Category::EVENT, *event), nodeId) {
     this->event = event;
-    this->senderReceiverId = senderReceiverId;
+    this->nodeId = nodeId;
 };
 
 EventMessage::EventMessage(CanbusMessage *canbusMessage) : TypedCanbusMessage(((Event*) Event::getValueById(canbusMessage->messageId))->type, canbusMessage->id, canbusMessage->payload, canbusMessage->payloadLength) {
     this->event = (Event*) Event::getValueById(canbusMessage->messageId);
-    this->senderReceiverId = this->getIntValue();
+    this->nodeId = this->getIntValue();
 }
 
 String EventMessage::toSerialHumanString() {
@@ -16,7 +16,7 @@ String EventMessage::toSerialHumanString() {
     s += ";";
     s += this->event->name;
     s += ";";
-    s += String(this->senderReceiverId);
+    s += String(this->nodeId);
     s += ";";
     return s;
 };

@@ -342,8 +342,8 @@ void CarduinoNode::sendEvent(const Event *event) {
     this->sendEvent(event, this->id);
 }
 
-void CarduinoNode::sendEvent(const Event *event, int senderReceiverId) {
-    EventMessage *eventMessage = new EventMessage(event, senderReceiverId);
+void CarduinoNode::sendEvent(const Event *event, int nodeId) {
+    EventMessage *eventMessage = new EventMessage(event, nodeId);
     this->sendCanbusMessage(eventMessage);
     delete eventMessage;
 }
