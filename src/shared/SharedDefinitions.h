@@ -16,4 +16,4 @@ union ValueType {
 #define WEMOS_D1_MINI_VOLTAGE_DIVIDER_R1 (220000 * 1.0) //220K OHM multiplyed by 1.0 to keep float precision
 #define WEMOS_D1_MINI_VOLTAGE_DIVIDER_R2 (100000 * 1.0) //100K OHM multiplyed by 1.0 to keep float precision
 
-#define ALL_NODES 255
+#define ALL_NODES -1
