@@ -39,6 +39,8 @@ MainCarduinoNode::MainCarduinoNode(uint8_t id, int cs, int interruptPin, char *s
     
     this->isRadioOn = true;
     this->isKeyOn = true;
+
+    this->enable();
 };
 
 void MainCarduinoNode::luminanceCallback() {
