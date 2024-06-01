@@ -153,7 +153,8 @@ void DoorCarduinoNode::enable() {
 	CarduinoNode::enable();
 	printlnWrapper("DoorCarduinoNode::enable");
 
-	delayTask(1500, [&](){
+	delayTask(DELAY_CLOSING_MIRROR_ON_POWER_EVENTS, [&](){
+		this->printlnWrapper("delayed opening " + String(millis()));
 		if(!this->mirrorSelectorOnClosed) {
 			this->openMirrors();
 		}
@@ -164,7 +165,7 @@ void DoorCarduinoNode::disable() {
 	CarduinoNode::disable();
 	printlnWrapper("DoorCarduinoNode::disable");
 
-	delayTask(1500, [&](){
+	delayTask(DELAY_CLOSING_MIRROR_ON_POWER_EVENTS, [&](){
 		if(!this->mirrorSelectorOnClosed) {
 			this->closeMirrors();
 		}

@@ -351,10 +351,6 @@ void CarduinoNode::sendEvent(const Event *event, int nodeId) {
 void CarduinoNode::enable() {
     this->printlnWrapper("CarduinoNode::enable");
 
-    if(!this->settingsSetupDone) {
-        this->settingsSetup();
-        this->printlnWrapper("CarduinoNode::enable settings setup done");
-    }
     if(!this->settingsLoaded) {
         this->loadSettings();
         this->printlnWrapper("CarduinoNode::enable settings loaded");
@@ -418,7 +414,7 @@ void CarduinoNode::readDigitalPins() {
 }
 
 void CarduinoNode::delayTask(int delay, std::function<void()> lambdaCallback) {
-	this->printlnWrapper("CarduinoNode::delayTask");
+	this->printlnWrapper("CarduinoNode::delayTask " + String(millis()));
     Task *lambdaTask = new Task(delay, 1, lambdaCallback, this->scheduler);
     lambdaTask->setSelfDestruct(true);
     lambdaTask->enableDelayed();
