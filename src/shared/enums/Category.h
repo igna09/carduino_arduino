@@ -15,8 +15,8 @@ class Category : public Enum {
         static const Category READ_SETTING; // used to receive setting value
         static const Category MEDIA_CONTROL;
         static const Category WRITE_SETTING;
-        // static const Category HEARTBEAT;
-        // static const Category ERROR;
+        static const Category LOG; // used to start reading all settings
+        static const Category ERROR;
         static const Category EVENT;
         static const Category GET_SETTINGS; // used to start reading all settings
 

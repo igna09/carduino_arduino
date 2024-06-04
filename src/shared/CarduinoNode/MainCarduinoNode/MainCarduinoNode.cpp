@@ -28,6 +28,7 @@ MainCarduinoNode::MainCarduinoNode(uint8_t id, int cs, int interruptPin, char *s
     this->canExecutors->addExecutor(new HeartbeatExecutor());
     this->canExecutors->addExecutor(new MainNodeCanReadSettingExecutor());
     this->canExecutors->addExecutor(new MainNodeCanEvent());
+    this->canExecutors->addExecutor(new MainNodeCanLog());
 
     this->usbExecutors = new Executors();
     this->usbExecutors->addExecutor(new WriteSettingExecutor());
@@ -313,4 +314,22 @@ NodeInformation* MainCarduinoNode::createOrGetNodeInformation(uint8_t id) {
     }
 
     return nodeInformation;
+}
+
+void MainCarduinoNode::sendLog(uint8_t nodeId, bool value) {
+    LogMessage *logMessage = new LogMessage(this->id, nodeId, value);
+	this->sendSerialMessage(logMessage);
+    delete logMessage;
+}
+
+void MainCarduinoNode::sendLog(uint8_t nodeId, float value) {
+    LogMessage *logMessage = new LogMessage(this->id, nodeId, value);
+	this->sendSerialMessage(logMessage);
+    delete logMessage;
+}
+
+void MainCarduinoNode::sendLog(uint8_t nodeId, int value) {
+    LogMessage *logMessage = new LogMessage(this->id, nodeId, value);
+	this->sendSerialMessage(logMessage);
+    delete logMessage;
 }

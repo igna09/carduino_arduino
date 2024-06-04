@@ -21,6 +21,7 @@
 #include "../../Logger/Logger.h"
 #include "shared/enums/Event.h"
 #include "shared/CanbusMessage/EventMessage/EventMessage.h"
+#include "shared/CanbusMessage/LogMessage/LogMessage.h"
 #include "shared/CarduinoNode/CarduinoNode/executors/CarduinoNodeWriteSetting/CarduinoNodeWriteSetting.h"
 #include "shared/CarduinoNode/CarduinoNode/executors/CarduinoNodeCanGetHellos/CarduinoNodeCanGetHellos.h"
 #include "shared/CarduinoNode/CarduinoNode/executors/CarduinoNodeCanPowerEvents/CarduinoNodeCanPowerEvents.h"
@@ -117,6 +118,9 @@ class CarduinoNode : public Logger, public SettingBase {
         virtual void enableInterrupt();
         virtual void disableInterrupt();
         void delayTask(int delay, std::function<void()> lambdaCallback);
+        virtual void sendLog(uint8_t id, int value);
+        virtual void sendLog(uint8_t id, bool value);
+        virtual void sendLog(uint8_t id, float value);
 
         static uint16_t generateId(const Category category, const Enum messageEnum);
         static uint16_t generateId(const Category category, uint8_t messageId);

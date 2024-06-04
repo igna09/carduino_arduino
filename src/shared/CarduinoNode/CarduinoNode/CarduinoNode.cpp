@@ -428,3 +428,21 @@ void CarduinoNode::delayTask(int delay, std::function<void()> lambdaCallback) {
     lambdaTask->setSelfDestruct(true);
     lambdaTask->enableDelayed();
 }
+
+void CarduinoNode::sendLog(uint8_t id, bool value) {
+    LogMessage *logMessage = new LogMessage(this->id, id, value);
+	this->sendCanbusMessage(logMessage);
+    delete logMessage;
+}
+
+void CarduinoNode::sendLog(uint8_t id, float value) {
+    LogMessage *logMessage = new LogMessage(this->id, id, value);
+	this->sendCanbusMessage(logMessage);
+    delete logMessage;
+}
+
+void CarduinoNode::sendLog(uint8_t id, int value) {
+    LogMessage *logMessage = new LogMessage(this->id, id, value);
+	this->sendCanbusMessage(logMessage);
+    delete logMessage;
+}

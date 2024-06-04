@@ -19,6 +19,8 @@
 #include "shared/CarduinoNode/MainCarduinoNode/executors/MainNodeSerialGetSettings/MainNodeSerialGetSettings.h"
 #include "shared/CarduinoNode/MainCarduinoNode/executors/MainNodeCanEvent/MainNodeCanEvent.h"
 #include "shared/CarduinoNode/MainCarduinoNode/executors/HeartbeatExecutor/HeartbeatExecutor.h"
+#include "shared/CarduinoNode/MainCarduinoNode/executors/MainNodeCanLog/MainNodeCanLog.h"
+#include "shared/CanbusMessage/LogMessage/LogMessage.h"
 #include <map>              // user must include to use std::map (see above comment)
 #include <PCF8574.h>
 #include "shared/SharedDefinitions.h"
@@ -79,6 +81,9 @@ class MainCarduinoNode : public CarduinoNode {
         void executeSwcCommand(MediaControl *mediaControl);
         void manageSwc();
         void startSwcPairing();
+        void sendLog(uint8_t id, bool value) override;
+        void sendLog(uint8_t id, int value) override;
+        void sendLog(uint8_t id, float value) override;
 
         /**
          * TODO: move to new node to relief main node
