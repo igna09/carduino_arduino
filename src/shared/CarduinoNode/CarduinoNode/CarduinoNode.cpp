@@ -50,7 +50,7 @@ CarduinoNode::CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssi
         } else {
             this->otaShutdown();
         }
-    });
+    }, true);
     WiFi.mode(WIFI_OFF);
     
     this->canExecutors = new Executors();
