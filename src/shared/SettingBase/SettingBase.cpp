@@ -8,7 +8,7 @@ SettingBase::SettingBase() {
     this->settingsLoaded = false;
 };
 
-void SettingBase::addSetting(const Setting *setting, bool value, std::function<void(SettingInformation*)> onChange) {
+void SettingBase::addSetting(const Setting *setting, bool value, std::function<void(SettingInformation*)> onChange, bool doBackup) {
     SettingInformation *settingInformation = new SettingInformation();
     settingInformation->value = new ValueType();
     settingInformation->defaultValue = new ValueType();
@@ -20,12 +20,13 @@ void SettingBase::addSetting(const Setting *setting, bool value, std::function<v
     settingInformation->value->boolValue = value;
     settingInformation->defaultValue->boolValue = value;
     settingInformation->address = this->nextAddress;
+    settingInformation->doBackup = doBackup;
 
     this->nextAddress += sizeof(value);
     this->settingsMemorySize += sizeof(value);
 }
 
-void SettingBase::addSetting(const Setting *setting, int value, std::function<void(SettingInformation*)> onChange) {
+void SettingBase::addSetting(const Setting *setting, int value, std::function<void(SettingInformation*)> onChange, bool doBackup) {
     SettingInformation *settingInformation = new SettingInformation();
     settingInformation->value = new ValueType();
     settingInformation->defaultValue = new ValueType();
@@ -37,12 +38,13 @@ void SettingBase::addSetting(const Setting *setting, int value, std::function<vo
     settingInformation->value->intValue = value;
     settingInformation->defaultValue->intValue = value;
     settingInformation->address = this->nextAddress;
+    settingInformation->doBackup = doBackup;
 
     this->nextAddress += sizeof(value);
     this->settingsMemorySize += sizeof(value);
 }
 
-void SettingBase::addSetting(const Setting *setting, float value, std::function<void(SettingInformation*)> onChange) {
+void SettingBase::addSetting(const Setting *setting, float value, std::function<void(SettingInformation*)> onChange, bool doBackup) {
     SettingInformation *settingInformation = new SettingInformation();
     settingInformation->value = new ValueType();
     settingInformation->defaultValue = new ValueType();
@@ -54,6 +56,7 @@ void SettingBase::addSetting(const Setting *setting, float value, std::function<
     settingInformation->value->floatValue = value;
     settingInformation->defaultValue->floatValue = value;
     settingInformation->address = this->nextAddress;
+    settingInformation->doBackup = doBackup;
 
     this->nextAddress += sizeof(value);
     this->settingsMemorySize += sizeof(value);
@@ -147,18 +150,20 @@ void SettingBase::restoreSettings() {
     CRC16 crc;
     for(it = this->settings->begin(); it != this->settings->end(); it++) {
         SettingInformation *settingInformation = it->second;
-        if(settingInformation->setting->type->id == CanbusMessageType::BOOL.id) {
-            bool value;
-            EEPROM.get(settingInformation->address, value);
-            crc.add(value);
-        } else if(settingInformation->setting->type->id == CanbusMessageType::INT.id) {
-            int value;
-            EEPROM.get(settingInformation->address, value);
-            crc.add(value);
-        } else if(settingInformation->setting->type->id == CanbusMessageType::FLOAT.id) {
-            float value;
-            EEPROM.get(settingInformation->address, value);
-            crc.add(value);
+        if(settingInformation->doBackup) {
+            if(settingInformation->setting->type->id == CanbusMessageType::BOOL.id) {
+                bool value;
+                EEPROM.get(settingInformation->address, value);
+                crc.add(value);
+            } else if(settingInformation->setting->type->id == CanbusMessageType::INT.id) {
+                int value;
+                EEPROM.get(settingInformation->address, value);
+                crc.add(value);
+            } else if(settingInformation->setting->type->id == CanbusMessageType::FLOAT.id) {
+                float value;
+                EEPROM.get(settingInformation->address, value);
+                crc.add(value);
+            }
         }
     }
     uint16_t crcCalculatedFromEepromSettings = crc.calc();
@@ -172,24 +177,26 @@ void SettingBase::restoreSettings() {
     if(crcCalculatedFromEepromSettings == crcFromEeprom) {
         for(it = this->settings->begin(); it != this->settings->end(); it++) {
             SettingInformation *settingInformation = it->second;
-            // String log = String("Restored ") + settingInformation->setting->name + String(" with value ");
-            if(settingInformation->setting->type->id == CanbusMessageType::BOOL.id) {
-                bool value;
-                EEPROM.get(settingInformation->address, value);
-                this->putSettingValue(settingInformation->setting, value);
-                // log += String(value);
-            } else if(settingInformation->setting->type->id == CanbusMessageType::INT.id) {
-                int value;
-                EEPROM.get(settingInformation->address, value);
-                this->putSettingValue(settingInformation->setting, value);
-                // log += String(value);
-            } else if(settingInformation->setting->type->id == CanbusMessageType::FLOAT.id) {
-                float value;
-                EEPROM.get(settingInformation->address, value);
-                this->putSettingValue(settingInformation->setting, value);
-                // log += String(value);
+            if(settingInformation->doBackup){
+                // String log = String("Restored ") + settingInformation->setting->name + String(" with value ");
+                if(settingInformation->setting->type->id == CanbusMessageType::BOOL.id) {
+                    bool value;
+                    EEPROM.get(settingInformation->address, value);
+                    this->putSettingValue(settingInformation->setting, value);
+                    // log += String(value);
+                } else if(settingInformation->setting->type->id == CanbusMessageType::INT.id) {
+                    int value;
+                    EEPROM.get(settingInformation->address, value);
+                    this->putSettingValue(settingInformation->setting, value);
+                    // log += String(value);
+                } else if(settingInformation->setting->type->id == CanbusMessageType::FLOAT.id) {
+                    float value;
+                    EEPROM.get(settingInformation->address, value);
+                    this->putSettingValue(settingInformation->setting, value);
+                    // log += String(value);
+                }
+                // Serial.println(log);
             }
-            // Serial.println(log);
         }
     }
 
@@ -207,12 +214,14 @@ uint16_t SettingBase::computeSettingsCrc(std::map<uint8_t, SettingInformation*> 
 
     for(it = settings->begin(); it != settings->end(); it++) {
         SettingInformation *settingInformation = it->second;
-        if(settingInformation->setting->type->id == CanbusMessageType::BOOL.id) {
-            crc.add(settingInformation->value->boolValue);
-        } else if(settingInformation->setting->type->id == CanbusMessageType::INT.id) {
-            crc.add(settingInformation->value->intValue);
-        } else if(settingInformation->setting->type->id == CanbusMessageType::FLOAT.id) {
-            crc.add(settingInformation->value->floatValue);
+        if(settingInformation->doBackup) {
+            if(settingInformation->setting->type->id == CanbusMessageType::BOOL.id) {
+                crc.add(settingInformation->value->boolValue);
+            } else if(settingInformation->setting->type->id == CanbusMessageType::INT.id) {
+                crc.add(settingInformation->value->intValue);
+            } else if(settingInformation->setting->type->id == CanbusMessageType::FLOAT.id) {
+                crc.add(settingInformation->value->floatValue);
+            }
         }
     }
     return crc.calc();

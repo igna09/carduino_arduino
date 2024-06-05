@@ -19,6 +19,7 @@ struct SettingInformation {
     ValueType *defaultValue;
     std::function<void(SettingInformation*)> onChange;
     uint8_t address;
+    bool doBackup;
 };
 
 class SettingBase {
@@ -32,9 +33,9 @@ class SettingBase {
         bool settingsLoaded;
 
         SettingBase();
-        void addSetting(const Setting *setting, bool value, std::function<void(SettingInformation*)> onChange = nullptr);
-        void addSetting(const Setting *setting, int value, std::function<void(SettingInformation*)> onChange = nullptr);
-        void addSetting(const Setting *setting, float value, std::function<void(SettingInformation*)> onChange = nullptr);
+        void addSetting(const Setting *setting, bool value, std::function<void(SettingInformation*)> onChange = nullptr, bool doBackup = false);
+        void addSetting(const Setting *setting, int value, std::function<void(SettingInformation*)> onChange = nullptr, bool doBackup = false);
+        void addSetting(const Setting *setting, float value, std::function<void(SettingInformation*)> onChange = nullptr, bool doBackup = false);
         void putSettingValue(const Setting *setting, bool value);
         void putSettingValue(const Setting *setting, int value);
         void putSettingValue(const Setting *setting, float value);
