@@ -6,7 +6,7 @@
 #include "MediaControl.h"
 #include "Event.h"
 
-#define CATEGORY_SIZE 7
+#define CATEGORY_SIZE 8
 
 class CanbusMessage;
 class Category : public Enum {
