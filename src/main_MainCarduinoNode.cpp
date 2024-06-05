@@ -22,15 +22,16 @@ void setup(void) {
   carduinoNode = new MainCarduinoNode(0x00, D8, D0, "SSID_MAIN_CARDUINO_NODE", "pwd12345");
 }
 
-// unsigned long lastSent = millis();
+unsigned long lastSent = 0;
 
 void loop(void) {
   carduinoNode->loop();
-  // if(millis() > lastSent + 1000) {
+  // if(millis() > lastSent + 10000 && lastSent == 0) {
 	// 		lastSent = millis();
       // uint8_t a[] = {0x01};
 			// CanbusMessage *message = new CanbusMessage(0b10000000010, a, 1);
 			// carduinoNode->manageReceivedCanbusMessage(message);
   //     carduinoNode->printlnWrapper("test");
+  // carduinoNode->handleReceivedSerialMessage("GET_SETTINGS;;;");
 	// }
 }
