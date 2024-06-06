@@ -120,18 +120,20 @@ void SettingBase::backupSettings() {
     std::map<uint8_t, SettingInformation*>::iterator it;
     for(it = this->settings->begin(); it != this->settings->end(); it++) {
         SettingInformation *settingInformation = it->second;
-        // String log = String("Backup ") + settingInformation->setting->name + String(" with value ");
-        if(settingInformation->setting->type->id == CanbusMessageType::BOOL.id) {
-            // log += String(settingInformation->value->boolValue);
-            EEPROM.put(settingInformation->address, settingInformation->value->boolValue);
-        } else if(settingInformation->setting->type->id == CanbusMessageType::INT.id) {
-            // log += String(settingInformation->value->intValue);
-            EEPROM.put(settingInformation->address, settingInformation->value->intValue);
-        } else if(settingInformation->setting->type->id == CanbusMessageType::FLOAT.id) {
-            // log += String(settingInformation->value->floatValue);
-            EEPROM.put(settingInformation->address, settingInformation->value->floatValue);
+        if(settingInformation->doBackup) {
+            // String log = String("Backup ") + settingInformation->setting->name + String(" with value ");
+            if(settingInformation->setting->type->id == CanbusMessageType::BOOL.id) {
+                // log += String(settingInformation->value->boolValue);
+                EEPROM.put(settingInformation->address, settingInformation->value->boolValue);
+            } else if(settingInformation->setting->type->id == CanbusMessageType::INT.id) {
+                // log += String(settingInformation->value->intValue);
+                EEPROM.put(settingInformation->address, settingInformation->value->intValue);
+            } else if(settingInformation->setting->type->id == CanbusMessageType::FLOAT.id) {
+                // log += String(settingInformation->value->floatValue);
+                EEPROM.put(settingInformation->address, settingInformation->value->floatValue);
+            }
+            // Serial.println(log);
         }
-        // Serial.println(log);
     }
 
     EEPROM.commit();
