@@ -88,7 +88,7 @@ void DoorCarduinoNode::openMirrors() {
 void DoorCarduinoNode::closeMirrors() {
 	printlnWrapper("DoorCarduinoNode::closeMirrors");
 	if(this->getSettingValue(&Setting::AUTO_CLOSE_REARVIEW_MIRRORS)->value->boolValue) {
-		printlnWrapper("DoorCarduinoNode::openMirrors closing");
+		printlnWrapper("DoorCarduinoNode::closeMirrors closing");
 		this->pcf8574->digitalWrite(PIN_OPEN_MIRRORS, HIGH);
 	}
 };
@@ -166,6 +166,7 @@ void DoorCarduinoNode::disable() {
 	printlnWrapper("DoorCarduinoNode::disable");
 
 	delayTask(DELAY_CLOSING_MIRROR_ON_POWER_EVENTS, [&](){
+		this->printlnWrapper("delayed closing " + String(millis()));
 		if(!this->mirrorSelectorOnClosed) {
 			this->closeMirrors();
 		}
