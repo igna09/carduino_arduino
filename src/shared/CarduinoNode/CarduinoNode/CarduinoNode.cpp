@@ -70,7 +70,7 @@ CarduinoNode::CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssi
         this->backupSettings();
         this->printlnWrapper("CarduinoNode::CarduinoNode LAMBDA settings saved");
     }, this->scheduler);
-    backupSettingsTask->enableDelayed();
+    backupSettingsTask->restartDelayed();
 
     this->sendEvent(&Event::HELLO);
     
@@ -426,7 +426,7 @@ void CarduinoNode::delayTask(int delay, std::function<void()> lambdaCallback) {
 	this->printlnWrapper("CarduinoNode::delayTask " + String(millis()));
     Task *lambdaTask = new Task(delay, 1, lambdaCallback, this->scheduler);
     lambdaTask->setSelfDestruct(true);
-    lambdaTask->enableDelayed();
+    lambdaTask->restartDelayed();
 }
 
 void CarduinoNode::sendLog(uint8_t id, bool value) {
