@@ -203,6 +203,9 @@ void DoorCarduinoNode::disable() {
 		}
 	});
 
+	/**
+	 * TODO: assuming nothing changed, fix
+	*/
 	// this->mirrorSelectorOnClosed = this->readSelectorClosed(); // on turn on i should get FALSE
 }
 
