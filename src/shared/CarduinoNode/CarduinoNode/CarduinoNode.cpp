@@ -65,14 +65,19 @@ CarduinoNode::CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssi
     new Task(HEARTBEAT_INTERVAL, TASK_FOREVER, std::bind(&CarduinoNode::sendHeartbeat, this), this->scheduler, true);
     // SecondaryLoopCallback<void(void)>::func = std::bind(&CarduinoNode::secondaryLoopCallback, this);
     // new Task(100, TASK_FOREVER, static_cast<TaskCallback>(SecondaryLoopCallback<void(void)>::callback), this->scheduler, true);
+
+    this->sendEvent(&Event::HELLO);
+
+    if(!this->settingsLoaded) {
+        this->restoreSettings();
+        this->printlnWrapper("CarduinoNode::enable settings loaded");
+    }
     new Task(DIGITAL_PINS_UPDATE_INTERVAL, TASK_FOREVER, std::bind(&CarduinoNode::readDigitalPins, this), this->scheduler, true);
     Task *backupSettingsTask = new Task(WRITE_SETTINGS_ON_EEPROM_INTERVAL, TASK_FOREVER, [&](){
         this->backupSettings();
         this->printlnWrapper("CarduinoNode::CarduinoNode LAMBDA settings saved");
     }, this->scheduler);
     backupSettingsTask->restartDelayed();
-
-    this->sendEvent(&Event::HELLO);
     
     if(!this->initializedCan) {
         this->otaStartup();
@@ -353,11 +358,6 @@ void CarduinoNode::enable() {
     this->printlnWrapper("CarduinoNode::enable");
 
     this->isEnabled = true;
-
-    if(!this->settingsLoaded) {
-        this->restoreSettings();
-        this->printlnWrapper("CarduinoNode::enable settings loaded");
-    }
 }
 
 void CarduinoNode::disable() {
