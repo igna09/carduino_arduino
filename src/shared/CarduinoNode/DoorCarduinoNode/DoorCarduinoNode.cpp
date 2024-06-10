@@ -1,12 +1,13 @@
 #include "DoorCarduinoNode.h"
 
 DoorCarduinoNode::DoorCarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssid, const char *password) : CarduinoNode(id, cs, interruptPin, ssid,  password, true, true) {
+	this->addSetting(&Setting::AUTO_CLOSE_REARVIEW_MIRRORS, true, nullptr, true);
+    this->addSetting(&Setting::ON_REVERSE_LOWER_MIRRORS, true, nullptr, true);
+	this->restoreSettings();
+	
 	this->mirrorSelectorOnClosed = false;
 	this->canOpenMirrors = false;
 	this->pcfSetup();
-	
-	this->addSetting(&Setting::AUTO_CLOSE_REARVIEW_MIRRORS, true, nullptr, true);
-    this->addSetting(&Setting::ON_REVERSE_LOWER_MIRRORS, true, nullptr, true);
 	
 	/**
 	 * this could be replaced with CarduinoNode::delayTask
@@ -133,6 +134,8 @@ void DoorCarduinoNode::pcfSetup() {
 	this->lastPinOpenMirrorsValue = LOW;
 
 	this->mirrorSelectorOnClosed = this->readSelectorClosed(); // on turn on i should get FALSE
+
+	Serial.println(this->getSettingValue(&Setting::AUTO_CLOSE_REARVIEW_MIRRORS) == nullptr);
 
 	if(this->getSettingValue(&Setting::AUTO_CLOSE_REARVIEW_MIRRORS)->value->boolValue && !this->mirrorSelectorOnClosed) {
 		this->pcf8574->digitalWrite(PIN_OPEN_MIRRORS, HIGH);
