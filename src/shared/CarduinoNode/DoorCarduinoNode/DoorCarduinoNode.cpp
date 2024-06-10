@@ -5,9 +5,14 @@ DoorCarduinoNode::DoorCarduinoNode(uint8_t id, int cs, int interruptPin, const c
     this->addSetting(&Setting::ON_REVERSE_LOWER_MIRRORS, true, nullptr, true);
 	this->restoreSettings();
 	
-	this->mirrorSelectorOnClosed = false;
-	this->canOpenMirrors = false;
 	this->pcfSetup();
+
+	this->mirrorSelectorOnClosed = this->readSelectorClosed(); // on turn on i should get FALSE
+
+	if(this->getSettingValue(&Setting::AUTO_CLOSE_REARVIEW_MIRRORS)->value->boolValue && !this->mirrorSelectorOnClosed) {
+		this->pcf8574->digitalWrite(PIN_OPEN_MIRRORS, HIGH);
+		this->lastPinOpenMirrorsValue = HIGH;
+	}
 	
 	/**
 	 * this could be replaced with CarduinoNode::delayTask
@@ -23,7 +28,6 @@ DoorCarduinoNode::DoorCarduinoNode(uint8_t id, int cs, int interruptPin, const c
 
 	// this->closedMirrors = this->readClosedMirrors();
 	// this->mirrorSelectorOnClosed = this->readSelectorClosed();
-	// this->mirrorSelectorOnClosed = true;
 };
 
 void DoorCarduinoNode::loop() {
@@ -133,22 +137,6 @@ void DoorCarduinoNode::pcfSetup() {
 	
 	this->lastPinOpenMirrorsValue = LOW;
 
-	this->mirrorSelectorOnClosed = this->readSelectorClosed(); // on turn on i should get FALSE
-
-	Serial.println(this->getSettingValue(&Setting::AUTO_CLOSE_REARVIEW_MIRRORS) == nullptr);
-
-	if(this->getSettingValue(&Setting::AUTO_CLOSE_REARVIEW_MIRRORS)->value->boolValue && !this->mirrorSelectorOnClosed) {
-		this->pcf8574->digitalWrite(PIN_OPEN_MIRRORS, HIGH);
-		this->lastPinOpenMirrorsValue = HIGH;
-		this->canOpenMirrors = true;
-	}
-
-	/**
-	 * fix this logic
-	 */
-    // this->pcf8574->digitalWrite(PIN_OPEN_MIRRORS, this->mirrorSelectorOnClosed || this->getSettingValue(&Setting::AUTO_CLOSE_REARVIEW_MIRRORS)->value ? HIGH : LOW);
-	// this->pcf8574->digitalWrite(PIN_OPEN_MIRRORS, HIGH); // close mirrors but interfere with PIN_MIRROR_SELECTOR_ON_CLOSED readings (i get)
-
 	this->addPinToRead(PIN_MIRROR_SELECTOR_ON_CLOSED, this->pcf8574, [&](PinInformation *pinInformation){
 		printlnWrapper("PIN_MIRROR_SELECTOR_ON_CLOSED changed from " + String(!pinInformation->isHigh) + " to " + String(pinInformation->isHigh));
 		// this->mirrorSelectorOnClosed = pinInformation->isHigh; // on first iteration i get isHigh = true (PIN_OPEN_MIRRORS high -> line to low -> PIN_MIRROR_SELECTOR_ON_CLOSED (inversion))
@@ -173,9 +161,9 @@ void DoorCarduinoNode::voltageCallback() {
 };
 
 bool DoorCarduinoNode::readSelectorClosed() {
-    // this->pcf8574->digitalWrite(PIN_OPEN_MIRRORS, LOW); // don't interfere with PIN_MIRROR_SELECTOR_ON_CLOSED readings
+    this->pcf8574->digitalWrite(PIN_OPEN_MIRRORS, LOW); // don't interfere with PIN_MIRROR_SELECTOR_ON_CLOSED readings
 	bool selectorOnClosed = this->pcf8574->digitalRead(PIN_MIRROR_SELECTOR_ON_CLOSED, true) == HIGH;
-    // this->pcf8574->digitalWrite(PIN_OPEN_MIRRORS, this->lastPinOpenMirrorsValue); // don't interfere with PIN_MIRROR_SELECTOR_ON_CLOSED readings
+    this->pcf8574->digitalWrite(PIN_OPEN_MIRRORS, this->lastPinOpenMirrorsValue); // don't interfere with PIN_MIRROR_SELECTOR_ON_CLOSED readings
 	return selectorOnClosed;
 }
 
@@ -183,12 +171,12 @@ void DoorCarduinoNode::enable() {
 	CarduinoNode::enable();
 	printlnWrapper("DoorCarduinoNode::enable");
 
-	// this->mirrorSelectorOnClosed = this->readSelectorClosed(); // on turn on i should get FALSE
-
 	// if(!this->mirrorSelectorOnClosed) {
 		delayTask(DELAY_CLOSING_MIRROR_ON_POWER_EVENTS, [&](){
 			this->printlnWrapper("delayed opening " + String(millis()));
-			if(this->canOpenMirrors) {
+
+			this->mirrorSelectorOnClosed = this->readSelectorClosed();
+			if(!this->mirrorSelectorOnClosed) {
 				this->openMirrors();
 			}
 		});
@@ -201,21 +189,19 @@ void DoorCarduinoNode::disable() {
 
 	delayTask(DELAY_CLOSING_MIRROR_ON_POWER_EVENTS, [&](){
 		this->printlnWrapper("delayed closing " + String(millis()));
-		if(this->canOpenMirrors) {
+		
+		this->mirrorSelectorOnClosed = this->readSelectorClosed();
+		if(!this->mirrorSelectorOnClosed) {
 			this->closeMirrors();
 		}
 	});
-
-	/**
-	 * TODO: assuming nothing changed, fix
-	*/
-	// this->mirrorSelectorOnClosed = this->readSelectorClosed(); // on turn on i should get FALSE
 }
 
 void DoorCarduinoNode::disableInterrupt() {
 	CarduinoNode::disableInterrupt();
 	printlnWrapper("DoorCarduinoNode::disableInterrupt");
 
+	this->mirrorSelectorOnClosed = this->readSelectorClosed();
 	if(!this->mirrorSelectorOnClosed) {
 		this->openMirrors();
 	}
@@ -225,6 +211,7 @@ void DoorCarduinoNode::enableInterrupt() {
 	CarduinoNode::enableInterrupt();
 	printlnWrapper("DoorCarduinoNode::enableInterrupt");
 
+	this->mirrorSelectorOnClosed = this->readSelectorClosed();
 	if(!this->mirrorSelectorOnClosed) {
 		this->closeMirrors();
 	}
