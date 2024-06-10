@@ -6,6 +6,7 @@ MainCarduinoNode::MainCarduinoNode(uint8_t id, int cs, int interruptPin, char *s
             this->startSwcPairing();
         }
     });
+    this->restoreSettings();
     
     this->aht = new Adafruit_AHTX0();
     this->aht->begin();
