@@ -1,9 +1,16 @@
 #include "DoorCarduinoNode.h"
 
 DoorCarduinoNode::DoorCarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssid, const char *password) : CarduinoNode(id, cs, interruptPin, ssid,  password, true, true) {
-    this->addSetting(&Setting::AUTO_CLOSE_REARVIEW_MIRRORS, true, nullptr, true);
+	this->mirrorSelectorOnClosed = false;
+	this->canOpenMirrors = false;
+	this->pcfSetup();
+	
+	this->addSetting(&Setting::AUTO_CLOSE_REARVIEW_MIRRORS, true, nullptr, true);
     this->addSetting(&Setting::ON_REVERSE_LOWER_MIRRORS, true, nullptr, true);
 	
+	/**
+	 * this could be replaced with CarduinoNode::delayTask
+	*/
     this->stopMoveMirrorsTask = new Task(MIRRORS_MOVING_TIME, 1, std::bind(&DoorCarduinoNode::stopMoveMirrors, this), this->scheduler, false);
 
     temperatureTask = new Task(VOLTAGE_READING_INTERVAL, TASK_FOREVER, std::bind(&DoorCarduinoNode::voltageCallback, this), this->scheduler, true);
@@ -13,10 +20,9 @@ DoorCarduinoNode::DoorCarduinoNode(uint8_t id, int cs, int interruptPin, const c
 	this->canExecutors->addExecutor(new DoorNodeEvent());
 	this->canExecutors->addExecutor(new DoorNodeCarstatus());
 
-	this->pcfSetup();
-
 	// this->closedMirrors = this->readClosedMirrors();
 	// this->mirrorSelectorOnClosed = this->readSelectorClosed();
+	// this->mirrorSelectorOnClosed = true;
 };
 
 void DoorCarduinoNode::loop() {
@@ -82,6 +88,7 @@ void DoorCarduinoNode::openMirrors() {
 	if(this->getSettingValue(&Setting::AUTO_CLOSE_REARVIEW_MIRRORS)->value->boolValue) {
 		printlnWrapper("DoorCarduinoNode::openMirrors opening");
 		this->pcf8574->digitalWrite(PIN_OPEN_MIRRORS, LOW);
+		this->lastPinOpenMirrorsValue = LOW;
 	}
 };
 
@@ -90,6 +97,7 @@ void DoorCarduinoNode::closeMirrors() {
 	if(this->getSettingValue(&Setting::AUTO_CLOSE_REARVIEW_MIRRORS)->value->boolValue) {
 		printlnWrapper("DoorCarduinoNode::closeMirrors closing");
 		this->pcf8574->digitalWrite(PIN_OPEN_MIRRORS, HIGH);
+		this->lastPinOpenMirrorsValue = HIGH;
 	}
 };
 
@@ -120,19 +128,27 @@ void DoorCarduinoNode::pcfSetup() {
     this->pcf8574->digitalWrite(PIN_MIRROR_B, LOW);
     this->pcf8574->digitalWrite(PIN_MIRROR_C, LOW);
     this->pcf8574->digitalWrite(PIN_MIRROR_D, LOW);
-    this->pcf8574->digitalWrite(PIN_OPEN_MIRRORS, LOW);
+    this->pcf8574->digitalWrite(PIN_OPEN_MIRRORS, LOW); // don't interfere with PIN_MIRROR_SELECTOR_ON_CLOSED readings
+	
+	this->lastPinOpenMirrorsValue = LOW;
 
-	this->mirrorSelectorOnClosed = this->readSelectorClosed();
+	this->mirrorSelectorOnClosed = this->readSelectorClosed(); // on turn on i should get FALSE
+
+	if(this->getSettingValue(&Setting::AUTO_CLOSE_REARVIEW_MIRRORS)->value->boolValue && !this->mirrorSelectorOnClosed) {
+		this->pcf8574->digitalWrite(PIN_OPEN_MIRRORS, HIGH);
+		this->lastPinOpenMirrorsValue = HIGH;
+		this->canOpenMirrors = true;
+	}
 
 	/**
 	 * fix this logic
 	 */
     // this->pcf8574->digitalWrite(PIN_OPEN_MIRRORS, this->mirrorSelectorOnClosed || this->getSettingValue(&Setting::AUTO_CLOSE_REARVIEW_MIRRORS)->value ? HIGH : LOW);
-	this->pcf8574->digitalWrite(PIN_OPEN_MIRRORS, HIGH);
+	// this->pcf8574->digitalWrite(PIN_OPEN_MIRRORS, HIGH); // close mirrors but interfere with PIN_MIRROR_SELECTOR_ON_CLOSED readings (i get)
 
 	this->addPinToRead(PIN_MIRROR_SELECTOR_ON_CLOSED, this->pcf8574, [&](PinInformation *pinInformation){
 		printlnWrapper("PIN_MIRROR_SELECTOR_ON_CLOSED changed from " + String(!pinInformation->isHigh) + " to " + String(pinInformation->isHigh));
-		this->mirrorSelectorOnClosed = pinInformation->isHigh;
+		// this->mirrorSelectorOnClosed = pinInformation->isHigh; // on first iteration i get isHigh = true (PIN_OPEN_MIRRORS high -> line to low -> PIN_MIRROR_SELECTOR_ON_CLOSED (inversion))
 
 		// if(this->mirrorSelectorOnClosed) {
 		// 	this->closeMirrors();
@@ -154,19 +170,26 @@ void DoorCarduinoNode::voltageCallback() {
 };
 
 bool DoorCarduinoNode::readSelectorClosed() {
-	return this->pcf8574->digitalRead(PIN_MIRROR_SELECTOR_ON_CLOSED, true) == HIGH;
+    // this->pcf8574->digitalWrite(PIN_OPEN_MIRRORS, LOW); // don't interfere with PIN_MIRROR_SELECTOR_ON_CLOSED readings
+	bool selectorOnClosed = this->pcf8574->digitalRead(PIN_MIRROR_SELECTOR_ON_CLOSED, true) == HIGH;
+    // this->pcf8574->digitalWrite(PIN_OPEN_MIRRORS, this->lastPinOpenMirrorsValue); // don't interfere with PIN_MIRROR_SELECTOR_ON_CLOSED readings
+	return selectorOnClosed;
 }
 
 void DoorCarduinoNode::enable() {
 	CarduinoNode::enable();
 	printlnWrapper("DoorCarduinoNode::enable");
 
-	delayTask(DELAY_CLOSING_MIRROR_ON_POWER_EVENTS, [&](){
-		this->printlnWrapper("delayed opening " + String(millis()));
-		if(!this->mirrorSelectorOnClosed) {
-			this->openMirrors();
-		}
-	});
+	// this->mirrorSelectorOnClosed = this->readSelectorClosed(); // on turn on i should get FALSE
+
+	// if(!this->mirrorSelectorOnClosed) {
+		delayTask(DELAY_CLOSING_MIRROR_ON_POWER_EVENTS, [&](){
+			this->printlnWrapper("delayed opening " + String(millis()));
+			if(this->canOpenMirrors) {
+				this->openMirrors();
+			}
+		});
+	// }
 }
 
 void DoorCarduinoNode::disable() {
@@ -175,10 +198,12 @@ void DoorCarduinoNode::disable() {
 
 	delayTask(DELAY_CLOSING_MIRROR_ON_POWER_EVENTS, [&](){
 		this->printlnWrapper("delayed closing " + String(millis()));
-		if(!this->mirrorSelectorOnClosed) {
+		if(this->canOpenMirrors) {
 			this->closeMirrors();
 		}
 	});
+
+	// this->mirrorSelectorOnClosed = this->readSelectorClosed(); // on turn on i should get FALSE
 }
 
 void DoorCarduinoNode::disableInterrupt() {

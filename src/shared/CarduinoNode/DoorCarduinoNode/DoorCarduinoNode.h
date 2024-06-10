@@ -40,6 +40,8 @@ class DoorCarduinoNode : public CarduinoNode {
         Event *lastReceivedEvent;
         bool reverse;
         bool mirrorSelectorOnClosed;
+        bool canOpenMirrors;
+        uint8_t lastPinOpenMirrorsValue;
 
         void loop();
         void closeMirrors();
