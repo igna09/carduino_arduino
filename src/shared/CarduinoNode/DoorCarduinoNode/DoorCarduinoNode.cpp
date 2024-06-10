@@ -124,6 +124,9 @@ void DoorCarduinoNode::pcfSetup() {
 
 	this->mirrorSelectorOnClosed = this->readSelectorClosed();
 
+	/**
+	 * fix this logic
+	 */
     // this->pcf8574->digitalWrite(PIN_OPEN_MIRRORS, this->mirrorSelectorOnClosed || this->getSettingValue(&Setting::AUTO_CLOSE_REARVIEW_MIRRORS)->value ? HIGH : LOW);
 	this->pcf8574->digitalWrite(PIN_OPEN_MIRRORS, HIGH);
 
