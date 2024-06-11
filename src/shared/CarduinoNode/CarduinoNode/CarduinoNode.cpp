@@ -25,7 +25,7 @@ CarduinoNode::CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssi
     }
 
     // Initialize MCP2515 running at 16MHz with a baudrate of 500kb/s and the masks and filters disabled.
-    if(can->begin(MCP_ANY, CAN_500KBPS, MCP_8MHZ) == CAN_OK) {
+    if(can->begin(MCP_ANY, CAN_1000KBPS, MCP_8MHZ) == CAN_OK) {
         this->printlnWrapper("MCP2515 Initialized Successfully!");
         this->initializedCan = true;
     } else {
