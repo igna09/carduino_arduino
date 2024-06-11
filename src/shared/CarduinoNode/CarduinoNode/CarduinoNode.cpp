@@ -356,6 +356,8 @@ void CarduinoNode::sendEvent(const Event *event, int nodeId) {
 
 void CarduinoNode::enable() {
     this->printlnWrapper("CarduinoNode::enable");
+	
+	sendLog(0, true);
 
     this->isEnabled = true;
 }

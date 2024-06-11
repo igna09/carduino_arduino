@@ -3,7 +3,7 @@
 DoorCarduinoNode::DoorCarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssid, const char *password) : CarduinoNode(id, cs, interruptPin, ssid,  password, true, true) {
 	this->addSetting(&Setting::AUTO_CLOSE_REARVIEW_MIRRORS, true, nullptr, true);
     this->addSetting(&Setting::ON_REVERSE_LOWER_MIRRORS, true, nullptr, true);
-	// this->restoreSettings();
+	this->restoreSettings();
 	
 	this->pcfSetup();
 
@@ -176,6 +176,7 @@ void DoorCarduinoNode::enable() {
 			this->printlnWrapper("delayed opening " + String(millis()));
 
 			this->mirrorSelectorOnClosed = this->readSelectorClosed();
+			sendLog(1, this->mirrorSelectorOnClosed);
 			if(!this->mirrorSelectorOnClosed) {
 				this->openMirrors();
 			}

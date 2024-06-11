@@ -36,13 +36,13 @@ MainCarduinoNode::MainCarduinoNode(uint8_t id, int cs, int interruptPin, char *s
     this->usbExecutors->addExecutor(new MainNodeSerialGetSettings());
 
     turnOffRadioTask = new Task(RADIO_TURN_OFF_TIMER, 1, std::bind(&MainCarduinoNode::turnOffSystem, this), this->scheduler, false);
-
-    this->sendEvent(&Event::GET_HELLOS);
     
     this->isRadioOn = true;
     this->isKeyOn = true;
 
     this->enable();
+
+    this->sendEvent(&Event::GET_HELLOS);
 };
 
 void MainCarduinoNode::luminanceCallback() {
