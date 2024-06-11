@@ -73,7 +73,7 @@ LogMessage::LogMessage(CanbusMessage *canbusMessage) : CanbusMessage(*canbusMess
             valueBytes[i] = this->payload[i + 1];
         }
         this->type = &CanbusMessageType::INT;
-        this->value.boolValue = convertByteArrayToInt(valueBytes, INT_BYTES_SIZE);
+        this->value.intValue = convertByteArrayToInt(valueBytes, INT_BYTES_SIZE);
         delete valueBytes;
     } else if(this->payloadLength == FLOAT_BYTES_SIZE + 1) {
         uint8_t *valueBytes = new uint8_t[FLOAT_BYTES_SIZE];
@@ -81,7 +81,7 @@ LogMessage::LogMessage(CanbusMessage *canbusMessage) : CanbusMessage(*canbusMess
             valueBytes[i] = this->payload[i + 1];
         }
         this->type = &CanbusMessageType::FLOAT;
-        this->value.boolValue = convertByteArrayToInt(valueBytes, FLOAT_BYTES_SIZE);
+        this->value.floatValue = convertByteArrayToFloat(valueBytes, FLOAT_BYTES_SIZE);
         delete valueBytes;
     }
 };
