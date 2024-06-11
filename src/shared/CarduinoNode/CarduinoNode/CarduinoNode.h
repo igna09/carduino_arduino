@@ -60,6 +60,8 @@ const char FALLBACK_PAGE[] PROGMEM = R"rawliteral(
 
 #define DIGITAL_PINS_UPDATE_INTERVAL 20
 #define WRITE_SETTINGS_ON_EEPROM_INTERVAL 30000
+#define CAN_MESSAGE_VALUES_BUFFER_CHUNK_SIZE 8
+#define CAN_MESSAGE_VALUES_BUFFER_SIZE 32
 
 struct PinInformation {
     uint8_t pin;
@@ -67,6 +69,12 @@ struct PinInformation {
     bool isHigh;
     bool hasChanged;
     std::function<void(PinInformation*)> onChange;
+};
+
+struct CanMessageValues {
+    unsigned long id;
+    uint8_t len = 0;
+    uint8_t buf[8];
 };
 
 // class Executors; // forward declaration to avoid circular dependency
@@ -79,6 +87,9 @@ class CarduinoNode : public Logger, public SettingBase {
         void setupServerFallback();
         bool _fallbackPage;
         bool isEnabled;
+        CanMessageValues* messageBuffer[CAN_MESSAGE_VALUES_BUFFER_SIZE];
+        uint8_t nextMessageBufferIndexToInsert = 0;
+        uint8_t nextMessageBufferIndexToRead = 0;
 
     public:
         uint8_t id;
@@ -121,6 +132,9 @@ class CarduinoNode : public Logger, public SettingBase {
         virtual void sendLog(uint8_t id, int value);
         virtual void sendLog(uint8_t id, bool value);
         virtual void sendLog(uint8_t id, float value);
+        void handleBuffer();
+        void addCanMessageValuesToBuffer(CanMessageValues *canMessageValues);
+        uint8_t getBufferSize();
 
         static uint16_t generateId(const Category category, const Enum messageEnum);
         static uint16_t generateId(const Category category, uint8_t messageId);

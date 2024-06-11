@@ -244,22 +244,74 @@ void CarduinoNode::loop() {
       // both RX buffers may be in use and reading a single
       // message does not clear the IRQ conditon.
       while (CAN_MSGAVAIL == can->checkReceive()) {
-        uint8_t len = 0;
-        uint8_t buf[8];
-        long unsigned int id;
+        // uint8_t len = 0;
+        // uint8_t buf[8];
+        // long unsigned int id;
 
-        can->readMsgBuf(&id, &len, buf);
+        // can->readMsgBuf(&id, &len, buf);
 
-        if(len > 0) {
+        // if(len > 0) {
             // printUint8Array("CarduinoNode::loop", buf, len);
 
-            CanbusMessage *m = new CanbusMessage(id, buf, len);
+            // CanbusMessage *m = new CanbusMessage(id, buf, len);
+            // manageReceivedCanbusMessage(m);
+            // delete m;
+        // }
+
+        CanMessageValues *canMessageValues = new CanMessageValues();
+        can->readMsgBuf(&canMessageValues->id, &canMessageValues->len, canMessageValues->buf);
+        this->addCanMessageValuesToBuffer(canMessageValues);
+      }
+    }
+
+    handleBuffer();
+};
+
+void CarduinoNode::addCanMessageValuesToBuffer(CanMessageValues *canMessageValues) {
+    this->messageBuffer[this->nextMessageBufferIndexToInsert] = canMessageValues;
+    this->nextMessageBufferIndexToInsert++;
+    if(this->nextMessageBufferIndexToInsert >= CAN_MESSAGE_VALUES_BUFFER_SIZE) {
+        this->nextMessageBufferIndexToInsert = 0;
+    }
+}
+
+uint8_t CarduinoNode::getBufferSize() {
+    uint8_t value = this->nextMessageBufferIndexToInsert;
+    if(this->nextMessageBufferIndexToInsert < this->nextMessageBufferIndexToRead) {
+        value += CAN_MESSAGE_VALUES_BUFFER_SIZE;
+    }
+    value -= this->nextMessageBufferIndexToRead;
+    return value;
+}
+
+void CarduinoNode::handleBuffer() {
+    uint8_t bufferSize = getBufferSize();
+    if(bufferSize > 0) {
+        Serial.print("CarduinoNode::handleBuffer buffer size ");
+        Serial.println(bufferSize);
+    }
+    
+    uint8_t i = 0;
+    while(this->nextMessageBufferIndexToRead != this->nextMessageBufferIndexToInsert && i < CAN_MESSAGE_VALUES_BUFFER_CHUNK_SIZE) {
+        CanMessageValues *canMessageValues = messageBuffer[this->nextMessageBufferIndexToRead];
+
+        if(canMessageValues->len > 0) {
+            // printUint8Array("CarduinoNode::loop", canMessageValues->buf, canMessageValues->len);
+
+            CanbusMessage *m = new CanbusMessage(canMessageValues->id, canMessageValues->buf, canMessageValues->len);
             manageReceivedCanbusMessage(m);
             delete m;
         }
-      }
+
+        delete canMessageValues;
+
+        this->nextMessageBufferIndexToRead++;
+        if(this->nextMessageBufferIndexToRead >= CAN_MESSAGE_VALUES_BUFFER_SIZE) {
+            this->nextMessageBufferIndexToRead = 0;
+        }
+        i++;
     }
-};
+}
 
 void CarduinoNode::manageReceivedCanbusMessage(CanbusMessage *message) {
     if(this->_logOnSerial || this->_logOnServer) {
