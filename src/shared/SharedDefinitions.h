@@ -8,7 +8,7 @@ union ValueType {
     bool boolValue;
 };
 
-#define BAUD_RATE 9600
+#define BAUD_RATE 115200
 
 #define HEARTBEAT_INTERVAL 10000
 #define HEARTBEAT_INTERVAL_TOLERANCE 150
