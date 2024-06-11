@@ -5,6 +5,11 @@ CarduinoNodeCanPowerEvents::CarduinoNodeCanPowerEvents() : CarduinoNodeExecutorI
 void CarduinoNodeCanPowerEvents::execute(CarduinoNode *node, CanbusMessage *message) {
     EventMessage *eventMessage = new EventMessage(message);
     node->printlnWrapper("CarduinoNodeCanPowerEvents::execute");
+    node->sendLog(3, eventMessage->getIntValue());
+    node->sendLog(3, eventMessage->nodeId);
+    node->sendLog(3, node->id);
+    node->sendLog(3, eventMessage->event->id);
+    node->sendLog(3, false);
 
     if(eventMessage->getIntValue() == node->id || eventMessage->getIntValue() == ALL_NODES) {
         if(eventMessage->event->id == Event::ENABLE.id) {

@@ -28,6 +28,19 @@ DoorCarduinoNode::DoorCarduinoNode(uint8_t id, int cs, int interruptPin, const c
 
 	// this->closedMirrors = this->readClosedMirrors();
 	// this->mirrorSelectorOnClosed = this->readSelectorClosed();
+
+/**
+ * temp fix
+*/
+	delayTask(DELAY_CLOSING_MIRROR_ON_POWER_EVENTS, [&](){
+			this->printlnWrapper("delayed opening " + String(millis()));
+
+			this->mirrorSelectorOnClosed = this->readSelectorClosed();
+			sendLog(1, this->mirrorSelectorOnClosed);
+			if(!this->mirrorSelectorOnClosed) {
+				this->openMirrors();
+			}
+		});
 };
 
 void DoorCarduinoNode::loop() {
@@ -172,7 +185,7 @@ void DoorCarduinoNode::enable() {
 	printlnWrapper("DoorCarduinoNode::enable");
 
 	// if(!this->mirrorSelectorOnClosed) {
-		delayTask(DELAY_CLOSING_MIRROR_ON_POWER_EVENTS, [&](){
+		/*delayTask(DELAY_CLOSING_MIRROR_ON_POWER_EVENTS, [&](){
 			this->printlnWrapper("delayed opening " + String(millis()));
 
 			this->mirrorSelectorOnClosed = this->readSelectorClosed();
@@ -180,7 +193,7 @@ void DoorCarduinoNode::enable() {
 			if(!this->mirrorSelectorOnClosed) {
 				this->openMirrors();
 			}
-		});
+		});*/
 	// }
 }
 
