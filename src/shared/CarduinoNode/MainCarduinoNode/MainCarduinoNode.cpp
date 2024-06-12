@@ -146,7 +146,7 @@ void MainCarduinoNode::manageReceivedUsbMessage(CanbusMessage message) {
 void MainCarduinoNode::sendSerialMessage(CanbusMessage *message) {
     printlnWrapper("MainCarduinoNode::sendSerialMessage " + message->toSerialHumanString());
     Serial.println(message->toSerialString());
-    Serial.flush();
+    // Serial.flush();
 }
 
 SplittedUsbMessage* MainCarduinoNode::splitReceivedUsbMessage(String message) {
@@ -256,16 +256,18 @@ void MainCarduinoNode::pcfSwcSetup() {
     this->pcf8574Swc->pinMode(P6, OUTPUT);
     this->pcf8574Swc->pinMode(P7, OUTPUT);
 
-    this->pcf8574Swc->begin();
+    bool i2cValid = this->pcf8574Swc->begin();
 
-    this->pcf8574Swc->digitalWrite(P0, HIGH);
-    this->pcf8574Swc->digitalWrite(P1, HIGH);
-    this->pcf8574Swc->digitalWrite(P2, HIGH);
-    this->pcf8574Swc->digitalWrite(P3, HIGH);
-    this->pcf8574Swc->digitalWrite(P4, HIGH);
-    this->pcf8574Swc->digitalWrite(P5, HIGH);
-    this->pcf8574Swc->digitalWrite(P6, HIGH);
-    this->pcf8574Swc->digitalWrite(P7, HIGH);
+    if(i2cValid) {
+        this->pcf8574Swc->digitalWrite(P0, HIGH);
+        this->pcf8574Swc->digitalWrite(P1, HIGH);
+        this->pcf8574Swc->digitalWrite(P2, HIGH);
+        this->pcf8574Swc->digitalWrite(P3, HIGH);
+        this->pcf8574Swc->digitalWrite(P4, HIGH);
+        this->pcf8574Swc->digitalWrite(P5, HIGH);
+        this->pcf8574Swc->digitalWrite(P6, HIGH);
+        this->pcf8574Swc->digitalWrite(P7, HIGH);
+    }
 }
 
 void MainCarduinoNode::pcfDigitalPinsSetup() {
@@ -274,23 +276,25 @@ void MainCarduinoNode::pcfDigitalPinsSetup() {
 	this->pcf8574DigitalPins->pinMode(RADIO_POWER_MOSFET_PIN, OUTPUT);
     this->pcf8574DigitalPins->pinMode(ACCESSORY_12_V_PIN, INPUT);
 
-    this->pcf8574DigitalPins->begin();
+    bool i2cValid = this->pcf8574DigitalPins->begin();
 
-    this->pcf8574DigitalPins->digitalWrite(RADIO_POWER_MOSFET_PIN, HIGH);
+    if(i2cValid) {
+        this->pcf8574DigitalPins->digitalWrite(RADIO_POWER_MOSFET_PIN, HIGH);
 
-    this->addPinToRead(ACCESSORY_12_V_PIN, this->pcf8574DigitalPins, [&](PinInformation *pinInformation){
-        printlnWrapper("ACCESSORY_12_V_PIN changed from " + String(!pinInformation->isHigh) + " to " + String(pinInformation->isHigh));
-        this->isKeyOn = !pinInformation->isHigh;
-        //PIN STATE CHANGED
-        if(!this->isKeyOn) {
-            // this->turnOffRadioTask-> // reset remaining timer
-            this->turnOffRadioTask->restartDelayed();
-            this->sendEvent(&Event::DISABLE, ALL_NODES);
-        } else if(this->isKeyOn && this->turnOffRadioTask->isEnabled()) {
-            this->turnOffRadioTask->disable();
-            this->sendEvent(&Event::DISABLE_INTERRUPT, ALL_NODES);
-        }
-    });
+        this->addPinToRead(ACCESSORY_12_V_PIN, this->pcf8574DigitalPins, [&](PinInformation *pinInformation){
+            printlnWrapper("ACCESSORY_12_V_PIN changed from " + String(!pinInformation->isHigh) + " to " + String(pinInformation->isHigh));
+            this->isKeyOn = !pinInformation->isHigh;
+            //PIN STATE CHANGED
+            if(!this->isKeyOn) {
+                // this->turnOffRadioTask-> // reset remaining timer
+                this->turnOffRadioTask->restartDelayed();
+                this->sendEvent(&Event::DISABLE, ALL_NODES);
+            } else if(this->isKeyOn && this->turnOffRadioTask->isEnabled()) {
+                this->turnOffRadioTask->disable();
+                this->sendEvent(&Event::DISABLE_INTERRUPT, ALL_NODES);
+            }
+        });
+    }
 }
 
 NodeInformation* MainCarduinoNode::getNodeInformation(uint8_t id) {

@@ -55,7 +55,7 @@ String TypedCanbusMessage::toSerialString() {
     String s = "";
     s += this->category->id;
     s += ";";
-    s += String(this->messageId);
+    s += this->messageId;
     s += ";";
     s += this->getValueToString();
     s += ";";

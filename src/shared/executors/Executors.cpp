@@ -13,21 +13,22 @@ void Executors::execute(CarduinoNode *node, CanbusMessage *message) {
         //     Serial.print(executors[i]->filterMessage ? "TRUE" : "FALSE");
         //     Serial.print(" ");
         //     Serial.println(executors[i]->messageId);
+        CarduinoNodeExecutorInterface *executor = executors[i];
         if(
-            executors[i]->categoryFilter == nullptr
+            executor->categoryFilter == nullptr
             || (
-                executors[i]->categoryFilter != nullptr
-                && executors[i]->categoryFilter->id == message->categoryId
+                executor->categoryFilter != nullptr
+                && executor->categoryFilter->id == message->categoryId
                 && (
-                    executors[i]->filterMessage == false
+                    executor->filterMessage == false
                     || (
-                        executors[i]->filterMessage == true
-                        && executors[i]->messageId == message->messageId
+                        executor->filterMessage == true
+                        && executor->messageId == message->messageId
                     )
                 )
             )
         ) {
-            executors[i]->execute(node, message);
+            executor->execute(node, message);
         }
     }
 }
