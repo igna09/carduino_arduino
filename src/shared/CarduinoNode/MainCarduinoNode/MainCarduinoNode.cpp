@@ -31,7 +31,7 @@ MainCarduinoNode::MainCarduinoNode(uint8_t id, int cs, int interruptPin, char *s
     this->canExecutors->addExecutor(new MainNodeCanEvent());
     this->canExecutors->addExecutor(new MainNodeCanLog());
 
-    this->usbExecutors = new Executors();
+    this->usbExecutors = new Executor();
     this->usbExecutors->addExecutor(new WriteSettingExecutor());
     this->usbExecutors->addExecutor(new MainNodeSerialGetSettings());
 

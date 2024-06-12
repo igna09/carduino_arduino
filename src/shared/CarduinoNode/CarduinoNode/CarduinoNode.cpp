@@ -61,7 +61,7 @@ CarduinoNode::CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssi
     }, true);
     WiFi.mode(WIFI_OFF);
     
-    this->canExecutors = new Executors();
+    this->canExecutors = new Executor();
     this->canExecutors->addExecutor(new CarduinoNodeWriteSetting());
     this->canExecutors->addExecutor(new CarduinoNodeCanGetHellos());
     this->canExecutors->addExecutor(new CarduinoNodeCanPowerEvents());

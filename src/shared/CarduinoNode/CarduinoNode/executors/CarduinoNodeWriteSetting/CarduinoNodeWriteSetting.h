@@ -7,7 +7,7 @@
 #include "shared/enums/Setting.h"
 #include "shared/CanbusMessage/SettingMessage/SettingMessage.h"
 #include "shared/enums/Category.h"
-#include "shared/executors/Executors.h"
+#include "shared/executors/Executor.h"
 
 class CarduinoNodeWriteSetting : public CarduinoNodeExecutorInterface {
     public:

@@ -11,7 +11,7 @@
 #define EXECUTORS_SIZE 16
 
 class CarduinoNode; //forward declaration to avoid circular dependency
-class Executors {
+class Executor {
     public:
         CarduinoNodeExecutorInterface* executors[EXECUTORS_SIZE];
         uint8_t size;

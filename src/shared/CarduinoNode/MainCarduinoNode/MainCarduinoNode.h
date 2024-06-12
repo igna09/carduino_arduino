@@ -10,7 +10,7 @@
 #include "shared/enums/CanbusMessageType.h"
 #include "shared/enums/TypedEnum.h"
 #include "shared/CarduinoNode/CarduinoNode/CarduinoNode.h"
-#include "shared/executors/Executors.h"
+#include "shared/executors/Executor.h"
 #include "shared/CarduinoNode/MainCarduinoNode/executors/CarstatusExecutor/CarstatusExecutor.h"
 #include "shared/CarduinoNode/MainCarduinoNode/executors/AllMessageExecutor/AllMessageExecutor.h"
 #include "shared/CarduinoNode/MainCarduinoNode/executors/WriteSettingExecutor/WriteSettingExecutor.h"
@@ -50,7 +50,7 @@ struct NodeInformation {
 
 class MainCarduinoNode : public CarduinoNode {
     public:
-        Executors *usbExecutors;
+        Executor *usbExecutors;
         std::map<uint8_t, NodeInformation*> *nodeInformations;
         bool isRadioOn;
         bool isKeyOn;
