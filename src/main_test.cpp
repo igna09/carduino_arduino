@@ -1,38 +1,39 @@
 #include <Arduino.h>
 
+#define _TASK_STD_FUNCTION   // Compile with support for std::function 
+#define _TASK_SELF_DESTRUCT      // Enable tasks to "self-destruct" after disable
+#include <TaskScheduler.h>
+
 #include "./shared/SharedDefinitions.h"
+#include "./shared/CarduinoNode/MainCarduinoNode/MainCarduinoNode.h"
 
-void setup()
-{
-	Serial.begin(BAUD_RATE);
+MainCarduinoNode *carduinoNode;
 
-	uint32_t realSize = ESP.getFlashChipRealSize();
-  uint32_t ideSize = ESP.getFlashChipSize();
-  FlashMode_t ideMode = ESP.getFlashChipMode();
+/**
+ * convenzione:
+ * interi 4 bytes
+ * float 4 bytes (parte intera) + 1 byte (parte decimale)
+*/
 
-  Serial.printf("Flash real id:   %08X\n", ESP.getFlashChipId());
-  Serial.printf("Flash real size: %u bytes\n\n", realSize);
+void setup(void) {
+  Serial.begin(BAUD_RATE);
+  randomSeed(analogRead(0));
 
-  Serial.printf("Flash ide  size: %u bytes\n", ideSize);
-  Serial.printf("Flash ide speed: %u Hz\n", ESP.getFlashChipSpeed());
-  Serial.printf("Flash ide mode:  %s\n", (ideMode == FM_QIO ? "QIO" : ideMode == FM_QOUT ? "QOUT"
-                                                                    : ideMode == FM_DIO  ? "DIO"
-                                                                    : ideMode == FM_DOUT ? "DOUT"
-                                                                                         : "UNKNOWN"));
-
-  if (ideSize != realSize) {
-    Serial.println("Flash Chip configuration wrong!\n");
-  } else {
-    Serial.println("Flash Chip configuration ok.\n");
-  }
-
+  carduinoNode = new MainCarduinoNode(0x00, 32, 33, "SSID_TEST_CARDUINO_NODE", "pwd12345");
 }
 
-void loop()
-{
-	delay(1000);
-}
+unsigned long lastSent = 0;
 
-/*********************************************************************************************************
-  END FILE
-*********************************************************************************************************/
+void loop(void) {
+  carduinoNode->loop();
+  // if(millis() > lastSent + 10000 && lastSent == 0) {
+      // Serial.println(micros() - lastSent);
+			// lastSent = micros();
+      // uint8_t a[] = {0x01};
+			// CanbusMessage *message = new CanbusMessage(0b10000000010, a, 1);
+			// carduinoNode->manageReceivedCanbusMessage(message);
+  //     carduinoNode->printlnWrapper("test");
+  // carduinoNode->handleReceivedSerialMessage("GET_SETTINGS;;;");
+  //   carduinoNode->sendEvent(&Event::DISABLE, ALL_NODES);
+	// }
+}

@@ -41,6 +41,7 @@ CarduinoNode::CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssi
     }
     can->setMode(MCP_NORMAL);                     // Set operation mode to normal so the MCP2515 sends acks to received data.
     pinMode(interruptPin, INPUT);                            // Configuring pin for /INT input
+    attachInterrupt(digitalPinToInterrupt(interruptPin), std::bind(&CarduinoNode::readCanMessageFromMcpBuffer, this), FALLING);
 
     this->pinInformations = new std::map<uint8_t, PinInformation*>();
 
@@ -250,39 +251,23 @@ void CarduinoNode::setupServerFallback() {
 void CarduinoNode::loop() {
     this->scheduler->execute();
 
-    if (initializedCan && availableCanbusMessages()) {
-    //   Serial.println(initializedCan && availableCanbusMessages() ? "true" : "false");
-      // iterate over all pending messages
-      // If either the bus is saturated or the MCU is busy,
-      // both RX buffers may be in use and reading a single
-      // message does not clear the IRQ conditon.
-      while (CAN_MSGAVAIL == can->checkReceive()) {
-        // uint8_t len = 0;
-        // uint8_t buf[8];
-        // long unsigned int id;
+    handleRxBuffer();
+};
 
-        // can->readMsgBuf(&id, &len, buf);
-
-        // if(len > 0) {
-            // printUint8Array("CarduinoNode::loop", buf, len);
-
-            // CanbusMessage *m = new CanbusMessage(id, buf, len);
-            // manageReceivedCanbusMessage(m);
-            // delete m;
-        // }
-
+void CarduinoNode::readCanMessageFromMcpBuffer() {
+    while (CAN_MSGAVAIL == can->checkReceive()) {
         CanMessageValues *canMessageValues = new CanMessageValues();
         can->readMsgBuf(&canMessageValues->id, &canMessageValues->len, canMessageValues->buf);
         this->addCanMessageValuesToBuffer(canMessageValues);
-      }
     }
-
-    handleBuffer();
-};
+}
 
 void CarduinoNode::addCanMessageValuesToBuffer(CanMessageValues *canMessageValues) {
     this->messageBuffer[this->nextMessageBufferIndexToInsert] = canMessageValues;
     this->nextMessageBufferIndexToInsert++;
+    /**
+     * TODO: manage possibility nextMessageBufferIndexToInsert > nextMessageBufferIndexToRead ==> buffer overflow ==> memory leak
+     */
     if(this->nextMessageBufferIndexToInsert >= CAN_MESSAGE_VALUES_BUFFER_SIZE) {
         this->nextMessageBufferIndexToInsert = 0;
     }
@@ -297,13 +282,7 @@ uint8_t CarduinoNode::getBufferSize() {
     return value;
 }
 
-void CarduinoNode::handleBuffer() {
-    uint8_t bufferSize = getBufferSize();
-    if(bufferSize > 0) {
-        Serial.print("CarduinoNode::handleBuffer buffer size ");
-        Serial.println(bufferSize);
-    }
-    
+void CarduinoNode::handleRxBuffer() {
     uint8_t i = 0;
     while(this->nextMessageBufferIndexToRead != this->nextMessageBufferIndexToInsert && i < CAN_MESSAGE_VALUES_BUFFER_CHUNK_SIZE) {
         CanMessageValues *canMessageValues = messageBuffer[this->nextMessageBufferIndexToRead];
@@ -342,11 +321,12 @@ void CarduinoNode::manageReceivedCanbusMessage(CanbusMessage *message) {
 
 void CarduinoNode::sendByteCanbus(uint16_t messageId, int len, uint8_t *buf) {
     byte sndStat = can->sendMsgBuf(messageId, 0, len, buf);
-    /* if(sndStat == CAN_OK){
-        Serial.println("Message Sent Successfully!");
-    } else {
-        Serial.println("Error Sending Message...");
-    }*/
+    // if(sndStat == CAN_OK){
+    //     Serial.println("Message Sent Successfully!");
+    // }
+    // if(sndStat != CAN_OK){
+    //     Serial.println("Error Sending Message... " + String(sndStat));
+    // }
 };
 
 void CarduinoNode::otaStartup() {
@@ -429,6 +409,8 @@ void CarduinoNode::enable() {
 
 void CarduinoNode::disable() {
     this->printlnWrapper("CarduinoNode::disable");
+	
+	sendLog(20, true);
 
     this->isEnabled = false;
 }

@@ -27,11 +27,13 @@ unsigned long lastSent = 0;
 void loop(void) {
   carduinoNode->loop();
   // if(millis() > lastSent + 10000 && lastSent == 0) {
-	// 		lastSent = millis();
+      // Serial.println(micros() - lastSent);
+			// lastSent = micros();
       // uint8_t a[] = {0x01};
 			// CanbusMessage *message = new CanbusMessage(0b10000000010, a, 1);
 			// carduinoNode->manageReceivedCanbusMessage(message);
   //     carduinoNode->printlnWrapper("test");
   // carduinoNode->handleReceivedSerialMessage("GET_SETTINGS;;;");
+  //   carduinoNode->sendEvent(&Event::DISABLE, ALL_NODES);
 	// }
 }

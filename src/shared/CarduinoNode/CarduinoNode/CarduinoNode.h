@@ -12,6 +12,7 @@
 #include <LittleFS.h>
 #include <PCF8574.h>
 #include <map>              // user must include to use std::map (see above comment)
+#include <FunctionalInterrupt.h>
 
 #if defined(ESP8266)
 #include <ESP8266WiFi.h>
@@ -67,7 +68,7 @@ const char FALLBACK_PAGE[] PROGMEM = R"rawliteral(
 #define DIGITAL_PINS_UPDATE_INTERVAL 20
 #define WRITE_SETTINGS_ON_EEPROM_INTERVAL 30000
 #define CAN_MESSAGE_VALUES_BUFFER_CHUNK_SIZE 1
-#define CAN_MESSAGE_VALUES_BUFFER_SIZE 8
+#define CAN_MESSAGE_VALUES_BUFFER_SIZE 16
 
 struct PinInformation {
     uint8_t pin;
@@ -138,9 +139,10 @@ class CarduinoNode : public Logger, public SettingBase {
         virtual void sendLog(uint8_t id, int value);
         virtual void sendLog(uint8_t id, bool value);
         virtual void sendLog(uint8_t id, float value);
-        void handleBuffer();
+        void handleRxBuffer();
         void addCanMessageValuesToBuffer(CanMessageValues *canMessageValues);
         uint8_t getBufferSize();
+        void readCanMessageFromMcpBuffer();
 
         static uint16_t generateId(const Category category, const Enum messageEnum);
         static uint16_t generateId(const Category category, uint8_t messageId);
