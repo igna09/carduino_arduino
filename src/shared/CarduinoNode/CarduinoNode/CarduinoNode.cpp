@@ -313,7 +313,7 @@ void CarduinoNode::manageReceivedCanbusMessage(CanbusMessage *message) {
             this->printlnWrapper("CarduinoNode::manageReceivedCanbusMessage " + specialized->toSerialHumanString());
             delete specialized;
         } else {
-            this->printlnWrapper("CarduinoNode::manageReceivedCanbusMessage " + message->toSerialString());
+            this->printlnWrapper("CarduinoNode::manageReceivedCanbusMessage " + message->toSerialHumanString());
         }
     }
     this->canExecutors->execute(this, message);
