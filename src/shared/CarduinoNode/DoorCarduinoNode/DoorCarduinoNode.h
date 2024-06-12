@@ -8,7 +8,6 @@
 #include "shared/CarduinoNode/CarduinoNode/CarduinoNode.h"
 #include "shared/CarduinoNode/DoorCarduinoNode/executors/DoorNodeEvent/DoorNodeEvent.h"
 #include "shared/CarduinoNode/DoorCarduinoNode/executors/DoorNodeCarstatus/DoorNodeCarstatus.h"
-#include "Versatile_RotaryEncoder.h"
 #include "shared/enums/MediaControl.h"
 #include "shared/CanbusMessage/MediaControlMessage/MediaControlMessage.h"
 #include "shared/SharedDefinitions.h"
