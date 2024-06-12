@@ -4,7 +4,6 @@
 #define _TASK_SELF_DESTRUCT      // Enable tasks to "self-destruct" after disable
 
 #include <Arduino.h>
-#include <ESP8266WiFi.h>
 #include "mcp_can.h"
 #include <SPI.h>
 #include <TaskSchedulerDeclarations.h>
@@ -13,6 +12,13 @@
 #include <LittleFS.h>
 #include <PCF8574.h>
 #include <map>              // user must include to use std::map (see above comment)
+
+#if defined(ESP8266)
+#include <ESP8266WiFi.h>
+#elif defined(ESP32)
+#include <WiFi.h>
+#include <Update.h>
+#endif
 
 #include "shared/SettingBase/SettingBase.h"
 #include "../../utils.h"

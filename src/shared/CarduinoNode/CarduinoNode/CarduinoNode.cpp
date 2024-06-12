@@ -13,10 +13,17 @@ CarduinoNode::CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssi
     this->_originalLogOnWebserver = logOnServer;
     this->isEnabled = false;
 
-    if (!LittleFS.begin()) {
-        Serial.println("An Error has occurred while mounting LittleFS");
+    #ifdef ESP8266
+    if(!LittleFS.begin()){
+        Serial.println("LittleFS Mount Failed");
         return;
     }
+    #elif defined(ESP32)
+    if(!LittleFS.begin(true)){
+        Serial.println("LittleFS Mount Failed");
+        return;
+    }
+    #endif
 
     if(existsAllFiles()) {
         setupServerWebapp();
@@ -120,7 +127,11 @@ void CarduinoNode::setupServerWebapp() {
     this->server->on("/update-firmware", HTTP_POST, [](AsyncWebServerRequest *request){
         AsyncWebServerResponse *response;
         if(Update.hasError()) {
+            #if defined(ESP8266)
             response = request->beginResponse(500, "text/plain", Update.getErrorString());
+            #elif defined(ESP32)
+            response = request->beginResponse(500, "text/plain", Update.errorString());
+            #endif
         } else {
             response = request->beginResponse(200, "text/plain");
         }
@@ -130,7 +141,9 @@ void CarduinoNode::setupServerWebapp() {
     },[](AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final){
         if(!index){
             Serial.printf("Update Start: %s\n", filename.c_str());
+            #if defined(ESP8266)
             Update.runAsync(true);
+            #endif
             if(!Update.begin((ESP.getFreeSketchSpace() - 0x1000) & 0xFFFFF000)){
                 Update.printError(Serial);
             }

@@ -23,7 +23,7 @@ class KlineCarduinoNode : public CarduinoNode {
 
     private:
         KLineKWP1281Lib *kLine;
-		SoftwareSerial *softwareSerial;
+		EspSoftwareSerial::UART *softwareSerial;
 		uint8_t pin_rx;
     	uint8_t pin_tx;
         Task *readValuesTask;

@@ -71,7 +71,7 @@ class ValueToReadEnum : public Enum {
             uint8_t valuesIndex = 0;
             for(uint8_t i = 0; i < VALUE_TO_READ_ENUM_SIZE; i++) {
                 bool present = false;
-                for(uint8 j = 0; j < valuesIndex && !present; j++) {
+                for(uint8_t j = 0; j < valuesIndex && !present; j++) {
                     present = values[j]->id == ((ValueToReadEnum*) ValueToReadEnum::getValues()[i])->klineEcuEnum.id;
                 }
                 if(!present) {
@@ -88,7 +88,7 @@ class ValueToReadEnum : public Enum {
             uint8_t valuesIndex = 0;
             for(uint8_t i = 0; i < VALUE_TO_READ_ENUM_SIZE; i++) {
                 bool present = false;
-                for(uint8 j = 0; j < valuesIndex && !present; j++) {
+                for(uint8_t j = 0; j < valuesIndex && !present; j++) {
                     present = values[j]->id == ((ValueToReadEnum*) ValueToReadEnum::getValues()[i])->klineEcuEnum.id;
                 }
                 if(!present) {
