@@ -44,7 +44,7 @@ String TypedCanbusMessage::toSerialHumanString() {
     String s = "";
     s += this->category->name;
     s += ";";
-    s += String(this->messageId);
+    s += this->messageId;
     s += ";";
     s += this->getValueToString();
     s += ";";
