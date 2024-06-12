@@ -61,23 +61,27 @@ CommunicationCarduinoNode::CommunicationCarduinoNode(uint8_t id, int cs, int int
 
     // Start advertising
     BLEAdvertising *pAdvertising = BLEDevice::getAdvertising();
-    pAdvertising->addServiceUUID(SERVICE_UUID);
+    // pAdvertising->addServiceUUID(SERVICE_UUID);
     pServer->getAdvertising()->start();
     Serial.println("Waiting a client connection to notify...");
 
-    pBLEScan = BLEDevice::getScan(); //create new scan
-    pBLEScan->setAdvertisedDeviceCallbacks(new MyAdvertisedDeviceCallbacks());
-    pBLEScan->setActiveScan(true); //active scan uses more power, but get results faster
-    pBLEScan->setInterval(100);
-    pBLEScan->setWindow(99);  // less or equal setInterval value
+    // pBLEScan = BLEDevice::getScan(); //create new scan
+    // pBLEScan->setAdvertisedDeviceCallbacks(new MyAdvertisedDeviceCallbacks());
+    // pBLEScan->setActiveScan(true); //active scan uses more power, but get results faster
+    // pBLEScan->setInterval(100);
+    // pBLEScan->setWindow(99);  // less or equal setInterval value
 
-    new Task(5500, TASK_FOREVER, [&](){
-        BLEScanResults foundDevices = pBLEScan->start(scanTime, false);
-        Serial.print("Devices found: ");
-        Serial.println(foundDevices.getCount());
-        Serial.println("Scan done!");
-        pBLEScan->clearResults();   // delete results fromBLEScan buffer to release memory
-    }, this->scheduler, true);
+    // new Task(5500, TASK_FOREVER, [&](){
+    //     BLEScanResults foundDevices = pBLEScan->start(scanTime, false);
+    //     Serial.print("Devices found: ");
+    //     Serial.println(foundDevices.getCount());
+    //     Serial.println("Scan done!");
+    //     for(uint8_t i = 0; i < foundDevices.getCount(); i++) {
+    //         BLEAdvertisedDevice bleAdvertisedDevice = foundDevices.getDevice(i);
+    //         Serial.println(bleAdvertisedDevice.toString().c_str());
+    //     }
+    //     pBLEScan->clearResults();   // delete results fromBLEScan buffer to release memory
+    // }, this->scheduler, true);
 };
 
 void CommunicationCarduinoNode::loop() {

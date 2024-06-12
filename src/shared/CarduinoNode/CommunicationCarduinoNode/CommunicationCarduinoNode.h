@@ -78,10 +78,12 @@ class MyAdvertisedDeviceCallbacks: public BLEAdvertisedDeviceCallbacks
 class MyServerCallbacks: public BLEServerCallbacks 
 {
     void onConnect(BLEServer* pServer) {
-      Serial.println("onConnect");
+        Serial.println("onConnect");
     }
     void onDisconnect(BLEServer* pServer) {
-      Serial.println("onDisconnect");
+        Serial.println("onDisconnect");
+        pServer->getAdvertising()->start();
+        Serial.println("Waiting a client connection to notify...");
     }
 };
 
