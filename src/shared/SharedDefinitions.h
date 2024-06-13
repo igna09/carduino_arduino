@@ -21,3 +21,16 @@ union ValueType {
 #define BOOL_BYTES_SIZE 1
 #define INT_BYTES_SIZE 4
 #define FLOAT_BYTES_SIZE 5
+
+
+#define WEMOS_D1_MINI_SDA D3
+#define WEMOS_D1_MINI_SCL SCL
+#define ESP32_SDA SDA
+#define ESP32_SCL SCL
+#if defined(ESP8266)
+#define NODE_SDA WEMOS_D1_MINI_SDA
+#define NODE_SCL WEMOS_D1_MINI_SCL
+#elif defined(ESP32)
+#define NODE_SDA ESP32_SDA
+#define NODE_SCL ESP32_SCL
+#endif

@@ -25,7 +25,7 @@ def copy_bin_file(source, target, env):
 #     copy_bin_file
 # )
 env.AddPostAction(
-    # "buildprog",
-    "checkprogsize",
+    "buildprog",
+    # "checkprogsize",
     copy_bin_file
 )

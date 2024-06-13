@@ -1,6 +1,6 @@
 #include "MainCarduinoNode.h"
 
-MainCarduinoNode::MainCarduinoNode(uint8_t id, int cs, int interruptPin, char *ssid, char *password) : CarduinoNode(id, cs, interruptPin, ssid, password, true, false) {
+MainCarduinoNode::MainCarduinoNode(uint8_t id, int cs, int interruptPin, char *ssid, char *password) : CarduinoNode(id, cs, interruptPin, ssid, password, true, true, false) {
     this->addSetting(&Setting::SWC_PAIR, false, [&](SettingInformation *settingInformation){
         if(settingInformation->value->boolValue) {
             this->startSwcPairing();
@@ -245,7 +245,7 @@ void MainCarduinoNode::turnOffSystem() {
 // }
 
 void MainCarduinoNode::pcfSwcSetup() {
-    this->pcf8574Swc = new PCF8574(0x20, D0, SCL);
+    this->pcf8574Swc = new PCF8574(0x20, NODE_SDA, NODE_SCL);
 
 	this->pcf8574Swc->pinMode(P0, OUTPUT);
     this->pcf8574Swc->pinMode(P1, OUTPUT);
@@ -271,7 +271,7 @@ void MainCarduinoNode::pcfSwcSetup() {
 }
 
 void MainCarduinoNode::pcfDigitalPinsSetup() {
-    this->pcf8574DigitalPins = new PCF8574(0x21, D0, SCL);
+    this->pcf8574DigitalPins = new PCF8574(0x21, NODE_SDA, NODE_SCL);
 
 	this->pcf8574DigitalPins->pinMode(RADIO_POWER_MOSFET_PIN, OUTPUT);
     this->pcf8574DigitalPins->pinMode(ACCESSORY_12_V_PIN, INPUT);

@@ -111,7 +111,7 @@ class CarduinoNode : public Logger, public SettingBase {
         Task *temperatureTask;
         std::map<uint8_t, PinInformation*> *pinInformations;
 
-        CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssid, const char *password, bool logOnServer, bool logOnSerial);
+        CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssid, const char *password, bool enableI2c = false, bool logOnServer = false, bool logOnSerial = false);
         
         /**
          * TODO: manage saving of settings in eeprom
