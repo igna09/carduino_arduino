@@ -29,19 +29,19 @@ void Executor::execute(CarduinoNode *node, CanbusMessage *message) {
                 )
             )
         ) {
-            // if(!logged) {
-            //     logged = true;
-            //     if(node->_logOnSerial || node->_logOnServer) {
-            //         Category *category = (Category*)Category::getValueById(message->categoryId);
-            //         if(category->createSpecializedCopyFunction != nullptr) {
-            //             CanbusMessage *specialized = category->createSpecializedCopyFunction(message);
-            //             node->printlnWrapper("CarduinoNode::manageReceivedCanbusMessage " + specialized->toSerialHumanString());
-            //             delete specialized;
-            //         } else {
-            //             node->printlnWrapper("CarduinoNode::manageReceivedCanbusMessage " + message->toSerialHumanString());
-            //         }
-            //     }
-            // }
+            if(!logged) {
+                logged = true;
+                if(node->_logOnSerial || node->_logOnServer) {
+                    Category *category = (Category*)Category::getValueById(message->categoryId);
+                    if(category->createSpecializedCopyFunction != nullptr) {
+                        CanbusMessage *specialized = category->createSpecializedCopyFunction(message);
+                        node->printlnWrapper("CarduinoNode::manageReceivedCanbusMessage " + specialized->toSerialHumanString());
+                        delete specialized;
+                    } else {
+                        node->printlnWrapper("CarduinoNode::manageReceivedCanbusMessage " + message->toSerialHumanString());
+                    }
+                }
+            }
             executor->execute(node, message);
         }
     }

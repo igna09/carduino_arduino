@@ -19,7 +19,7 @@ void setup(void) {
   Serial.begin(BAUD_RATE);
   randomSeed(analogRead(0));
 
-  carduinoNode = new MainCarduinoNode(0x00, D0, D8, "SSID_MAIN_CARDUINO_NODE", "pwd12345");
+  carduinoNode = new MainCarduinoNode(0x00, D8, D2, "SSID_MAIN_CARDUINO_NODE", "pwd12345");
 }
 
 unsigned long lastSent = 0;

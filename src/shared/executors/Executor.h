@@ -3,14 +3,14 @@
 #include <Arduino.h>
 #include "../CanbusMessage/CanbusMessage.h"
 #include "CarduinoNodeExecutorInterface.h"
-// #include "../CarduinoNode/CarduinoNode/CarduinoNode.h"
+#include "../CarduinoNode/CarduinoNode/CarduinoNode.h"
 
 /**
  * TODO: change so that is not necessary size anymore
 */
 #define EXECUTORS_SIZE 16
 
-class CarduinoNode; //forward declaration to avoid circular dependency
+// class CarduinoNode; //forward declaration to avoid circular dependency
 class Executor {
     public:
         CarduinoNodeExecutorInterface* executors[EXECUTORS_SIZE];

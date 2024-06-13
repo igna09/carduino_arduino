@@ -130,7 +130,7 @@ bool DoorCarduinoNode::usingMirrors() {
 
 
 void DoorCarduinoNode::pcfSetup() {
-    this->pcf8574 = new PCF8574(0x20);
+    this->pcf8574 = new PCF8574(0x20, D0, SCL);
 
 	this->pcf8574->pinMode(PIN_MIRROR_A, OUTPUT);
     this->pcf8574->pinMode(PIN_MIRROR_B, OUTPUT);

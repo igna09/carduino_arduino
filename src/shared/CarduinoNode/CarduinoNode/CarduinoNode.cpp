@@ -283,6 +283,7 @@ uint8_t CarduinoNode::getBufferSize() {
 }
 
 void CarduinoNode::handleRxBuffer() {
+    // Serial.println(getBufferSize());
     uint8_t i = 0;
     while(this->nextMessageBufferIndexToRead != this->nextMessageBufferIndexToInsert && i < CAN_MESSAGE_VALUES_BUFFER_CHUNK_SIZE) {
         CanMessageValues *canMessageValues = messageBuffer[this->nextMessageBufferIndexToRead];
@@ -306,16 +307,19 @@ void CarduinoNode::handleRxBuffer() {
 }
 
 void CarduinoNode::manageReceivedCanbusMessage(CanbusMessage *message) {
-    if(this->_logOnSerial || this->_logOnServer) {
-        Category *category = (Category*)Category::getValueById(message->categoryId);
-        if(category->createSpecializedCopyFunction != nullptr) {
-            CanbusMessage *specialized = category->createSpecializedCopyFunction(message);
-            this->printlnWrapper("CarduinoNode::manageReceivedCanbusMessage " + specialized->toSerialHumanString());
-            delete specialized;
-        } else {
-            this->printlnWrapper("CarduinoNode::manageReceivedCanbusMessage " + message->toSerialHumanString());
-        }
-    }
+    /**
+     * moved to executor so that i can show this message only in messages i will read
+     */
+    // if(this->_logOnSerial || this->_logOnServer) {
+    //     Category *category = (Category*)Category::getValueById(message->categoryId);
+    //     if(category->createSpecializedCopyFunction != nullptr) {
+    //         CanbusMessage *specialized = category->createSpecializedCopyFunction(message);
+    //         this->printlnWrapper("CarduinoNode::manageReceivedCanbusMessage " + specialized->toSerialHumanString());
+    //         delete specialized;
+    //     } else {
+    //         this->printlnWrapper("CarduinoNode::manageReceivedCanbusMessage " + message->toSerialHumanString());
+    //     }
+    // }
     this->canExecutors->execute(this, message);
 };
 

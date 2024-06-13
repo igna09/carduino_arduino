@@ -33,7 +33,7 @@
 #include "shared/CarduinoNode/CarduinoNode/executors/CarduinoNodeCanGetHellos/CarduinoNodeCanGetHellos.h"
 #include "shared/CarduinoNode/CarduinoNode/executors/CarduinoNodeCanPowerEvents/CarduinoNodeCanPowerEvents.h"
 #include "shared/CarduinoNode/CarduinoNode/executors/CarduinoNodeCanGetSettings/CarduinoNodeCanGetSettings.h"
-#include "shared/executors/Executor.h"
+// #include "shared/executors/Executor.h"
 
 /**
  * Send message to android --> Category;payload;
@@ -84,7 +84,7 @@ struct CanMessageValues {
     uint8_t buf[8];
 };
 
-// class Executor; // forward declaration to avoid circular dependency
+class Executor; // forward declaration to avoid circular dependency
 class CarduinoNode : public Logger, public SettingBase {
     private:
         String fallbackPageProcessor(const String& var);

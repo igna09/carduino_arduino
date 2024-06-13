@@ -13,7 +13,7 @@ void setup(void) {
   	Serial.begin(BAUD_RATE);
 //   randomSeed(analogRead(0));
 
-  	doorCarduinoNode = new DoorCarduinoNode(0x03, D0, D8, "SSID_DOOR_CARDUINO_NODE", "pwd12345");
+  	doorCarduinoNode = new DoorCarduinoNode(0x03, D8, D2, "SSID_DOOR_CARDUINO_NODE", "pwd12345");
 }
 
 unsigned long lastSent = 0;

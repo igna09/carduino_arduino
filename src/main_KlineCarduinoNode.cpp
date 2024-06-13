@@ -18,7 +18,7 @@ KlineCarduinoNode *klineCarduinoNode;
 void setup(void) {
   Serial.begin(BAUD_RATE);
 
-  klineCarduinoNode = new KlineCarduinoNode(0x01, D2, D1, D0, D8, "SSID_KLINE_CARDUINO_NODE", "pwd12345");
+  klineCarduinoNode = new KlineCarduinoNode(0x01, D0, D1, D8, D2, "SSID_KLINE_CARDUINO_NODE", "pwd12345");
 }
 
 // unsigned long lastSent = millis();
