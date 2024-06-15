@@ -64,6 +64,10 @@
         "regex": "cpp",
         "bitset": "cpp",
         "coroutine": "cpp",
-        "sstream": "cpp"
+        "sstream": "cpp",
+        "unordered_set": "cpp",
+        "fstream": "cpp",
+        "iomanip": "cpp",
+        "assert.h": "c"
     }
 }

@@ -5,7 +5,7 @@ KlineCarduinoNode::KlineCarduinoNode(uint8_t id, uint8_t pin_rx, uint8_t pin_tx,
 	
 	this->pin_rx = pin_rx;
     this->pin_tx = pin_tx;
-	this->softwareSerial = new EspSoftwareSerial::UART(pin_rx, pin_tx);
+	this->softwareSerial = new SoftwareSerial(pin_rx, pin_tx);
 
 	std::function<void(unsigned long)> beginFunction = [&](unsigned long baud){
 		softwareSerial->begin(baud);
