@@ -3,10 +3,6 @@
 CommunicationCarduinoNode::CommunicationCarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssid, const char *password) : CarduinoNode(id, cs, interruptPin, ssid,  password, false, true, true) {
     this->restoreSettings();
 
-    // SD.begin(0);
-
-    // counter = 0;
-
     // Start BLE service
     /*BLEDevice::init("ESP32");
     Serial.println("BLE started!");
@@ -53,6 +49,24 @@ CommunicationCarduinoNode::CommunicationCarduinoNode(uint8_t id, int cs, int int
     //     }
     //     pBLEScan->clearResults();   // delete results fromBLEScan buffer to release memory
     // }, this->scheduler, true);
+
+    if(!LittleFS.begin(true)){
+        Serial.println("LITTLEFS Mount Failed");
+        return;
+    }
+
+    connected = false;
+    authenticated = false;
+
+    new Task(60000, TASK_FOREVER, [&](){
+        if(this->connected && this->authenticated) {
+            esp_err_t rc = esp_ble_gap_read_rssi(*this->authenticatedBdAddress->getNative());
+        }
+    }, this->scheduler, true);
+
+    otaStartup();
+
+    logToFile("setup done");
 };
 
 void CommunicationCarduinoNode::loop() {
@@ -159,29 +173,50 @@ void CommunicationCarduinoNode::clearWhitelist() {
 }
 
 void CommunicationCarduinoNode::customGapCallback(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param_t *param) {
-    Serial.println("customGapHandler");
-    Serial.println(BLEUtils::gapEventToString(event));
+    // Serial.println("customGapHandler");
+    // Serial.println(BLEUtils::gapEventToString(event));
     switch(event) {
         case ESP_GAP_BLE_AUTH_CMPL_EVT: {
-            log_e("[bd_addr: %s, key_present: %d, key: ***, key_type: %d, success: %d, fail_reason: %d, addr_type: ***, dev_type: %s]",
-                BLEAddress(param->ble_security.auth_cmpl.bd_addr).toString().c_str(),
-                param->ble_security.auth_cmpl.key_present,
-                param->ble_security.auth_cmpl.key_type,
-                param->ble_security.auth_cmpl.success,
-                param->ble_security.auth_cmpl.fail_reason,
-                BLEUtils::devTypeToString(param->ble_security.auth_cmpl.dev_type)
-            );
+            String message = "[bd_addr: ";
+            message += BLEAddress(param->ble_security.auth_cmpl.bd_addr).toString().c_str();
+            message += ", success: ";
+            message += param->ble_security.auth_cmpl.success;
+            message += ", fail_reason: ";
+            message += param->ble_security.auth_cmpl.fail_reason;
+            message += ", dev_type: ";
+            message += BLEUtils::devTypeToString(param->ble_security.auth_cmpl.dev_type);
+            message += "]";
+            // log_e("[bd_addr: %s, key_present: %d, key: ***, key_type: %d, success: %d, fail_reason: %d, addr_type: ***, dev_type: %s]",
+            //     BLEAddress(param->ble_security.auth_cmpl.bd_addr).toString().c_str(),
+            //     param->ble_security.auth_cmpl.key_present,
+            //     param->ble_security.auth_cmpl.key_type,
+            //     param->ble_security.auth_cmpl.success,
+            //     param->ble_security.auth_cmpl.fail_reason,
+            //     BLEUtils::devTypeToString(param->ble_security.auth_cmpl.dev_type)
+            // );
+            printlnWrapper(message);
+            logToFile(message);
             if(param->ble_security.auth_cmpl.success) {
-                esp_err_t rc = esp_ble_gap_read_rssi(param->ble_security.auth_cmpl.bd_addr);
+                this->authenticatedBdAddress = new BLEAddress(param->ble_security.auth_cmpl.bd_addr);
+                authenticated = true;
             }
             break;
         } // ESP_GAP_BLE_AUTH_CMPL_EVT
         case ESP_GAP_BLE_READ_RSSI_COMPLETE_EVT: {
-            log_e("[status: %d, rssi: %d, remote_addr: %s]",
-                    param->read_rssi_cmpl.status,
-                    param->read_rssi_cmpl.rssi,
-                    BLEAddress(param->read_rssi_cmpl.remote_addr).toString().c_str()
-            );
+            String message = "[status: ";
+            message += param->read_rssi_cmpl.status;
+            message += ", rssi: ";
+            message += param->read_rssi_cmpl.rssi;
+            message += ", remote_addr: ";
+            message += BLEAddress(param->read_rssi_cmpl.remote_addr).toString().c_str();
+            message += "]";
+            // log_e("[status: %d, rssi: %d, remote_addr: %s]",
+            //         param->read_rssi_cmpl.status,
+            //         param->read_rssi_cmpl.rssi,
+            //         BLEAddress(param->read_rssi_cmpl.remote_addr).toString().c_str()
+            // );
+            printlnWrapper(message);
+            logToFile(message);
 
             /**
              * start here a task that check phone rssi
@@ -190,4 +225,19 @@ void CommunicationCarduinoNode::customGapCallback(esp_gap_ble_cb_event_t event, 
             break;
         } // ESP_GAP_BLE_READ_RSSI_COMPLETE_EVT
     }
+}
+
+void CommunicationCarduinoNode::logToFile(String message) {
+    message += '\n';
+    File file = LittleFS.open("/logs.txt", FILE_APPEND);
+    if(!file){
+        Serial.println("- failed to open file for appending");
+        return;
+    }
+    if(file.print(message)){
+        Serial.println("- message appended");
+    } else {
+        Serial.println("- append failed");
+    }
+    file.close();
 }

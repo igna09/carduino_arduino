@@ -208,6 +208,10 @@ void CarduinoNode::setupServerWebapp() {
         serializeJson(jsonDocument, *response);
         request->send(response);
     });
+
+    this->server->on("/download", HTTP_GET, [&](AsyncWebServerRequest *request){
+        AsyncWebServerResponse *response = request->beginResponse(LittleFS, "/logs.txt", String(), true);
+    });
 }
 
 void CarduinoNode::setupServerFallback() {

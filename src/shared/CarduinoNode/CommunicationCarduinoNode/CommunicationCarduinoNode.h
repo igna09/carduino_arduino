@@ -40,6 +40,10 @@ class CommunicationCarduinoNode : public CarduinoNode {
         void clientAuthenticated();
         void clearWhitelist();
         void customGapCallback(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param_t *param);
+        void logToFile(String);
+        bool authenticated;
+        bool connected;
+        BLEAddress* authenticatedBdAddress;
 
     private:
         BLEServer* bleServer;
