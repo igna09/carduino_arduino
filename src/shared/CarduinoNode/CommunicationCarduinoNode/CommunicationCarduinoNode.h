@@ -7,6 +7,7 @@
 #include "shared/SharedDefinitions.h"
 #include "utils/MyBLESecurityCallbacks/MyBLESecurityCallbacks.h"
 #include "utils/MyBLEServerCallbacks/MyBLEServerCallbacks.h"
+#include "utils/GAPCallback/GAPCallback.h"
 
 // #include <SD.h>
 
@@ -38,6 +39,7 @@ class CommunicationCarduinoNode : public CarduinoNode {
         void loop();
         void clientAuthenticated();
         void clearWhitelist();
+        void customGapCallback(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param_t *param);
 
     private:
         BLEServer* bleServer;

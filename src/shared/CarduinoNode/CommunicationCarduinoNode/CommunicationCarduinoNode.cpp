@@ -13,35 +13,8 @@ CommunicationCarduinoNode::CommunicationCarduinoNode(uint8_t id, int cs, int int
 
     bleClient = new BLEClient();*/
     BLEDevice::init("ESP32");
-    BLEDevice::setCustomGapHandler([](esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param_t *param) {
-        Serial.println("customGapHandler");
-        Serial.println(BLEUtils::gapEventToString(event));
-        switch(event) {
-            case ESP_GAP_BLE_AUTH_CMPL_EVT: {
-                log_e("[bd_addr: %s, key_present: %d, key: ***, key_type: %d, success: %d, fail_reason: %d, addr_type: ***, dev_type: %s]",
-                    BLEAddress(param->ble_security.auth_cmpl.bd_addr).toString().c_str(),
-                    param->ble_security.auth_cmpl.key_present,
-                    param->ble_security.auth_cmpl.key_type,
-                    param->ble_security.auth_cmpl.success,
-                    param->ble_security.auth_cmpl.fail_reason,
-                    BLEUtils::devTypeToString(param->ble_security.auth_cmpl.dev_type)
-                );
-                if(param->ble_security.auth_cmpl.success) {
-                    esp_err_t rc = esp_ble_gap_read_rssi(param->ble_security.auth_cmpl.bd_addr);
-                }
-                break;
-            } // ESP_GAP_BLE_AUTH_CMPL_EVT
-            case ESP_GAP_BLE_READ_RSSI_COMPLETE_EVT: {
-                log_e("[status: %d, rssi: %d, remote_addr: %s]",
-                        param->read_rssi_cmpl.status,
-                        param->read_rssi_cmpl.rssi,
-                        BLEAddress(param->read_rssi_cmpl.remote_addr).toString().c_str()
-                );
-
-                break;
-            } // ESP_GAP_BLE_READ_RSSI_COMPLETE_EVT
-        }
-    });
+    GAPCallback<void(esp_gap_ble_cb_event_t, esp_ble_gap_cb_param_t*)>::func = std::bind(&CommunicationCarduinoNode::customGapCallback, this, std::placeholders::_1, std::placeholders::_2);
+    BLEDevice::setCustomGapHandler(static_cast<gap_event_handler>(GAPCallback<void(esp_gap_ble_cb_event_t, esp_ble_gap_cb_param_t*)>::callback));
     BLEDevice::setEncryptionLevel(ESP_BLE_SEC_ENCRYPT);
     BLEDevice::setSecurityCallbacks(new MyBLESecurityCallbacks(this));
 
@@ -183,4 +156,38 @@ void CommunicationCarduinoNode::clientAuthenticated() {
 
 void CommunicationCarduinoNode::clearWhitelist() {
     esp_ble_gap_clear_whitelist();
+}
+
+void CommunicationCarduinoNode::customGapCallback(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param_t *param) {
+    Serial.println("customGapHandler");
+    Serial.println(BLEUtils::gapEventToString(event));
+    switch(event) {
+        case ESP_GAP_BLE_AUTH_CMPL_EVT: {
+            log_e("[bd_addr: %s, key_present: %d, key: ***, key_type: %d, success: %d, fail_reason: %d, addr_type: ***, dev_type: %s]",
+                BLEAddress(param->ble_security.auth_cmpl.bd_addr).toString().c_str(),
+                param->ble_security.auth_cmpl.key_present,
+                param->ble_security.auth_cmpl.key_type,
+                param->ble_security.auth_cmpl.success,
+                param->ble_security.auth_cmpl.fail_reason,
+                BLEUtils::devTypeToString(param->ble_security.auth_cmpl.dev_type)
+            );
+            if(param->ble_security.auth_cmpl.success) {
+                esp_err_t rc = esp_ble_gap_read_rssi(param->ble_security.auth_cmpl.bd_addr);
+            }
+            break;
+        } // ESP_GAP_BLE_AUTH_CMPL_EVT
+        case ESP_GAP_BLE_READ_RSSI_COMPLETE_EVT: {
+            log_e("[status: %d, rssi: %d, remote_addr: %s]",
+                    param->read_rssi_cmpl.status,
+                    param->read_rssi_cmpl.rssi,
+                    BLEAddress(param->read_rssi_cmpl.remote_addr).toString().c_str()
+            );
+
+            /**
+             * start here a task that check phone rssi
+             */
+
+            break;
+        } // ESP_GAP_BLE_READ_RSSI_COMPLETE_EVT
+    }
 }
