@@ -93,7 +93,6 @@ class CarduinoNode : public Logger, public SettingBase {
         void setupServerWebapp();
         void setupServerFallback();
         bool _fallbackPage;
-        bool isEnabled;
         CanMessageValues* messageBuffer[CAN_MESSAGE_VALUES_BUFFER_SIZE];
         uint8_t nextMessageBufferIndexToInsert = 0;
         uint8_t nextMessageBufferIndexToRead = 0;
@@ -110,6 +109,7 @@ class CarduinoNode : public Logger, public SettingBase {
         Scheduler *scheduler;
         Task *temperatureTask;
         std::map<uint8_t, PinInformation*> *pinInformations;
+        bool isEnabled;
 
         CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssid, const char *password, bool enableI2c = false, bool logOnServer = false, bool logOnSerial = false);
         
