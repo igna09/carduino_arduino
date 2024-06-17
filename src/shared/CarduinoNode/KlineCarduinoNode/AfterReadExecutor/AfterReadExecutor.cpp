@@ -6,7 +6,9 @@ void AfterReadExecutors::addExecutor(AfterReadExecutorInterface* executor) {
 };
 
 void AfterReadExecutors::execute(CarduinoNode *node) {
-    for(uint8_t i = 0; i < this->size; i++) {
-        executors[i]->execute(node);
+    if(node->isEnabled) {
+        for(uint8_t i = 0; i < this->size; i++) {
+            executors[i]->execute(node);
+        }
     }
 }
