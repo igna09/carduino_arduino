@@ -228,6 +228,10 @@ void CommunicationCarduinoNode::customGapCallback(esp_gap_ble_cb_event_t event, 
 }
 
 void CommunicationCarduinoNode::logToFile(String message) {
+    tm timeInfo;
+    getLocalTime(&timeInfo);
+    String localTime = String(timeInfo.tm_year) + "-" + String(timeInfo.tm_mon) + "-" + String(timeInfo.tm_yday) + " " + String(timeInfo.tm_hour) + ":" + String(timeInfo.tm_min) + ":" + String(timeInfo.tm_sec);
+    message = localTime + " " + message;
     message += '\n';
     File file = LittleFS.open("/logs.txt", FILE_APPEND);
     if(!file){
