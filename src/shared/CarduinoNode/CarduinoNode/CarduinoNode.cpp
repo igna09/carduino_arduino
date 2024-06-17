@@ -229,7 +229,6 @@ void CarduinoNode::setupServerWebapp() {
                     request->send(500, "text/plain", "error deserializing");
                 }
 
-                // const char* filename = doc["filename"]; // "thisisatest.txt"
                 String filename = doc["filename"];
                 AsyncWebServerResponse *response = request->beginResponse(*fs, "/" + filename, String(), true);
             } else {
