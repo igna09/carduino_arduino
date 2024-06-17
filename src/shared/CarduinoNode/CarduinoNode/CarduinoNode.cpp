@@ -13,16 +13,22 @@ CarduinoNode::CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssi
     this->_originalLogOnWebserver = logOnServer;
     this->isEnabled = false;
 
-    #ifdef ESP8266
-    if(!LittleFS.begin()){
-        Serial.println("LittleFS Mount Failed");
-        return;
-    }
-    #elif defined(ESP32)
-    if(!LittleFS.begin(true)){
-        Serial.println("LittleFS Mount Failed");
-        return;
-    }
+    #if defined(EXTERNAL_SD)
+    fs = &SD;
+    SD.begin(1);
+    #else
+        fs = &LittleFS;
+        #ifdef ESP8266
+        if(!LittleFS.begin()){
+            Serial.println("LittleFS Mount Failed");
+            return;
+        }
+        #elif defined(ESP32)
+        if(!LittleFS.begin(true, "/")){
+            Serial.println("LittleFS Mount Failed");
+            return;
+        }
+        #endif
     #endif
 
     if(existsAllFiles()) {
@@ -116,10 +122,10 @@ String CarduinoNode::fallbackPageProcessor(const String& var) {
 }
 
 bool CarduinoNode::existsAllFiles() {
-    bool mainJsExists = LittleFS.exists("/main.js.gz");
-    bool polyfillsJsExists = LittleFS.exists("/polyfills.js.gz");
-    bool indexHtmlExists = LittleFS.exists("/index.html.gz");
-    bool stylesCssExists = LittleFS.exists("/styles.css.gz");
+    bool mainJsExists = fs->exists("/main.js.gz");
+    bool polyfillsJsExists = fs->exists("/polyfills.js.gz");
+    bool indexHtmlExists = fs->exists("/index.html.gz");
+    bool stylesCssExists = fs->exists("/styles.css.gz");
 
     return mainJsExists && polyfillsJsExists && indexHtmlExists && stylesCssExists;
 }
@@ -127,7 +133,7 @@ bool CarduinoNode::existsAllFiles() {
 void CarduinoNode::setupServerWebapp() {
     this->_fallbackPage = false;
     this->setupLogger(this->server, false, this->_originalLogOnSerial);
-    this->server->serveStatic("/", LittleFS, "/").setDefaultFile("/index.html");
+    this->server->serveStatic("/", *fs, "/").setDefaultFile("/index.html");
 
     this->server->on("/update-firmware", HTTP_POST, [](AsyncWebServerRequest *request){
         AsyncWebServerResponse *response;
@@ -175,7 +181,7 @@ void CarduinoNode::setupServerWebapp() {
         if (!index) {
             printlnWrapper("Upload Start: " + String(filename));
             // open the file on first call and store the file handle in the request object
-            request->_tempFile = LittleFS.open("/" + filename, "w");
+            request->_tempFile = fs->open("/" + filename, "w");
         }
 
         if (len) {
@@ -210,8 +216,31 @@ void CarduinoNode::setupServerWebapp() {
     });
 
     this->server->on("/download", HTTP_GET, [&](AsyncWebServerRequest *request){
-        AsyncWebServerResponse *response = request->beginResponse(LittleFS, "/logs.txt", String(), true);
+        AsyncWebServerResponse *response = request->beginResponse(*fs, "/logs.txt", String(), true);
     });
+
+    this->server->on(
+        "/download",
+        HTTP_POST,
+        [&](AsyncWebServerRequest *request){
+            if(request->hasParam("body", true)) {
+                JsonDocument doc;
+                if (deserializeJson(doc, request->getParam("body", true)->value())) {
+                    request->send(500, "text/plain", "error deserializing");
+                }
+
+                // const char* filename = doc["filename"]; // "thisisatest.txt"
+                String filename = doc["filename"];
+                AsyncWebServerResponse *response = request->beginResponse(*fs, "/" + filename, String(), true);
+            } else {
+                request->send(500, "text/plain", "No body?!\n");
+            }
+        }//,
+        // [&](AsyncWebServerRequest *request, const String& filename, size_t index, uint8_t *data, size_t len, bool final){},
+        // [&](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total){
+        //     request->
+        // }
+    );
 }
 
 void CarduinoNode::setupServerFallback() {
@@ -238,7 +267,7 @@ void CarduinoNode::setupServerFallback() {
             this->requestsCounter++;
             printlnWrapper("Upload Start: " + String(filename));
             // open the file on first call and store the file handle in the request object
-            request->_tempFile = LittleFS.open("/" + filename, "w");
+            request->_tempFile = fs->open("/" + filename, "w");
         }
 
         if (len) {
