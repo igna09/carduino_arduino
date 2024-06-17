@@ -1,5 +1,8 @@
 #pragma once
 
+#define SERVICE_UUID        "4fafc201-1fb5-459e-8fcc-c5c9c331914b"
+#define CHARACTERISTIC_UUID "beb5483e-36e1-4688-b7f5-ea07361b26a8"
+
 #include <Arduino.h>
 #include "shared/CarduinoNode/CarduinoNode/CarduinoNode.h"
 #include "shared/enums/MediaControl.h"
@@ -9,15 +12,7 @@
 #include "utils/MyBLEServerCallbacks/MyBLEServerCallbacks.h"
 #include "utils/GAPCallback/GAPCallback.h"
 
-// #include <SD.h>
-
 #include <BLEDevice.h>            // sets up BLE device constructs
-// #include <BLEUtils.h>             // various BLE utilities for processing BLE data
-// #include <BLEScan.h>              // contains BLE scanning functions
-// #include <BLEAdvertisedDevice.h>  // contains BLE device characteristic data
-
-#define SERVICE_UUID        "4fafc201-1fb5-459e-8fcc-c5c9c331914b"
-#define CHARACTERISTIC_UUID "beb5483e-36e1-4688-b7f5-ea07361b26a8"
 
 // class MyAdvertisedDeviceCallbacks: public BLEAdvertisedDeviceCallbacks 
 // {
@@ -48,10 +43,4 @@ class CommunicationCarduinoNode : public CarduinoNode {
     private:
         BLEServer* bleServer;
         BLEDevice* bleDevice;
-        // BLECharacteristic* pCharacteristic;
-        // uint8_t counter;
-        // BLEClient* bleClient;
-        
-        // int scanTime = 5; //In seconds
-        // BLEScan* pBLEScan;
 };

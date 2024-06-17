@@ -50,11 +50,6 @@ CommunicationCarduinoNode::CommunicationCarduinoNode(uint8_t id, int cs, int int
     //     pBLEScan->clearResults();   // delete results fromBLEScan buffer to release memory
     // }, this->scheduler, true);
 
-    if(!LittleFS.begin(true)){
-        Serial.println("LITTLEFS Mount Failed");
-        return;
-    }
-
     connected = false;
     authenticated = false;
 
@@ -233,7 +228,7 @@ void CommunicationCarduinoNode::logToFile(String message) {
     String localTime = String(timeInfo.tm_year) + "-" + String(timeInfo.tm_mon) + "-" + String(timeInfo.tm_yday) + " " + String(timeInfo.tm_hour) + ":" + String(timeInfo.tm_min) + ":" + String(timeInfo.tm_sec);
     message = localTime + " " + message;
     message += '\n';
-    File file = LittleFS.open("/logs.txt", FILE_APPEND);
+    File file = fs->open("/logs.txt", FILE_APPEND);
     if(!file){
         Serial.println("- failed to open file for appending");
         return;

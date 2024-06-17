@@ -3,14 +3,12 @@
 CarstatusExecutor::CarstatusExecutor() : CarduinoNodeExecutorInterface(&Category::CAR_STATUS) {}
 
 void CarstatusExecutor::execute(CarduinoNode *node, CanbusMessage *message) {
-    if(node->isEnabled) {
-        const Carstatus *c = (Carstatus*)Carstatus::getValueById(message->messageId);
-        const CanbusMessageType t = *c->type;
+    const Carstatus *c = (Carstatus*)Carstatus::getValueById(message->messageId);
+    const CanbusMessageType t = *c->type;
 
-        CarstatusMessage *carstatusMessage = new CarstatusMessage(&t, message);
+    CarstatusMessage *carstatusMessage = new CarstatusMessage(&t, message);
 
-        ((MainCarduinoNode*)node)->sendSerialMessage(carstatusMessage);
+    ((MainCarduinoNode*)node)->sendSerialMessage(carstatusMessage);
 
-        delete carstatusMessage;
-    }
+    delete carstatusMessage;
 }

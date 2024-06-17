@@ -1,5 +1,7 @@
 #pragma once
 
+// #define EXTERNAL_SD
+
 #define _TASK_STD_FUNCTION   // Compile with support for std::function 
 #define _TASK_SELF_DESTRUCT      // Enable tasks to "self-destruct" after disable
 
@@ -9,16 +11,22 @@
 #include <TaskSchedulerDeclarations.h>
 #include <ESPAsyncWebServer.h>
 #include <ArduinoJson.h>
-#include <LittleFS.h>
 #include <PCF8574.h>
 #include <map>              // user must include to use std::map (see above comment)
 #include <FunctionalInterrupt.h>
+#include <FS.h>
 
 #if defined(ESP8266)
 #include <ESP8266WiFi.h>
 #elif defined(ESP32)
 #include <WiFi.h>
 #include <Update.h>
+#endif
+
+#if defined(EXTERNAL_SD)
+#include <SD.h>
+#else
+#include <LittleFS.h>
 #endif
 
 #include "shared/SettingBase/SettingBase.h"
@@ -110,6 +118,7 @@ class CarduinoNode : public Logger, public SettingBase {
         Task *temperatureTask;
         std::map<uint8_t, PinInformation*> *pinInformations;
         bool isEnabled;
+        FS* fs;
 
         CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssid, const char *password, bool enableI2c = false, bool logOnServer = false, bool logOnSerial = false);
         

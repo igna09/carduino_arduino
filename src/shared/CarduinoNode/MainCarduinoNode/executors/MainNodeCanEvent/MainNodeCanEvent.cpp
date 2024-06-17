@@ -6,7 +6,7 @@ void MainNodeCanEvent::execute(CarduinoNode *node, CanbusMessage *message) {
     EventMessage *eventMessage = new EventMessage(message);
     MainCarduinoNode *mainCarduinoNode = (MainCarduinoNode*)node;
     
-    if(eventMessage->event->id == Event::HELLO.id && mainCarduinoNode->isEnabled) {
+    if(eventMessage->event->id == Event::HELLO.id) {
         NodeInformation *nodeInformation = mainCarduinoNode->createOrGetNodeInformation(eventMessage->nodeId);
         mainCarduinoNode->sendLog(1, eventMessage->nodeId);
         mainCarduinoNode->sendLog(2, nodeInformation->id);
