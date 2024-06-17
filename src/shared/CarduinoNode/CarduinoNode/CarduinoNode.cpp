@@ -12,22 +12,32 @@ CarduinoNode::CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssi
     this->_originalLogOnSerial = logOnSerial;
     this->_originalLogOnWebserver = logOnServer;
     this->isEnabled = false;
+    this->_logOnServer = false;
 
     #if defined(EXTERNAL_SD)
     fs = &SD;
-    SD.begin(1);
+    if(!SD.begin(25)) {
+        printlnWrapper("SD Mount Failed");
+        return;
+    } else{
+        printlnWrapper("SD Mount Done");
+    }
     #else
         fs = &LittleFS;
         #ifdef ESP8266
         if(!LittleFS.begin()){
-            Serial.println("LittleFS Mount Failed");
+            printlnWrapper("LittleFS Mount Failed");
             return;
-        }
+        } else{
+            printlnWrapper("LittleFS Mount Done");
+        }    
         #elif defined(ESP32)
         if(!LittleFS.begin(true, "/")){
-            Serial.println("LittleFS Mount Failed");
+            printlnWrapper("LittleFS Mount Failed");
             return;
-        }
+        } else{
+            printlnWrapper("LittleFS Mount Done");
+        }    
         #endif
     #endif
 
@@ -49,7 +59,7 @@ CarduinoNode::CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssi
         printlnWrapper("Error Initializing MCP2515...");
         this->initializedCan = false;
     }
-    can->setMode(MCP_NORMAL);                     // Set operation mode to normal so the MCP2515 sends acks to received data.
+    can->setMode(MCP_NORMAL);                     // Set operation mode to normal so the MCP2515 sends ACKs to received data.
     pinMode(interruptPin, INPUT);                            // Configuring pin for /INT input
     attachInterrupt(digitalPinToInterrupt(interruptPin), std::bind(&CarduinoNode::readCanMessageFromMcpBuffer, this), FALLING);
 
