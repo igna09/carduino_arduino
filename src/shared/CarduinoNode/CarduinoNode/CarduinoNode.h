@@ -23,13 +23,8 @@
 #include <Update.h>
 #endif
 
-#if defined(EXTERNAL_SD)
-#include <SD.h>
-#else
-#include <LittleFS.h>
-#endif
-
 #include "shared/SettingBase/SettingBase.h"
+#include "shared/FSBase/FSBase.h"
 #include "../../utils.h"
 #include "../../CanbusMessage/CanbusMessage.h"
 #include "../../SharedDefinitions.h"
@@ -93,7 +88,7 @@ struct CanMessageValues {
 };
 
 class Executor; // forward declaration to avoid circular dependency
-class CarduinoNode : public Logger, public SettingBase {
+class CarduinoNode : public FSBase, public Logger, public SettingBase {
     private:
         String fallbackPageProcessor(const String& var);
         bool existsAllFiles();

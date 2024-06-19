@@ -1,6 +1,6 @@
 #include "CarduinoNode.h"
 
-CarduinoNode::CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssid, const char *password, bool enableI2c, bool logOnServer, bool logOnSerial) : Logger(), SettingBase() {
+CarduinoNode::CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssid, const char *password, bool enableI2c, bool logOnServer, bool logOnSerial) : FSBase(), Logger(), SettingBase() {
     this->id = id;
     this->can = new MCP_CAN(cs);
     this->server = new AsyncWebServer(80);
@@ -14,32 +14,8 @@ CarduinoNode::CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssi
     this->isEnabled = false;
     this->_logOnServer = false;
 
-    #if defined(EXTERNAL_SD)
-    fs = &SD;
-    if(!SD.begin(25)) {
-        printlnWrapper("SD Mount Failed");
-        return;
-    } else{
-        printlnWrapper("SD Mount Done");
-    }
-    #else
-        fs = &LittleFS;
-        #ifdef ESP8266
-        if(!LittleFS.begin()){
-            printlnWrapper("LittleFS Mount Failed");
-            return;
-        } else{
-            printlnWrapper("LittleFS Mount Done");
-        }    
-        #elif defined(ESP32)
-        if(!LittleFS.begin(true)){
-            printlnWrapper("LittleFS Mount Failed");
-            return;
-        } else{
-            printlnWrapper("LittleFS Mount Done");
-        }    
-        #endif
-    #endif
+    this->setupFSBase(this);
+    this->setupLogger(this->server, false, this->_originalLogOnSerial);
 
     if(existsAllFiles()) {
         setupServerWebapp();

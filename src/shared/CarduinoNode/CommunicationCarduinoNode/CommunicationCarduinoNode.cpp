@@ -227,16 +227,5 @@ void CommunicationCarduinoNode::logToFile(String message) {
     getLocalTime(&timeInfo);
     String localTime = String(timeInfo.tm_year) + "-" + String(timeInfo.tm_mon) + "-" + String(timeInfo.tm_yday) + " " + String(timeInfo.tm_hour) + ":" + String(timeInfo.tm_min) + ":" + String(timeInfo.tm_sec);
     message = localTime + " " + message;
-    message += '\n';
-    File file = fs->open("/logs.txt", FILE_APPEND);
-    if(!file){
-        Serial.println("- failed to open file for appending");
-        return;
-    }
-    if(file.print(message)){
-        Serial.println("- message appended");
-    } else {
-        Serial.println("- append failed");
-    }
-    file.close();
+    appendToFile("/logs.txt", message);
 }
