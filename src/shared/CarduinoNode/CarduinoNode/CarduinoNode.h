@@ -88,7 +88,7 @@ struct CanMessageValues {
 };
 
 class Executor; // forward declaration to avoid circular dependency
-class CarduinoNode : public FSBase, public Logger, public SettingBase {
+class CarduinoNode : public Logger, public FSBase, public SettingBase {
     private:
         String fallbackPageProcessor(const String& var);
         bool existsAllFiles();
@@ -113,7 +113,6 @@ class CarduinoNode : public FSBase, public Logger, public SettingBase {
         Task *temperatureTask;
         std::map<uint8_t, PinInformation*> *pinInformations;
         bool isEnabled;
-        FS* fs;
 
         CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssid, const char *password, bool enableI2c = false, bool logOnServer = false, bool logOnSerial = false);
         

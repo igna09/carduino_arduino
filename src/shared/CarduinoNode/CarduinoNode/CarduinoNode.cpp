@@ -1,6 +1,6 @@
 #include "CarduinoNode.h"
 
-CarduinoNode::CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssid, const char *password, bool enableI2c, bool logOnServer, bool logOnSerial) : FSBase(), Logger(), SettingBase() {
+CarduinoNode::CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssid, const char *password, bool enableI2c, bool logOnServer, bool logOnSerial) : Logger(), FSBase(), SettingBase() {
     this->id = id;
     this->can = new MCP_CAN(cs);
     this->server = new AsyncWebServer(80);
@@ -14,8 +14,9 @@ CarduinoNode::CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssi
     this->isEnabled = false;
     this->_logOnServer = false;
 
-    this->setupFSBase(this);
     this->setupLogger(this->server, false, this->_originalLogOnSerial);
+    this->setupFSBase(this);
+    this->setupSettingBase(this);
 
     if(existsAllFiles()) {
         setupServerWebapp();
@@ -108,10 +109,10 @@ String CarduinoNode::fallbackPageProcessor(const String& var) {
 }
 
 bool CarduinoNode::existsAllFiles() {
-    bool mainJsExists = fs->exists("/main.js.gz");
-    bool polyfillsJsExists = fs->exists("/polyfills.js.gz");
-    bool indexHtmlExists = fs->exists("/index.html.gz");
-    bool stylesCssExists = fs->exists("/styles.css.gz");
+    bool mainJsExists = exists("/main.js.gz");
+    bool polyfillsJsExists = exists("/polyfills.js.gz");
+    bool indexHtmlExists = exists("/index.html.gz");
+    bool stylesCssExists = exists("/styles.css.gz");
 
     return mainJsExists && polyfillsJsExists && indexHtmlExists && stylesCssExists;
 }
@@ -119,7 +120,7 @@ bool CarduinoNode::existsAllFiles() {
 void CarduinoNode::setupServerWebapp() {
     this->_fallbackPage = false;
     this->setupLogger(this->server, false, this->_originalLogOnSerial);
-    this->server->serveStatic("/", *fs, "/").setDefaultFile("/index.html");
+    this->server->serveStatic("/", *_fs, "/").setDefaultFile("/index.html");
 
     this->server->on("/update-firmware", HTTP_POST, [](AsyncWebServerRequest *request){
         AsyncWebServerResponse *response;
@@ -167,7 +168,7 @@ void CarduinoNode::setupServerWebapp() {
         if (!index) {
             printlnWrapper("Upload Start: " + String(filename));
             // open the file on first call and store the file handle in the request object
-            request->_tempFile = fs->open("/" + filename, "w");
+            request->_tempFile = getOrCreateFile("/" + filename, "w");
         }
 
         if (len) {
@@ -205,7 +206,7 @@ void CarduinoNode::setupServerWebapp() {
      * tmp api
      */
     this->server->on("/download", HTTP_GET, [&](AsyncWebServerRequest *request){
-        AsyncWebServerResponse *response = request->beginResponse(*fs, "/logs.txt", String(), true);
+        AsyncWebServerResponse *response = request->beginResponse(*_fs, "/logs.txt", String(), true);
     });
 
     this->server->on(
@@ -225,7 +226,7 @@ void CarduinoNode::setupServerWebapp() {
             } else {
                 String filename = doc["filename"];
                 // printlnWrapper("filename: " + filename);
-                AsyncWebServerResponse *response = request->beginResponse(*fs, "/" + filename, String(), true);
+                AsyncWebServerResponse *response = request->beginResponse(*_fs, "/" + filename, String(), true);
                 request->send(response);
                 printlnWrapper("downloaded " + filename);
             }
@@ -257,7 +258,7 @@ void CarduinoNode::setupServerFallback() {
             this->requestsCounter++;
             printlnWrapper("Upload Start: " + String(filename));
             // open the file on first call and store the file handle in the request object
-            request->_tempFile = fs->open("/" + filename, "w");
+            request->_tempFile = getOrCreateFile("/" + filename, "w");
         }
 
         if (len) {
@@ -274,7 +275,7 @@ void CarduinoNode::setupServerFallback() {
         }
     });
 
-    this->server->serveStatic("/", *fs, "/");
+    this->server->serveStatic("/", *_fs, "/");
     
     this->server->on(
         "/download",
@@ -293,7 +294,7 @@ void CarduinoNode::setupServerFallback() {
             } else {
                 String filename = doc["filename"];
                 // printlnWrapper("filename: " + filename);
-                AsyncWebServerResponse *response = request->beginResponse(*fs, "/" + filename, String(), true);
+                AsyncWebServerResponse *response = request->beginResponse(*_fs, "/" + filename, String(), true);
                 request->send(response);
                 printlnWrapper("downloaded " + filename);
             }
