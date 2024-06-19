@@ -13,7 +13,7 @@ class Logger {
         bool _logOnSerial;
         bool _originalLogOnWebserver;
         bool _originalLogOnSerial;
-        Logger();
+        Logger(bool logOnSerial);
         void setupLogger(AsyncWebServer *server, bool logOnServer, bool logOnSerial);
 
         void onWebSocketEvent(AsyncWebSocketClient * client, AwsEventType type, void * arg, uint8_t *data, size_t len);

@@ -1,16 +1,14 @@
 #include "SettingBase.h"
 
-SettingBase::SettingBase() {
+SettingBase::SettingBase(Logger* logger) {
     this->settings = new std::map<uint8_t, SettingInformation*>();
     this->nextAddress = CRC_ADDRESS + CRC_SIZE;
     this->settingsMemorySize = CRC_SIZE;
     this->settingsSetupDone = false;
     this->settingsLoaded = false;
-};
-
-void SettingBase::setupSettingBase(Logger* logger) {
+    
     this->_logger = logger;
-}
+};
 
 void SettingBase::addSetting(const Setting *setting, bool value, std::function<void(SettingInformation*)> onChange, bool doBackup) {
     SettingInformation *settingInformation = new SettingInformation();

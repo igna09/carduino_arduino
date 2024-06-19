@@ -34,8 +34,7 @@ class SettingBase {
         bool settingsSetupDone;
         bool settingsLoaded;
 
-        SettingBase();
-        void setupSettingBase(Logger*);
+        SettingBase(Logger*);
 
         void addSetting(const Setting *setting, bool value, std::function<void(SettingInformation*)> onChange = nullptr, bool doBackup = false);
         void addSetting(const Setting *setting, int value, std::function<void(SettingInformation*)> onChange = nullptr, bool doBackup = false);

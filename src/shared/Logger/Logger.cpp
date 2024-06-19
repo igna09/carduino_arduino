@@ -1,7 +1,10 @@
 #include "Logger.h"
 
-Logger::Logger() {
+Logger::Logger(bool logOnSerial) {
     this->_webSocket = nullptr;
+    
+    this->_logOnSerial = logOnSerial;
+    this->_logOnServer = false;
 };
 
 void Logger::setupLogger(AsyncWebServer *webServer, bool logOnServer, bool logOnSerial) {

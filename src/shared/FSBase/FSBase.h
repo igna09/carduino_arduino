@@ -18,8 +18,7 @@ class FSBase {
         bool _fsInitialized;
         Logger* _logger;
 
-        FSBase();
-        void setupFSBase(Logger*);
+        FSBase(Logger*);
 
         // File getFile(String path);
         bool remove(String path);

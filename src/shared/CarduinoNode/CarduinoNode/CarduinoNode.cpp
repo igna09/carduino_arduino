@@ -1,6 +1,6 @@
 #include "CarduinoNode.h"
 
-CarduinoNode::CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssid, const char *password, bool enableI2c, bool logOnServer, bool logOnSerial) : Logger(), FSBase(), SettingBase() {
+CarduinoNode::CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssid, const char *password, bool enableI2c, bool logOnServer, bool logOnSerial) : Logger(logOnSerial), FSBase(this), SettingBase(this) {
     this->id = id;
     this->can = new MCP_CAN(cs);
     this->server = new AsyncWebServer(80);
@@ -12,11 +12,8 @@ CarduinoNode::CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssi
     this->_originalLogOnSerial = logOnSerial;
     this->_originalLogOnWebserver = logOnServer;
     this->isEnabled = false;
-    this->_logOnServer = false;
 
     this->setupLogger(this->server, false, this->_originalLogOnSerial);
-    this->setupFSBase(this);
-    this->setupSettingBase(this);
 
     if(existsAllFiles()) {
         setupServerWebapp();
