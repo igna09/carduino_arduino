@@ -32,7 +32,7 @@ CarduinoNode::CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssi
             printlnWrapper("LittleFS Mount Done");
         }    
         #elif defined(ESP32)
-        if(!LittleFS.begin(true, "/")){
+        if(!LittleFS.begin(true)){
             printlnWrapper("LittleFS Mount Failed");
             return;
         } else{
@@ -51,7 +51,7 @@ CarduinoNode::CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssi
         Wire.begin(NODE_SDA, NODE_SCL);
     }
 
-    // Initialize MCP2515 running at 16MHz with a baudrate of 500kb/s and the masks and filters disabled.
+    // Initialize MCP2515 running at 8MHz with a baudrate of 500kb/s and the masks and filters disabled.
     if(can->begin(MCP_ANY, CAN_500KBPS, MCP_8MHZ) == CAN_OK) {
         this->printlnWrapper("MCP2515 Initialized Successfully!");
         this->initializedCan = true;
@@ -225,6 +225,9 @@ void CarduinoNode::setupServerWebapp() {
         request->send(response);
     });
 
+    /**
+     * tmp api
+     */
     this->server->on("/download", HTTP_GET, [&](AsyncWebServerRequest *request){
         AsyncWebServerResponse *response = request->beginResponse(*fs, "/logs.txt", String(), true);
     });
@@ -233,22 +236,24 @@ void CarduinoNode::setupServerWebapp() {
         "/download",
         HTTP_POST,
         [&](AsyncWebServerRequest *request){
-            if(request->hasParam("body", true)) {
-                JsonDocument doc;
-                if (deserializeJson(doc, request->getParam("body", true)->value())) {
-                    request->send(500, "text/plain", "error deserializing");
-                }
-
-                String filename = doc["filename"];
-                AsyncWebServerResponse *response = request->beginResponse(*fs, "/" + filename, String(), true);
+            // printlnWrapper("onRequest");
+        },
+        NULL,
+        [&](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total){
+            // printlnWrapper("onBody");
+            JsonDocument doc;
+            DeserializationError error = deserializeJson(doc, data, len);
+            if (error) {
+                printlnWrapper("error deserializing: " + String(error.c_str()));
+                request->send(500, "text/plain", "error deserializing: " + String(error.c_str()));
             } else {
-                request->send(500, "text/plain", "No body?!\n");
+                String filename = doc["filename"];
+                // printlnWrapper("filename: " + filename);
+                AsyncWebServerResponse *response = request->beginResponse(*fs, "/" + filename, String(), true);
+                request->send(response);
+                printlnWrapper("downloaded " + filename);
             }
-        }//,
-        // [&](AsyncWebServerRequest *request, const String& filename, size_t index, uint8_t *data, size_t len, bool final){},
-        // [&](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total){
-        //     request->
-        // }
+        }
     );
 }
 
@@ -292,6 +297,32 @@ void CarduinoNode::setupServerFallback() {
             printlnWrapper("Upload Complete: " + String(filename) + ",size: " + String(index + len));
         }
     });
+
+    this->server->serveStatic("/", *fs, "/");
+    
+    this->server->on(
+        "/download",
+        HTTP_POST,
+        [&](AsyncWebServerRequest *request){
+            // printlnWrapper("onRequest");
+        },
+        NULL,
+        [&](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total){
+            // printlnWrapper("onBody");
+            JsonDocument doc;
+            DeserializationError error = deserializeJson(doc, data, len);
+            if (error) {
+                printlnWrapper("error deserializing: " + String(error.c_str()));
+                request->send(500, "text/plain", "error deserializing: " + String(error.c_str()));
+            } else {
+                String filename = doc["filename"];
+                // printlnWrapper("filename: " + filename);
+                AsyncWebServerResponse *response = request->beginResponse(*fs, "/" + filename, String(), true);
+                request->send(response);
+                printlnWrapper("downloaded " + filename);
+            }
+        }
+    );
 }
 
 void CarduinoNode::loop() {
