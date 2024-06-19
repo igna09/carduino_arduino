@@ -13,7 +13,7 @@ FSBase::FSBase(Logger* logger) {
         this->_fsInitialized = true;
     }
     #else
-        fs = &LittleFS;
+        _fs = &LittleFS;
         #ifdef ESP8266
         if(!LittleFS.begin()){
             _logger->printlnWrapper("LittleFS Mount Failed");
