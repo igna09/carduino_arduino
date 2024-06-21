@@ -50,14 +50,9 @@ CommunicationCarduinoNode::CommunicationCarduinoNode(uint8_t id, int cs, int int
     //     pBLEScan->clearResults();   // delete results fromBLEScan buffer to release memory
     // }, this->scheduler, true);
 
-    connected = false;
-    authenticated = false;
-
-    new Task(60000, TASK_FOREVER, [&](){
-        if(this->connected && this->authenticated) {
-            esp_err_t rc = esp_ble_gap_read_rssi(*this->authenticatedBdAddress->getNative());
-        }
-    }, this->scheduler, true);
+    this->rssiTask = new Task(1000, TASK_FOREVER, [&](){
+        esp_err_t rc = esp_ble_gap_read_rssi(*this->authenticatedBdAddress->getNative());
+    }, this->scheduler, false);
 
     otaStartup();
 
@@ -193,7 +188,7 @@ void CommunicationCarduinoNode::customGapCallback(esp_gap_ble_cb_event_t event, 
             logToFile(message);
             if(param->ble_security.auth_cmpl.success) {
                 this->authenticatedBdAddress = new BLEAddress(param->ble_security.auth_cmpl.bd_addr);
-                authenticated = true;
+                this->rssiTask->enable();
             }
             break;
         } // ESP_GAP_BLE_AUTH_CMPL_EVT
@@ -213,6 +208,12 @@ void CommunicationCarduinoNode::customGapCallback(esp_gap_ble_cb_event_t event, 
             printlnWrapper(message);
             logToFile(message);
 
+            if(param->read_rssi_cmpl.rssi < 50) {
+                sendEvent(&Event::UNLOCK_CAR);
+            } else {
+                sendEvent(&Event::LOCK_CAR);
+            }
+
             /**
              * start here a task that check phone rssi
              */
@@ -227,5 +228,5 @@ void CommunicationCarduinoNode::logToFile(String message) {
     getLocalTime(&timeInfo);
     String localTime = String(timeInfo.tm_year) + "-" + String(timeInfo.tm_mon) + "-" + String(timeInfo.tm_yday) + " " + String(timeInfo.tm_hour) + ":" + String(timeInfo.tm_min) + ":" + String(timeInfo.tm_sec);
     message = localTime + " " + message;
-    appendToFile("/logs.txt", message);
+    appendToFile("/node_logs.txt", message);
 }

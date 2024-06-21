@@ -39,6 +39,7 @@ class CommunicationCarduinoNode : public CarduinoNode {
         bool authenticated;
         bool connected;
         BLEAddress* authenticatedBdAddress;
+        Task* rssiTask;
 
     private:
         BLEServer* bleServer;
