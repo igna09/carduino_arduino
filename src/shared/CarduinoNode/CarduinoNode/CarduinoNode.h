@@ -1,5 +1,7 @@
 #pragma once
 
+// #define EXTERNAL_SD
+
 #define _TASK_STD_FUNCTION   // Compile with support for std::function 
 #define _TASK_SELF_DESTRUCT      // Enable tasks to "self-destruct" after disable
 
@@ -9,10 +11,10 @@
 #include <TaskSchedulerDeclarations.h>
 #include <ESPAsyncWebServer.h>
 #include <ArduinoJson.h>
-#include <LittleFS.h>
 #include <PCF8574.h>
 #include <map>              // user must include to use std::map (see above comment)
 #include <FunctionalInterrupt.h>
+#include <FS.h>
 
 #if defined(ESP8266)
 #include <ESP8266WiFi.h>
@@ -22,6 +24,7 @@
 #endif
 
 #include "shared/SettingBase/SettingBase.h"
+#include "shared/FSBase/FSBase.h"
 #include "../../utils.h"
 #include "../../CanbusMessage/CanbusMessage.h"
 #include "../../SharedDefinitions.h"
@@ -85,7 +88,7 @@ struct CanMessageValues {
 };
 
 class Executor; // forward declaration to avoid circular dependency
-class CarduinoNode : public Logger, public SettingBase {
+class CarduinoNode : public Logger, public FSBase, public SettingBase {
     private:
         String fallbackPageProcessor(const String& var);
         bool existsAllFiles();
@@ -93,7 +96,6 @@ class CarduinoNode : public Logger, public SettingBase {
         void setupServerWebapp();
         void setupServerFallback();
         bool _fallbackPage;
-        bool isEnabled;
         CanMessageValues* messageBuffer[CAN_MESSAGE_VALUES_BUFFER_SIZE];
         uint8_t nextMessageBufferIndexToInsert = 0;
         uint8_t nextMessageBufferIndexToRead = 0;
@@ -110,6 +112,7 @@ class CarduinoNode : public Logger, public SettingBase {
         Scheduler *scheduler;
         Task *temperatureTask;
         std::map<uint8_t, PinInformation*> *pinInformations;
+        bool isEnabled;
 
         CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssid, const char *password, bool enableI2c = false, bool logOnServer = false, bool logOnSerial = false);
         

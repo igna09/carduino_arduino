@@ -3,67 +3,34 @@
 CommunicationCarduinoNode::CommunicationCarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssid, const char *password) : CarduinoNode(id, cs, interruptPin, ssid,  password, false, true, true) {
     this->restoreSettings();
 
-    // counter = 0;
-
-    /*BLEDevice::init("ESP32");
-
-    BLEDevice::setEncryptionLevel(ESP_BLE_SEC_ENCRYPT);
-
-    BLEDevice::setSecurityCallbacks(new MySecurity());
-
-    pServer = BLEDevice::createServer();
-    BLEService *pService = pServer->createService(SERVICE_UUID);
-    pCharacteristic = pService->createCharacteristic(
-        CHARACTERISTIC_UUID,
-        BLECharacteristic::PROPERTY_READ |
-        BLECharacteristic::PROPERTY_WRITE
-    );
-    pCharacteristic->setValue("Hello World");
-    pCharacteristic->setCallbacks(new MyCallbacks());
-    pService->start();
-    BLEAdvertising *pAdvertising = pServer->getAdvertising();
-    pAdvertising->start();
-    BLESecurity *pSecurity = new BLESecurity();
-    // uint8_t rsp_key = ESP_BLE_ENC_KEY_MASK | ESP_BLE_ID_KEY_MASK;
-    uint32_t passkey = 123456;
-    uint8_t auth_option = ESP_BLE_ONLY_ACCEPT_SPECIFIED_AUTH_DISABLE;
-    uint8_t iocap = ESP_IO_CAP_NONE; //set the IO capability to No Input No Output
-    uint8_t auth_req = ESP_LE_AUTH_BOND; //bonding with peer device after authentication
-    uint8_t key_size = 16;      //the key size should be 7~16 bytes
-    uint8_t init_key = ESP_BLE_ENC_KEY_MASK | ESP_BLE_ID_KEY_MASK;
-    uint8_t rsp_key = ESP_BLE_ENC_KEY_MASK | ESP_BLE_ID_KEY_MASK;
-    pSecurity->setAuthenticationMode(auth_req);
-    pSecurity->setCapability(iocap);
-    pSecurity->setKeySize(key_size);
-    pSecurity->setInitEncryptionKey(init_key);
-    pSecurity->setRespEncryptionKey(rsp_key);
-    delete pSecurity;
-    esp_ble_gap_set_security_param(ESP_BLE_SM_SET_STATIC_PASSKEY, &passkey, sizeof(uint32_t));
-    // esp_ble_gap_set_security_param(ESP_BLE_SM_ONLY_ACCEPT_SPECIFIED_SEC_AUTH, &auth_option, sizeof(uint8_t));
-    // esp_ble_gap_set_security_param(ESP_BLE_SM_SET_RSP_KEY, &rsp_key, sizeof(uint8_t));
-    // esp_ble_gap_set_security_param(ESP_BLE_SM_AUTHEN_REQ_MODE, &auth_req, sizeof(uint8_t));
-    // esp_ble_gap_set_security_param(ESP_BLE_SM_IOCAP_MODE, &iocap, sizeof(uint8_t));
-    // esp_ble_gap_set_security_param(ESP_BLE_SM_MAX_KEY_SIZE, &key_size, sizeof(uint8_t));
-    // esp_ble_gap_set_security_param(ESP_BLE_SM_SET_INIT_KEY, &init_key, sizeof(uint8_t));
-    // esp_ble_gap_set_security_param(ESP_BLE_SM_SET_RSP_KEY, &rsp_key, sizeof(uint8_t));
-    Serial.println("Characteristic defined! Now you can read it on your phone!");*/
-
     // Start BLE service
     /*BLEDevice::init("ESP32");
     Serial.println("BLE started!");
 
     bleClient = new BLEClient();*/
     BLEDevice::init("ESP32");
+    GAPCallback<void(esp_gap_ble_cb_event_t, esp_ble_gap_cb_param_t*)>::func = std::bind(&CommunicationCarduinoNode::customGapCallback, this, std::placeholders::_1, std::placeholders::_2);
+    BLEDevice::setCustomGapHandler(static_cast<gap_event_handler>(GAPCallback<void(esp_gap_ble_cb_event_t, esp_ble_gap_cb_param_t*)>::callback));
+    BLEDevice::setEncryptionLevel(ESP_BLE_SEC_ENCRYPT);
+    BLEDevice::setSecurityCallbacks(new MyBLESecurityCallbacks(this));
 
     // Create the BLE Server
-    BLEServer *pServer = BLEDevice::createServer();
-    pServer->setCallbacks(new MyServerCallbacks());
+    bleServer = BLEDevice::createServer();
+    bleServer->setCallbacks(new MyBLEServerCallbacks(this));
 
     // Start advertising
     BLEAdvertising *pAdvertising = BLEDevice::getAdvertising();
     // pAdvertising->addServiceUUID(SERVICE_UUID);
-    pServer->getAdvertising()->start();
-    Serial.println("Waiting a client connection to notify...");
+    bleServer->getAdvertising()->start();
+
+    BLESecurity *pSecurity = new BLESecurity();
+    pSecurity->setStaticPIN(123456);
+    pSecurity->setAuthenticationMode(ESP_LE_AUTH_REQ_SC_BOND);
+    // pSecurity->setKeySize(16); //the key size should be 7~16 bytes
+    pSecurity->setInitEncryptionKey(ESP_BLE_ENC_KEY_MASK | ESP_BLE_ID_KEY_MASK);
+    pSecurity->setRespEncryptionKey(ESP_BLE_ENC_KEY_MASK | ESP_BLE_ID_KEY_MASK);
+
+    printlnWrapper("Waiting a client connection to notify...");
 
     // pBLEScan = BLEDevice::getScan(); //create new scan
     // pBLEScan->setAdvertisedDeviceCallbacks(new MyAdvertisedDeviceCallbacks());
@@ -82,6 +49,19 @@ CommunicationCarduinoNode::CommunicationCarduinoNode(uint8_t id, int cs, int int
     //     }
     //     pBLEScan->clearResults();   // delete results fromBLEScan buffer to release memory
     // }, this->scheduler, true);
+
+    connected = false;
+    authenticated = false;
+
+    new Task(60000, TASK_FOREVER, [&](){
+        if(this->connected && this->authenticated) {
+            esp_err_t rc = esp_ble_gap_read_rssi(*this->authenticatedBdAddress->getNative());
+        }
+    }, this->scheduler, true);
+
+    otaStartup();
+
+    logToFile("setup done");
 };
 
 void CommunicationCarduinoNode::loop() {
@@ -135,4 +115,117 @@ void CommunicationCarduinoNode::loop() {
     } else {
         Serial.println("No BLE devices found!");
     }*/
+}
+
+void CommunicationCarduinoNode::clientAuthenticated() {
+    printlnWrapper("CommunicationCarduinoNode::clientAuthenticated");
+
+    // uint8_t connectedCount = bleServer->getConnectedCount();
+    // std::map<uint16_t, conn_status_t> peerDevices = bleDevice->getPeerDevices(false);
+    // std::size_t peerDevicesCount = peerDevices.size();
+    // Serial.println(peerDevicesCount);
+    printlnWrapper("----------------");
+
+    std::map<uint16_t, conn_status_t>::iterator it;
+    for(it = bleDevice->getPeerDevices(false).begin(); it != bleDevice->getPeerDevices(false).end(); ++it){
+        conn_status_t connStatus = it->second;
+        BLEClient* bleClient = (BLEClient*) connStatus.peer_device;
+
+        // printlnWrapper(bleDevice->getRssi());
+        // printlnWrapper(bleClient->getPeerAddress().toString().c_str());
+        // printlnWrapper(bleClient->toString().c_str());
+        // Serial.println(bleClient->getConnId());
+        printlnWrapper("----------------");
+    }
+
+    // for(auto &myPair : BLEDevice::getPeerDevices(true)) {
+	// 	conn_status_t connStatus = (conn_status_t)myPair.second;
+    //     BLEClient* bleDevice = (BLEClient*) connStatus.peer_device;
+
+    //     printlnWrapper(bleDevice->getRssi());
+    //     printlnWrapper(bleDevice->getPeerAddress().toString().c_str());
+    //     printlnWrapper(bleDevice->toString().c_str());
+    //     printlnWrapper("----------------");
+	// 	// if(((BLEClient*)conn_status.peer_device)->getGattcIf() == gattc_if || ((BLEClient*)conn_status.peer_device)->getGattcIf() == ESP_GATT_IF_NONE || gattc_if == ESP_GATT_IF_NONE){
+	// 	// 	((BLEClient*)conn_status.peer_device)->gattClientEventHandler(event, gattc_if, param);
+	// 	// }
+	// }
+
+    // std::map<uint16_t, conn_status_t>::iterator it;
+    // for(it = bleServer->getPeerDevices(false).begin(); it != bleServer->getPeerDevices(false).end(); ++it){
+    //     conn_status_t connStatus = it->second;
+    //     BLEClient* bleDevice = (BLEClient*) connStatus.peer_device;
+
+    //     printlnWrapper(bleDevice->getRssi());
+    //     printlnWrapper(bleDevice->getPeerAddress().toString().c_str());
+    //     printlnWrapper(bleDevice->toString().c_str());
+    //     printlnWrapper("----------------");
+    // }
+}
+
+void CommunicationCarduinoNode::clearWhitelist() {
+    esp_ble_gap_clear_whitelist();
+}
+
+void CommunicationCarduinoNode::customGapCallback(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param_t *param) {
+    // Serial.println("customGapHandler");
+    // Serial.println(BLEUtils::gapEventToString(event));
+    switch(event) {
+        case ESP_GAP_BLE_AUTH_CMPL_EVT: {
+            String message = "[bd_addr: ";
+            message += BLEAddress(param->ble_security.auth_cmpl.bd_addr).toString().c_str();
+            message += ", success: ";
+            message += param->ble_security.auth_cmpl.success;
+            message += ", fail_reason: ";
+            message += param->ble_security.auth_cmpl.fail_reason;
+            message += ", dev_type: ";
+            message += BLEUtils::devTypeToString(param->ble_security.auth_cmpl.dev_type);
+            message += "]";
+            // log_e("[bd_addr: %s, key_present: %d, key: ***, key_type: %d, success: %d, fail_reason: %d, addr_type: ***, dev_type: %s]",
+            //     BLEAddress(param->ble_security.auth_cmpl.bd_addr).toString().c_str(),
+            //     param->ble_security.auth_cmpl.key_present,
+            //     param->ble_security.auth_cmpl.key_type,
+            //     param->ble_security.auth_cmpl.success,
+            //     param->ble_security.auth_cmpl.fail_reason,
+            //     BLEUtils::devTypeToString(param->ble_security.auth_cmpl.dev_type)
+            // );
+            printlnWrapper(message);
+            logToFile(message);
+            if(param->ble_security.auth_cmpl.success) {
+                this->authenticatedBdAddress = new BLEAddress(param->ble_security.auth_cmpl.bd_addr);
+                authenticated = true;
+            }
+            break;
+        } // ESP_GAP_BLE_AUTH_CMPL_EVT
+        case ESP_GAP_BLE_READ_RSSI_COMPLETE_EVT: {
+            String message = "[status: ";
+            message += param->read_rssi_cmpl.status;
+            message += ", rssi: ";
+            message += param->read_rssi_cmpl.rssi;
+            message += ", remote_addr: ";
+            message += BLEAddress(param->read_rssi_cmpl.remote_addr).toString().c_str();
+            message += "]";
+            // log_e("[status: %d, rssi: %d, remote_addr: %s]",
+            //         param->read_rssi_cmpl.status,
+            //         param->read_rssi_cmpl.rssi,
+            //         BLEAddress(param->read_rssi_cmpl.remote_addr).toString().c_str()
+            // );
+            printlnWrapper(message);
+            logToFile(message);
+
+            /**
+             * start here a task that check phone rssi
+             */
+
+            break;
+        } // ESP_GAP_BLE_READ_RSSI_COMPLETE_EVT
+    }
+}
+
+void CommunicationCarduinoNode::logToFile(String message) {
+    tm timeInfo;
+    getLocalTime(&timeInfo);
+    String localTime = String(timeInfo.tm_year) + "-" + String(timeInfo.tm_mon) + "-" + String(timeInfo.tm_yday) + " " + String(timeInfo.tm_hour) + ":" + String(timeInfo.tm_min) + ":" + String(timeInfo.tm_sec);
+    message = localTime + " " + message;
+    appendToFile("/logs.txt", message);
 }

@@ -1,11 +1,13 @@
 #include "SettingBase.h"
 
-SettingBase::SettingBase() {
+SettingBase::SettingBase(Logger* logger) {
     this->settings = new std::map<uint8_t, SettingInformation*>();
     this->nextAddress = CRC_ADDRESS + CRC_SIZE;
     this->settingsMemorySize = CRC_SIZE;
     this->settingsSetupDone = false;
     this->settingsLoaded = false;
+    
+    this->_logger = logger;
 };
 
 void SettingBase::addSetting(const Setting *setting, bool value, std::function<void(SettingInformation*)> onChange, bool doBackup) {
@@ -106,7 +108,7 @@ SettingInformation* SettingBase::getSettingValue(const Setting *setting) {
 }
 
 void SettingBase::backupSettings() {
-    // Serial.println("SettingBase::backupSettings");
+    _logger->printlnWrapper("SettingBase::backupSettings");
     if(!this->settingsSetupDone) {
         this->settingsSetup();
     }
@@ -140,7 +142,7 @@ void SettingBase::backupSettings() {
 }
 
 void SettingBase::restoreSettings() {
-    // Serial.println("SettingBase::restoreSettings");
+    _logger->printlnWrapper("SettingBase::restoreSettings");
     if(!this->settingsSetupDone) {
         this->settingsSetup();
     }
@@ -180,24 +182,24 @@ void SettingBase::restoreSettings() {
         for(it = this->settings->begin(); it != this->settings->end(); it++) {
             SettingInformation *settingInformation = it->second;
             if(settingInformation->doBackup){
-                // String log = String("Restored ") + settingInformation->setting->name + String(" with value ");
+                String log = String("Restored ") + settingInformation->setting->name + String(" with value ");
                 if(settingInformation->setting->type->id == CanbusMessageType::BOOL.id) {
                     bool value;
                     EEPROM.get(settingInformation->address, value);
                     this->putSettingValue(settingInformation->setting, value);
-                    // log += String(value);
+                    log += String(value);
                 } else if(settingInformation->setting->type->id == CanbusMessageType::INT.id) {
                     int value;
                     EEPROM.get(settingInformation->address, value);
                     this->putSettingValue(settingInformation->setting, value);
-                    // log += String(value);
+                    log += String(value);
                 } else if(settingInformation->setting->type->id == CanbusMessageType::FLOAT.id) {
                     float value;
                     EEPROM.get(settingInformation->address, value);
                     this->putSettingValue(settingInformation->setting, value);
-                    // log += String(value);
+                    log += String(value);
                 }
-                // Serial.println(log);
+                _logger->printlnWrapper(log);
             }
         }
     }

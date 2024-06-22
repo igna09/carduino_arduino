@@ -9,6 +9,7 @@
 
 #include "shared/SharedDefinitions.h"
 #include "shared/enums/Setting.h"
+#include "shared/Logger/Logger.h"
 
 #define CRC_ADDRESS 0
 #define CRC_SIZE 2
@@ -24,6 +25,7 @@ struct SettingInformation {
 
 class SettingBase {
     private:
+        Logger* _logger;
 
     public:
         std::map<uint8_t, SettingInformation*> *settings;
@@ -32,7 +34,8 @@ class SettingBase {
         bool settingsSetupDone;
         bool settingsLoaded;
 
-        SettingBase();
+        SettingBase(Logger*);
+
         void addSetting(const Setting *setting, bool value, std::function<void(SettingInformation*)> onChange = nullptr, bool doBackup = false);
         void addSetting(const Setting *setting, int value, std::function<void(SettingInformation*)> onChange = nullptr, bool doBackup = false);
         void addSetting(const Setting *setting, float value, std::function<void(SettingInformation*)> onChange = nullptr, bool doBackup = false);

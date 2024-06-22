@@ -1,7 +1,10 @@
 #include "Logger.h"
 
-Logger::Logger() {
+Logger::Logger(bool logOnSerial) {
     this->_webSocket = nullptr;
+    
+    this->_logOnSerial = logOnSerial;
+    this->_logOnServer = false;
 };
 
 void Logger::setupLogger(AsyncWebServer *webServer, bool logOnServer, bool logOnSerial) {
@@ -10,7 +13,7 @@ void Logger::setupLogger(AsyncWebServer *webServer, bool logOnServer, bool logOn
 
     if(this->_webSocket != nullptr) {
         webServer->removeHandler(this->_webSocket);
-        delete this->_webSocket;
+        // delete this->_webSocket; already handled by webServer->removeHandler
     }
     this->_webSocket = new AsyncWebSocket("/ws");
     this->_webSocket->onEvent([&](AsyncWebSocket * webSocket, AsyncWebSocketClient * client, AwsEventType type, void * arg, uint8_t *data, size_t len){

@@ -1,6 +1,6 @@
 #include "CarduinoNode.h"
 
-CarduinoNode::CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssid, const char *password, bool enableI2c, bool logOnServer, bool logOnSerial) : Logger(), SettingBase() {
+CarduinoNode::CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssid, const char *password, bool enableI2c, bool logOnServer, bool logOnSerial) : Logger(logOnSerial), FSBase(this), SettingBase(this) {
     this->id = id;
     this->can = new MCP_CAN(cs);
     this->server = new AsyncWebServer(80);
@@ -13,17 +13,7 @@ CarduinoNode::CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssi
     this->_originalLogOnWebserver = logOnServer;
     this->isEnabled = false;
 
-    #ifdef ESP8266
-    if(!LittleFS.begin()){
-        Serial.println("LittleFS Mount Failed");
-        return;
-    }
-    #elif defined(ESP32)
-    if(!LittleFS.begin(true)){
-        Serial.println("LittleFS Mount Failed");
-        return;
-    }
-    #endif
+    this->setupLogger(this->server, false, this->_originalLogOnSerial);
 
     if(existsAllFiles()) {
         setupServerWebapp();
@@ -35,7 +25,7 @@ CarduinoNode::CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssi
         Wire.begin(NODE_SDA, NODE_SCL);
     }
 
-    // Initialize MCP2515 running at 16MHz with a baudrate of 500kb/s and the masks and filters disabled.
+    // Initialize MCP2515 running at 8MHz with a baudrate of 500kb/s and the masks and filters disabled.
     if(can->begin(MCP_ANY, CAN_500KBPS, MCP_8MHZ) == CAN_OK) {
         this->printlnWrapper("MCP2515 Initialized Successfully!");
         this->initializedCan = true;
@@ -43,7 +33,7 @@ CarduinoNode::CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssi
         printlnWrapper("Error Initializing MCP2515...");
         this->initializedCan = false;
     }
-    can->setMode(MCP_NORMAL);                     // Set operation mode to normal so the MCP2515 sends acks to received data.
+    can->setMode(MCP_NORMAL);                     // Set operation mode to normal so the MCP2515 sends ACKs to received data.
     pinMode(interruptPin, INPUT);                            // Configuring pin for /INT input
     attachInterrupt(digitalPinToInterrupt(interruptPin), std::bind(&CarduinoNode::readCanMessageFromMcpBuffer, this), FALLING);
 
@@ -116,10 +106,10 @@ String CarduinoNode::fallbackPageProcessor(const String& var) {
 }
 
 bool CarduinoNode::existsAllFiles() {
-    bool mainJsExists = LittleFS.exists("/main.js.gz");
-    bool polyfillsJsExists = LittleFS.exists("/polyfills.js.gz");
-    bool indexHtmlExists = LittleFS.exists("/index.html.gz");
-    bool stylesCssExists = LittleFS.exists("/styles.css.gz");
+    bool mainJsExists = exists("/main.js.gz");
+    bool polyfillsJsExists = exists("/polyfills.js.gz");
+    bool indexHtmlExists = exists("/index.html.gz");
+    bool stylesCssExists = exists("/styles.css.gz");
 
     return mainJsExists && polyfillsJsExists && indexHtmlExists && stylesCssExists;
 }
@@ -127,7 +117,7 @@ bool CarduinoNode::existsAllFiles() {
 void CarduinoNode::setupServerWebapp() {
     this->_fallbackPage = false;
     this->setupLogger(this->server, false, this->_originalLogOnSerial);
-    this->server->serveStatic("/", LittleFS, "/").setDefaultFile("/index.html");
+    this->server->serveStatic("/", *_fs, "/").setDefaultFile("/index.html");
 
     this->server->on("/update-firmware", HTTP_POST, [](AsyncWebServerRequest *request){
         AsyncWebServerResponse *response;
@@ -175,7 +165,7 @@ void CarduinoNode::setupServerWebapp() {
         if (!index) {
             printlnWrapper("Upload Start: " + String(filename));
             // open the file on first call and store the file handle in the request object
-            request->_tempFile = LittleFS.open("/" + filename, "w");
+            request->_tempFile = getOrCreateFile("/" + filename, "w");
         }
 
         if (len) {
@@ -208,6 +198,37 @@ void CarduinoNode::setupServerWebapp() {
         serializeJson(jsonDocument, *response);
         request->send(response);
     });
+
+    /**
+     * tmp api
+     */
+    this->server->on("/download", HTTP_GET, [&](AsyncWebServerRequest *request){
+        AsyncWebServerResponse *response = request->beginResponse(*_fs, "/logs.txt", String(), true);
+    });
+
+    this->server->on(
+        "/download",
+        HTTP_POST,
+        [&](AsyncWebServerRequest *request){
+            // printlnWrapper("onRequest");
+        },
+        NULL,
+        [&](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total){
+            // printlnWrapper("onBody");
+            JsonDocument doc;
+            DeserializationError error = deserializeJson(doc, data, len);
+            if (error) {
+                printlnWrapper("error deserializing: " + String(error.c_str()));
+                request->send(500, "text/plain", "error deserializing: " + String(error.c_str()));
+            } else {
+                String filename = doc["filename"];
+                // printlnWrapper("filename: " + filename);
+                AsyncWebServerResponse *response = request->beginResponse(*_fs, "/" + filename, String(), true);
+                request->send(response);
+                printlnWrapper("downloaded " + filename);
+            }
+        }
+    );
 }
 
 void CarduinoNode::setupServerFallback() {
@@ -234,7 +255,7 @@ void CarduinoNode::setupServerFallback() {
             this->requestsCounter++;
             printlnWrapper("Upload Start: " + String(filename));
             // open the file on first call and store the file handle in the request object
-            request->_tempFile = LittleFS.open("/" + filename, "w");
+            request->_tempFile = getOrCreateFile("/" + filename, "w");
         }
 
         if (len) {
@@ -250,6 +271,32 @@ void CarduinoNode::setupServerFallback() {
             printlnWrapper("Upload Complete: " + String(filename) + ",size: " + String(index + len));
         }
     });
+
+    this->server->serveStatic("/", *_fs, "/");
+    
+    this->server->on(
+        "/download",
+        HTTP_POST,
+        [&](AsyncWebServerRequest *request){
+            // printlnWrapper("onRequest");
+        },
+        NULL,
+        [&](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total){
+            // printlnWrapper("onBody");
+            JsonDocument doc;
+            DeserializationError error = deserializeJson(doc, data, len);
+            if (error) {
+                printlnWrapper("error deserializing: " + String(error.c_str()));
+                request->send(500, "text/plain", "error deserializing: " + String(error.c_str()));
+            } else {
+                String filename = doc["filename"];
+                // printlnWrapper("filename: " + filename);
+                AsyncWebServerResponse *response = request->beginResponse(*_fs, "/" + filename, String(), true);
+                request->send(response);
+                printlnWrapper("downloaded " + filename);
+            }
+        }
+    );
 }
 
 void CarduinoNode::loop() {

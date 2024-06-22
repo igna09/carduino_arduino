@@ -34,3 +34,5 @@ union ValueType {
 #define NODE_SDA ESP32_SDA
 #define NODE_SCL ESP32_SCL
 #endif
+
+#define BLE_PIN 3411
