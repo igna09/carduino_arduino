@@ -14,7 +14,6 @@
 #include <PCF8574.h>
 #include <map>              // user must include to use std::map (see above comment)
 #include <FunctionalInterrupt.h>
-#include <FS.h>
 
 #if defined(ESP8266)
 #include <ESP8266WiFi.h>
