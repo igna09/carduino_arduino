@@ -255,7 +255,11 @@ void CarduinoNode::setupServerFallback() {
 void CarduinoNode::loop() {
     this->scheduler->execute();
 
-    handleRxBuffer();
+    if(CAN_MSGAVAIL == can->checkReceive()) {
+        readCanMessageFromMcpBuffer();
+    } else {
+        handleRxBuffer();
+    }
 };
 
 void CarduinoNode::readCanMessageFromMcpBuffer() {
