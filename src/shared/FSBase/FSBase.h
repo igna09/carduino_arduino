@@ -23,7 +23,7 @@ class FSBase {
         // File getFile(String path);
         bool remove(String path);
         // File createFile(String path);
-        File getOrCreateFile(String path, const char* mode = FILE_READ);
+        File getOrCreateFile(String path, const char* mode);
         File getOrCreateDirectory(String path);
         bool exists(String path);
         void appendToFile(String path, String message);

@@ -43,7 +43,7 @@ bool FSBase::remove(String path) {
         return false;
     }
     bool isDir = false;
-    File tmp = _fs->open(path);
+    File tmp = _fs->open(path.c_str(), "r");
     isDir = tmp.isDirectory();
     tmp.close();
     if(isDir) {
@@ -54,18 +54,18 @@ bool FSBase::remove(String path) {
 }
 
 File FSBase::getOrCreateFile(String path, const char* mode) {
-    return _fs->open(path, mode, true);
+    return _fs->open(path, mode);
 }
 
 File FSBase::getOrCreateDirectory(String path) {
     if(!exists(path)) {
-        _fs->mkdir(path);
+        _fs->mkdir(path.c_str());
     }
-    return _fs->open(path);
+    return _fs->open(path.c_str(), "r");
 }
 
 void FSBase::appendToFile(String path, String message) {
-    File file = getOrCreateFile(path, FILE_APPEND);
+    File file = getOrCreateFile(path, "a");
     file.println(message);
     file.close();
 }
