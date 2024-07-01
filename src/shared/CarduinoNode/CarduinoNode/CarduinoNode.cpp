@@ -369,7 +369,7 @@ void CarduinoNode::handleReceivedSerialMessage(String receivedMessage) {
             delete canbusMessage;
         }
     } else {
-        this->printlnWrapper("MainCarduinoNode::handleReceivedSerialMessage malformed message " + receivedMessage);
+        this->printlnWrapper("CarduinoNode::handleReceivedSerialMessage malformed message " + receivedMessage);
     }
 
     delete splittedUsbMessage;
