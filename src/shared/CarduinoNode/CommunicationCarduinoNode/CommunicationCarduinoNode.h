@@ -45,4 +45,5 @@ class CommunicationCarduinoNode : public CarduinoNode {
     private:
         BLEServer* bleServer;
         BLEDevice* bleDevice;
+        BLESecurity *pSecurity;
 };
