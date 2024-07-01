@@ -23,8 +23,8 @@ DoorCarduinoNode::DoorCarduinoNode(uint8_t id, int cs, int interruptPin, const c
 
 	this->lastReceivedEvent = nullptr;
 
-	this->canExecutors->addExecutor(new DoorNodeEvent());
-	this->canExecutors->addExecutor(new DoorNodeCarstatus());
+	this->canExecutor->addExecutor(new DoorNodeEvent());
+	this->canExecutor->addExecutor(new DoorNodeCarstatus());
 
 	// this->closedMirrors = this->readClosedMirrors();
 	// this->mirrorSelectorOnClosed = this->readSelectorClosed();

@@ -55,11 +55,11 @@ CarduinoNode::CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssi
     }, true);
     WiFi.mode(WIFI_OFF);
     
-    this->canExecutors = new Executor();
-    this->canExecutors->addExecutor(new CarduinoNodeWriteSetting());
-    this->canExecutors->addExecutor(new CarduinoNodeCanGetHellos());
-    this->canExecutors->addExecutor(new CarduinoNodeCanPowerEvents());
-    this->canExecutors->addExecutor(new CarduinoNodeCanGetSettings());
+    this->canExecutor = new Executor();
+    this->canExecutor->addExecutor(new CarduinoNodeWriteSetting());
+    this->canExecutor->addExecutor(new CarduinoNodeCanGetHellos());
+    this->canExecutor->addExecutor(new CarduinoNodeCanPowerEvents());
+    this->canExecutor->addExecutor(new CarduinoNodeCanGetSettings());
 
     this->scheduler = new Scheduler();
     this->scheduler->startNow();
@@ -375,7 +375,7 @@ void CarduinoNode::manageReceivedCanbusMessage(CanbusMessage *message) {
     //         this->printlnWrapper("CarduinoNode::manageReceivedCanbusMessage " + message->toSerialHumanString());
     //     }
     // }
-    this->canExecutors->execute(this, message);
+    this->canExecutor->execute(this, message);
 };
 
 void CarduinoNode::sendByteCanbus(uint16_t messageId, int len, uint8_t *buf) {

@@ -24,16 +24,16 @@ MainCarduinoNode::MainCarduinoNode(uint8_t id, int cs, int interruptPin, char *s
 
     this->nodeInformations = new std::map<uint8_t, NodeInformation*>();
 
-    this->canExecutors->addExecutor(new CarstatusExecutor());
-    this->canExecutors->addExecutor(new MediaControlExecutor());
-    this->canExecutors->addExecutor(new HeartbeatExecutor());
-    this->canExecutors->addExecutor(new MainNodeCanReadSettingExecutor());
-    this->canExecutors->addExecutor(new MainNodeCanEvent());
-    this->canExecutors->addExecutor(new MainNodeCanLog());
+    this->canExecutor->addExecutor(new CarstatusExecutor());
+    this->canExecutor->addExecutor(new MediaControlExecutor());
+    this->canExecutor->addExecutor(new HeartbeatExecutor());
+    this->canExecutor->addExecutor(new MainNodeCanReadSettingExecutor());
+    this->canExecutor->addExecutor(new MainNodeCanEvent());
+    this->canExecutor->addExecutor(new MainNodeCanLog());
 
-    this->usbExecutors = new Executor();
-    this->usbExecutors->addExecutor(new WriteSettingExecutor());
-    this->usbExecutors->addExecutor(new MainNodeSerialGetSettings());
+    this->usbExecutor = new Executor();
+    this->usbExecutor->addExecutor(new WriteSettingExecutor());
+    this->usbExecutor->addExecutor(new MainNodeSerialGetSettings());
 
     turnOffRadioTask = new Task(RADIO_TURN_OFF_TIMER, 1, std::bind(&MainCarduinoNode::turnOffSystem, this), this->scheduler, false);
     
@@ -129,7 +129,7 @@ void MainCarduinoNode::handleReceivedSerialMessage(String receivedMessage) {
         }
 
         if(canbusMessage != nullptr) {
-            usbExecutors->execute(this, canbusMessage);
+            usbExecutor->execute(this, canbusMessage);
             delete canbusMessage;
         }
     } else {

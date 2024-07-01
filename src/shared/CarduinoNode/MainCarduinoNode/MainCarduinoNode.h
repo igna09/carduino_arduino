@@ -50,7 +50,7 @@ struct NodeInformation {
 
 class MainCarduinoNode : public CarduinoNode {
     public:
-        Executor *usbExecutors;
+        Executor *usbExecutor;
         std::map<uint8_t, NodeInformation*> *nodeInformations;
         bool isRadioOn;
         bool isKeyOn;

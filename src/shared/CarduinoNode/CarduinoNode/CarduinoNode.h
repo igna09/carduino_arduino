@@ -106,7 +106,7 @@ class CarduinoNode : public Logger, public FSBase, public SettingBase {
         String ssid;
         String password;
         int interruptPin;
-        Executor *canExecutors;
+        Executor *canExecutor;
         bool initializedCan;
         Scheduler *scheduler;
         Task *temperatureTask;
