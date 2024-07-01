@@ -39,6 +39,8 @@ class CommunicationCarduinoNode : public CarduinoNode {
         bool authenticated;
         bool connected;
         BLEAddress* authenticatedBdAddress;
+        void enableNewPairing();
+        void disableNewPairing();
 
     private:
         BLEServer* bleServer;

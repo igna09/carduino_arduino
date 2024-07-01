@@ -3,7 +3,7 @@
 #include "TypedEnum.h"
 #include "CanbusMessageType.h"
 
-#define EVENT_SIZE 9
+#define EVENT_SIZE 11
 
 /**
  * these events send as payload sender id
@@ -20,6 +20,8 @@ class Event : public TypedEnum {
         static const Event GET_HELLOS;
         static const Event HELLO;
         static const Event HEARTBEAT;
+        static const Event ENABLE_NEW_BLE_PAIRING;
+        static const Event DISABLE_NEW_BLE_PAIRING;
 
         static const TypedEnum* getValueById(uint8_t id) {
             for(uint8_t i = 0; i < getSize(); i++) {
@@ -70,3 +72,5 @@ inline const Event Event::DISABLE_FINISH = Event(0x05, "DISABLE_FINISH", &Canbus
 inline const Event Event::HELLO = Event(0x06, "HELLO", &CanbusMessageType::INT); //contains id sending hello (heartbeat and events used to get a list of nodes)
 inline const Event Event::GET_HELLOS = Event(0x07, "GET_HELLOS", &CanbusMessageType::INT); //request all hellos messages
 inline const Event Event::HEARTBEAT = Event(0x08, "HEARTBEAT", &CanbusMessageType::INT);
+inline const Event Event::ENABLE_NEW_BLE_PAIRING = Event(0x09, "ENABLE_NEW_BLE_PAIRING", &CanbusMessageType::INT);
+inline const Event Event::DISABLE_NEW_BLE_PAIRING = Event(0x0A, "DISABLE_NEW_BLE_PAIRING", &CanbusMessageType::INT);

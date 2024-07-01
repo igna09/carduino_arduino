@@ -22,6 +22,7 @@ CommunicationCarduinoNode::CommunicationCarduinoNode(uint8_t id, int cs, int int
     BLEAdvertising *pAdvertising = BLEDevice::getAdvertising();
     // pAdvertising->addServiceUUID(SERVICE_UUID);
     bleServer->getAdvertising()->start();
+    this->disableNewPairing();
 
     BLESecurity *pSecurity = new BLESecurity();
     pSecurity->setStaticPIN(123456);
@@ -194,6 +195,10 @@ void CommunicationCarduinoNode::customGapCallback(esp_gap_ble_cb_event_t event, 
             if(param->ble_security.auth_cmpl.success) {
                 this->authenticatedBdAddress = new BLEAddress(param->ble_security.auth_cmpl.bd_addr);
                 authenticated = true;
+
+                BLEDevice::whiteListAdd(*this->authenticatedBdAddress);
+            } else {
+                // BLEDevice::blackListAdd(*this->authenticatedBdAddress);
             }
             break;
         } // ESP_GAP_BLE_AUTH_CMPL_EVT
@@ -219,6 +224,10 @@ void CommunicationCarduinoNode::customGapCallback(esp_gap_ble_cb_event_t event, 
 
             break;
         } // ESP_GAP_BLE_READ_RSSI_COMPLETE_EVT
+        case ESP_GAP_BLE_UPDATE_WHITELIST_COMPLETE_EVT: {
+            
+        } // ESP_GAP_BLE_UPDATE_WHITELIST_COMPLETE_EVT
+
     }
 }
 
@@ -228,4 +237,12 @@ void CommunicationCarduinoNode::logToFile(String message) {
     String localTime = String(timeInfo.tm_year) + "-" + String(timeInfo.tm_mon) + "-" + String(timeInfo.tm_yday) + " " + String(timeInfo.tm_hour) + ":" + String(timeInfo.tm_min) + ":" + String(timeInfo.tm_sec);
     message = localTime + " " + message;
     appendToFile("/logs.txt", message);
+}
+
+void CommunicationCarduinoNode::enableNewPairing() {
+    bleServer->getAdvertising()->setScanFilter(false,false);
+}
+
+void CommunicationCarduinoNode::disableNewPairing() {
+    bleServer->getAdvertising()->setScanFilter(false,true);
 }

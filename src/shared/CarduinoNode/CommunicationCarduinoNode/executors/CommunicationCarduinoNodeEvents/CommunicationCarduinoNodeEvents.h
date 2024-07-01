@@ -1,0 +1,14 @@
+#pragma once
+
+#include <Arduino.h>
+#include "shared/CanbusMessage/CanbusMessage.h"
+#include "shared/CarduinoNode/CommunicationCarduinoNode/CommunicationCarduinoNode.h"
+#include "shared/executors/CarduinoNodeExecutorInterface.h"
+#include "shared/enums/Category.h"
+#include "shared/CanbusMessage/EventMessage/EventMessage.h"
+
+class CommunicationCarduinoNodeEvents : public CarduinoNodeExecutorInterface {
+    public:
+        CommunicationCarduinoNodeEvents();
+        void execute(CarduinoNode *node, CanbusMessage *message);
+};
