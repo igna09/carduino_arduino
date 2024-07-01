@@ -35,6 +35,8 @@
 #include "shared/CarduinoNode/CarduinoNode/executors/CarduinoNodeCanGetHellos/CarduinoNodeCanGetHellos.h"
 #include "shared/CarduinoNode/CarduinoNode/executors/CarduinoNodeCanPowerEvents/CarduinoNodeCanPowerEvents.h"
 #include "shared/CarduinoNode/CarduinoNode/executors/CarduinoNodeCanGetSettings/CarduinoNodeCanGetSettings.h"
+#include "shared/CarduinoNode/CarduinoNode/executors/CarduinoNodeSerialGetSettings/CarduinoNodeSerialGetSettings.h"
+#include "shared/CarduinoNode/CarduinoNode/executors/CarduinoNodeSerialWriteSetting/CarduinoNodeSerialWriteSetting.h"
 // #include "shared/executors/Executor.h"
 
 /**
@@ -112,6 +114,7 @@ class CarduinoNode : public Logger, public FSBase, public SettingBase {
         Task *temperatureTask;
         std::map<uint8_t, PinInformation*> *pinInformations;
         bool isEnabled;
+        Executor *usbExecutor;
 
         CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssid, const char *password, bool enableI2c = false, bool logOnServer = false, bool logOnSerial = false);
         
@@ -145,6 +148,7 @@ class CarduinoNode : public Logger, public FSBase, public SettingBase {
         void addCanMessageValuesToBuffer(CanMessageValues *canMessageValues);
         uint8_t getBufferSize();
         void readCanMessageFromMcpBuffer();
+        void sendSerialMessage(CanbusMessage *message);
 
         static uint16_t generateId(const Category category, const Enum messageEnum);
         static uint16_t generateId(const Category category, uint8_t messageId);

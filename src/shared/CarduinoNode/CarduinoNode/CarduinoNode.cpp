@@ -61,6 +61,10 @@ CarduinoNode::CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssi
     this->canExecutor->addExecutor(new CarduinoNodeCanPowerEvents());
     this->canExecutor->addExecutor(new CarduinoNodeCanGetSettings());
 
+    this->usbExecutor = new Executor();
+    this->usbExecutor->addExecutor(new CarduinoNodeSerialGetSettings());
+    this->usbExecutor->addExecutor(new CarduinoNodeSerialWriteSetting());
+
     this->scheduler = new Scheduler();
     this->scheduler->startNow();
 
@@ -553,4 +557,10 @@ void CarduinoNode::sendLog(uint8_t id, int value) {
     LogMessage *logMessage = new LogMessage(this->id, id, value);
 	this->sendCanbusMessage(logMessage);
     delete logMessage;
+}
+
+void CarduinoNode::sendSerialMessage(CanbusMessage *message) {
+    printlnWrapper("CarduinoNode::sendSerialMessage " + message->toSerialHumanString());
+    Serial.println(message->toSerialString());
+    // Serial.flush();
 }

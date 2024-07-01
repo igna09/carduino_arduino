@@ -13,10 +13,8 @@
 #include "shared/executors/Executor.h"
 #include "shared/CarduinoNode/MainCarduinoNode/executors/CarstatusExecutor/CarstatusExecutor.h"
 #include "shared/CarduinoNode/MainCarduinoNode/executors/AllMessageExecutor/AllMessageExecutor.h"
-#include "shared/CarduinoNode/MainCarduinoNode/executors/WriteSettingExecutor/WriteSettingExecutor.h"
 #include "shared/CarduinoNode/MainCarduinoNode/executors/MediaControlExecutor/MediaControlExecutor.h"
 #include "shared/CarduinoNode/MainCarduinoNode/executors/MainNodeCanReadSettingExecutor/MainNodeCanReadSettingExecutor.h"
-#include "shared/CarduinoNode/MainCarduinoNode/executors/MainNodeSerialGetSettings/MainNodeSerialGetSettings.h"
 #include "shared/CarduinoNode/MainCarduinoNode/executors/MainNodeCanEvent/MainNodeCanEvent.h"
 #include "shared/CarduinoNode/MainCarduinoNode/executors/HeartbeatExecutor/HeartbeatExecutor.h"
 #include "shared/CarduinoNode/MainCarduinoNode/executors/MainNodeCanLog/MainNodeCanLog.h"
@@ -50,7 +48,6 @@ struct NodeInformation {
 
 class MainCarduinoNode : public CarduinoNode {
     public:
-        Executor *usbExecutor;
         std::map<uint8_t, NodeInformation*> *nodeInformations;
         bool isRadioOn;
         bool isKeyOn;
@@ -68,7 +65,6 @@ class MainCarduinoNode : public CarduinoNode {
         // void manageReceivedCanbusMessage(CanbusMessage message);
         void manageReceivedUsbMessage(CanbusMessage message);
         void loop();
-        void sendSerialMessage(CanbusMessage *message);
         SplittedUsbMessage* splitReceivedUsbMessage(String message);
         void handleReceivedSerialMessage(String message);
         void turnOffSystem();

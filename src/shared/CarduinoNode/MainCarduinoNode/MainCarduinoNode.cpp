@@ -31,10 +31,6 @@ MainCarduinoNode::MainCarduinoNode(uint8_t id, int cs, int interruptPin, char *s
     this->canExecutor->addExecutor(new MainNodeCanEvent());
     this->canExecutor->addExecutor(new MainNodeCanLog());
 
-    this->usbExecutor = new Executor();
-    this->usbExecutor->addExecutor(new WriteSettingExecutor());
-    this->usbExecutor->addExecutor(new MainNodeSerialGetSettings());
-
     turnOffRadioTask = new Task(RADIO_TURN_OFF_TIMER, 1, std::bind(&MainCarduinoNode::turnOffSystem, this), this->scheduler, false);
     
     this->isRadioOn = true;
@@ -141,12 +137,6 @@ void MainCarduinoNode::handleReceivedSerialMessage(String receivedMessage) {
 
 void MainCarduinoNode::manageReceivedUsbMessage(CanbusMessage message) {
     sendByteCanbus(message.id, message.payloadLength, message.payload);
-}
-
-void MainCarduinoNode::sendSerialMessage(CanbusMessage *message) {
-    printlnWrapper("MainCarduinoNode::sendSerialMessage " + message->toSerialHumanString());
-    Serial.println(message->toSerialString());
-    // Serial.flush();
 }
 
 SplittedUsbMessage* MainCarduinoNode::splitReceivedUsbMessage(String message) {
