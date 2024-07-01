@@ -65,95 +65,12 @@ void MainCarduinoNode::temperatureCallback() {
 void MainCarduinoNode::loop() {
     CarduinoNode::loop();
 
-    /**
-     * manage received messages over USB
-    */
-    if(Serial.available() > 0) {
-        String s = Serial.readStringUntil('\n');
-        handleReceivedSerialMessage(s);
-    }
-
     /*if(millis() > 5000 && !mockReceived) {
         mockReceived = true;
         handleReceivedSerialMessage("READ_SETTINGS;OTA_MODE;false;");
     }*/
 
     manageSwc();
-}
-
-void MainCarduinoNode::handleReceivedSerialMessage(String receivedMessage) {
-    this->printlnWrapper("MainCarduinoNode::handleReceivedSerialMessage " + receivedMessage);
-    SplittedUsbMessage *splittedUsbMessage = splitReceivedUsbMessage(receivedMessage);
-
-    if(splittedUsbMessage->isValid) {
-        bool isNumericMode = isNumeric(splittedUsbMessage->messages[0]);
-
-        const Category *c;
-
-        if(isNumericMode) {
-            c = (const Category*) Category::getValueById(splittedUsbMessage->messages[0].toInt());
-        } else {
-            c = (const Category*) Category::getValueByName((char*) splittedUsbMessage->messages[0].c_str());
-        }
-
-        CanbusMessage *canbusMessage = nullptr;
-        // TODO: replace with a factory
-        if(c->getEnumFromNameFunction != nullptr && c->getEnumFromIdFunction != nullptr) {
-            const TypedEnum *typedEnumMessage;
-
-            if(isNumericMode) {
-                typedEnumMessage = (const TypedEnum*) c->getEnumFromIdFunction(splittedUsbMessage->messages[1].toInt());
-            } else {
-                typedEnumMessage = (const TypedEnum*) c->getEnumFromNameFunction((char*) splittedUsbMessage->messages[1].c_str());
-            }
-
-            if(typedEnumMessage != nullptr) {
-                if(typedEnumMessage->type->id == CanbusMessageType::BOOL.id) {
-                    canbusMessage = new CanbusMessage(generateId(*c, *typedEnumMessage), convertValueToByteArray(splittedUsbMessage->messages[2].equals("TRUE")), 1);
-                } else if(typedEnumMessage->type->id == CanbusMessageType::INT.id) {
-                    canbusMessage = new CanbusMessage(generateId(*c, *typedEnumMessage), convertValueToByteArray((int) splittedUsbMessage->messages[2].toInt()), 4);
-                } else if(typedEnumMessage->type->id == CanbusMessageType::FLOAT.id) {
-                    canbusMessage = new CanbusMessage(generateId(*c, *typedEnumMessage), convertValueToByteArray(splittedUsbMessage->messages[2].toFloat()), 5);
-                }
-            }
-        } else {
-            // this->printlnWrapper("CarduinoNode::handleReceivedSerialMessage is nullptr");
-            canbusMessage = new TypedCanbusMessage(generateId(*c, 0), false);
-            // uint8_t value[1] = {0};
-            // canbusMessage = new CanbusMessage(generateId(*c, 0), value, 1);
-            // this->printlnWrapper("CarduinoNode::handleReceivedSerialMessage created message");
-        }
-
-        if(canbusMessage != nullptr) {
-            usbExecutor->execute(this, canbusMessage);
-            delete canbusMessage;
-        }
-    } else {
-        this->printlnWrapper("MainCarduinoNode::handleReceivedSerialMessage malformed message " + receivedMessage);
-    }
-
-    delete splittedUsbMessage;
-}
-
-void MainCarduinoNode::manageReceivedUsbMessage(CanbusMessage message) {
-    sendByteCanbus(message.id, message.payloadLength, message.payload);
-}
-
-SplittedUsbMessage* MainCarduinoNode::splitReceivedUsbMessage(String message) {
-    SplittedUsbMessage *splittedUsbMessage = new SplittedUsbMessage();
-
-    int i;
-    splittedUsbMessage->isValid = true;
-    for(i = 0; i < 3 && splittedUsbMessage->isValid; i++) {
-        if(message.indexOf(";") >= 0) {
-            splittedUsbMessage->messages[i] = message.substring(0, message.indexOf(";"));
-            message = message.substring(message.indexOf(";") + 1);
-        } else {
-            splittedUsbMessage->isValid = false;
-        }
-    }
-
-    return splittedUsbMessage;
 }
 
 void MainCarduinoNode::executeSwcCommand(MediaControl *mediaControl) {

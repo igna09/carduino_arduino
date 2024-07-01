@@ -74,6 +74,11 @@ const char FALLBACK_PAGE[] PROGMEM = R"rawliteral(
 #define CAN_MESSAGE_VALUES_BUFFER_CHUNK_SIZE 1
 #define CAN_MESSAGE_VALUES_BUFFER_SIZE 32
 
+struct SplittedUsbMessage {
+    bool isValid;
+    String messages[3];
+};
+
 struct PinInformation {
     uint8_t pin;
     PCF8574 *pcf8574;
@@ -149,6 +154,8 @@ class CarduinoNode : public Logger, public FSBase, public SettingBase {
         uint8_t getBufferSize();
         void readCanMessageFromMcpBuffer();
         void sendSerialMessage(CanbusMessage *message);
+        SplittedUsbMessage* splitReceivedUsbMessage(String message);
+        void handleReceivedSerialMessage(String message);
 
         static uint16_t generateId(const Category category, const Enum messageEnum);
         static uint16_t generateId(const Category category, uint8_t messageId);

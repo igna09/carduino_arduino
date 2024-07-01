@@ -35,11 +35,6 @@
 #define RADIO_POWER_MOSFET_PIN P0
 #define ACCESSORY_12_V_PIN P1
 
-struct SplittedUsbMessage {
-    bool isValid;
-    String messages[3];
-};
-
 struct NodeInformation {
     uint8_t id;
     unsigned long lastTimeReceivedHeartBeat;
@@ -63,10 +58,7 @@ class MainCarduinoNode : public CarduinoNode {
         MainCarduinoNode(uint8_t id, int cs, int interruptPin, char *ssid,  char *password);
 
         // void manageReceivedCanbusMessage(CanbusMessage message);
-        void manageReceivedUsbMessage(CanbusMessage message);
         void loop();
-        SplittedUsbMessage* splitReceivedUsbMessage(String message);
-        void handleReceivedSerialMessage(String message);
         void turnOffSystem();
         // void manageRadioPower();
         NodeInformation* getNodeInformation(uint8_t id);
