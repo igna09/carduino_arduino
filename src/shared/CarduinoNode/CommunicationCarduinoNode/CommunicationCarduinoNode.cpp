@@ -32,8 +32,6 @@ CommunicationCarduinoNode::CommunicationCarduinoNode(uint8_t id, int cs, int int
     pSecurity->setInitEncryptionKey(ESP_BLE_ENC_KEY_MASK | ESP_BLE_ID_KEY_MASK);
     pSecurity->setRespEncryptionKey(ESP_BLE_ENC_KEY_MASK | ESP_BLE_ID_KEY_MASK);
 
-    this->disableNewPairing();
-
     printlnWrapper("Waiting a client connection to notify...");
 
     // pBLEScan = BLEDevice::getScan(); //create new scan
@@ -57,6 +55,8 @@ CommunicationCarduinoNode::CommunicationCarduinoNode(uint8_t id, int cs, int int
     this->rssiTask = new Task(1000, TASK_FOREVER, [&](){
         esp_err_t rc = esp_ble_gap_read_rssi(*this->authenticatedBdAddress->getNative());
     }, this->scheduler, false);
+
+    this->disableNewPairing();
 
     usbExecutor->addExecutor(new CommunicationCarduinoNodeEvents());
 
