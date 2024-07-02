@@ -13,10 +13,8 @@
 #include "shared/executors/Executor.h"
 #include "shared/CarduinoNode/MainCarduinoNode/executors/CarstatusExecutor/CarstatusExecutor.h"
 #include "shared/CarduinoNode/MainCarduinoNode/executors/AllMessageExecutor/AllMessageExecutor.h"
-#include "shared/CarduinoNode/MainCarduinoNode/executors/WriteSettingExecutor/WriteSettingExecutor.h"
 #include "shared/CarduinoNode/MainCarduinoNode/executors/MediaControlExecutor/MediaControlExecutor.h"
 #include "shared/CarduinoNode/MainCarduinoNode/executors/MainNodeCanReadSettingExecutor/MainNodeCanReadSettingExecutor.h"
-#include "shared/CarduinoNode/MainCarduinoNode/executors/MainNodeSerialGetSettings/MainNodeSerialGetSettings.h"
 #include "shared/CarduinoNode/MainCarduinoNode/executors/MainNodeCanEvent/MainNodeCanEvent.h"
 #include "shared/CarduinoNode/MainCarduinoNode/executors/HeartbeatExecutor/HeartbeatExecutor.h"
 #include "shared/CarduinoNode/MainCarduinoNode/executors/MainNodeCanLog/MainNodeCanLog.h"
@@ -37,11 +35,6 @@
 #define RADIO_POWER_MOSFET_PIN P0
 #define ACCESSORY_12_V_PIN P1
 
-struct SplittedUsbMessage {
-    bool isValid;
-    String messages[3];
-};
-
 struct NodeInformation {
     uint8_t id;
     unsigned long lastTimeReceivedHeartBeat;
@@ -50,7 +43,6 @@ struct NodeInformation {
 
 class MainCarduinoNode : public CarduinoNode {
     public:
-        Executor *usbExecutors;
         std::map<uint8_t, NodeInformation*> *nodeInformations;
         bool isRadioOn;
         bool isKeyOn;
@@ -66,11 +58,7 @@ class MainCarduinoNode : public CarduinoNode {
         MainCarduinoNode(uint8_t id, int cs, int interruptPin, char *ssid,  char *password);
 
         // void manageReceivedCanbusMessage(CanbusMessage message);
-        void manageReceivedUsbMessage(CanbusMessage message);
         void loop();
-        void sendSerialMessage(CanbusMessage *message);
-        SplittedUsbMessage* splitReceivedUsbMessage(String message);
-        void handleReceivedSerialMessage(String message);
         void turnOffSystem();
         // void manageRadioPower();
         NodeInformation* getNodeInformation(uint8_t id);

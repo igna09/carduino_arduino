@@ -14,7 +14,6 @@
 #include <PCF8574.h>
 #include <map>              // user must include to use std::map (see above comment)
 #include <FunctionalInterrupt.h>
-#include <FS.h>
 
 #if defined(ESP8266)
 #include <ESP8266WiFi.h>
@@ -36,6 +35,8 @@
 #include "shared/CarduinoNode/CarduinoNode/executors/CarduinoNodeCanGetHellos/CarduinoNodeCanGetHellos.h"
 #include "shared/CarduinoNode/CarduinoNode/executors/CarduinoNodeCanPowerEvents/CarduinoNodeCanPowerEvents.h"
 #include "shared/CarduinoNode/CarduinoNode/executors/CarduinoNodeCanGetSettings/CarduinoNodeCanGetSettings.h"
+#include "shared/CarduinoNode/CarduinoNode/executors/CarduinoNodeSerialGetSettings/CarduinoNodeSerialGetSettings.h"
+#include "shared/CarduinoNode/CarduinoNode/executors/CarduinoNodeSerialWriteSetting/CarduinoNodeSerialWriteSetting.h"
 // #include "shared/executors/Executor.h"
 
 /**
@@ -71,7 +72,12 @@ const char FALLBACK_PAGE[] PROGMEM = R"rawliteral(
 #define DIGITAL_PINS_UPDATE_INTERVAL 20
 #define WRITE_SETTINGS_ON_EEPROM_INTERVAL 30000
 #define CAN_MESSAGE_VALUES_BUFFER_CHUNK_SIZE 1
-#define CAN_MESSAGE_VALUES_BUFFER_SIZE 16
+#define CAN_MESSAGE_VALUES_BUFFER_SIZE 32
+
+struct SplittedUsbMessage {
+    bool isValid;
+    String messages[3];
+};
 
 struct PinInformation {
     uint8_t pin;
@@ -107,12 +113,13 @@ class CarduinoNode : public Logger, public FSBase, public SettingBase {
         String ssid;
         String password;
         int interruptPin;
-        Executor *canExecutors;
+        Executor *canExecutor;
         bool initializedCan;
         Scheduler *scheduler;
         Task *temperatureTask;
         std::map<uint8_t, PinInformation*> *pinInformations;
         bool isEnabled;
+        Executor *usbExecutor;
 
         CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssid, const char *password, bool enableI2c = false, bool logOnServer = false, bool logOnSerial = false);
         
@@ -146,6 +153,9 @@ class CarduinoNode : public Logger, public FSBase, public SettingBase {
         void addCanMessageValuesToBuffer(CanMessageValues *canMessageValues);
         uint8_t getBufferSize();
         void readCanMessageFromMcpBuffer();
+        void sendSerialMessage(CanbusMessage *message);
+        SplittedUsbMessage* splitReceivedUsbMessage(String message);
+        void handleReceivedSerialMessage(String message);
 
         static uint16_t generateId(const Category category, const Enum messageEnum);
         static uint16_t generateId(const Category category, uint8_t messageId);

@@ -24,16 +24,12 @@ MainCarduinoNode::MainCarduinoNode(uint8_t id, int cs, int interruptPin, char *s
 
     this->nodeInformations = new std::map<uint8_t, NodeInformation*>();
 
-    this->canExecutors->addExecutor(new CarstatusExecutor());
-    this->canExecutors->addExecutor(new MediaControlExecutor());
-    this->canExecutors->addExecutor(new HeartbeatExecutor());
-    this->canExecutors->addExecutor(new MainNodeCanReadSettingExecutor());
-    this->canExecutors->addExecutor(new MainNodeCanEvent());
-    this->canExecutors->addExecutor(new MainNodeCanLog());
-
-    this->usbExecutors = new Executor();
-    this->usbExecutors->addExecutor(new WriteSettingExecutor());
-    this->usbExecutors->addExecutor(new MainNodeSerialGetSettings());
+    this->canExecutor->addExecutor(new CarstatusExecutor());
+    this->canExecutor->addExecutor(new MediaControlExecutor());
+    this->canExecutor->addExecutor(new HeartbeatExecutor());
+    this->canExecutor->addExecutor(new MainNodeCanReadSettingExecutor());
+    this->canExecutor->addExecutor(new MainNodeCanEvent());
+    this->canExecutor->addExecutor(new MainNodeCanLog());
 
     turnOffRadioTask = new Task(RADIO_TURN_OFF_TIMER, 1, std::bind(&MainCarduinoNode::turnOffSystem, this), this->scheduler, false);
     
@@ -69,101 +65,12 @@ void MainCarduinoNode::temperatureCallback() {
 void MainCarduinoNode::loop() {
     CarduinoNode::loop();
 
-    /**
-     * manage received messages over USB
-    */
-    if(Serial.available() > 0) {
-        String s = Serial.readStringUntil('\n');
-        handleReceivedSerialMessage(s);
-    }
-
     /*if(millis() > 5000 && !mockReceived) {
         mockReceived = true;
         handleReceivedSerialMessage("READ_SETTINGS;OTA_MODE;false;");
     }*/
 
     manageSwc();
-}
-
-void MainCarduinoNode::handleReceivedSerialMessage(String receivedMessage) {
-    this->printlnWrapper("MainCarduinoNode::handleReceivedSerialMessage " + receivedMessage);
-    SplittedUsbMessage *splittedUsbMessage = splitReceivedUsbMessage(receivedMessage);
-
-    if(splittedUsbMessage->isValid) {
-        bool isNumericMode = isNumeric(splittedUsbMessage->messages[0]);
-
-        const Category *c;
-
-        if(isNumericMode) {
-            c = (const Category*) Category::getValueById(splittedUsbMessage->messages[0].toInt());
-        } else {
-            c = (const Category*) Category::getValueByName((char*) splittedUsbMessage->messages[0].c_str());
-        }
-
-        CanbusMessage *canbusMessage = nullptr;
-        // TODO: replace with a factory
-        if(c->getEnumFromNameFunction != nullptr && c->getEnumFromIdFunction != nullptr) {
-            const TypedEnum *typedEnumMessage;
-
-            if(isNumericMode) {
-                typedEnumMessage = (const TypedEnum*) c->getEnumFromIdFunction(splittedUsbMessage->messages[1].toInt());
-            } else {
-                typedEnumMessage = (const TypedEnum*) c->getEnumFromNameFunction((char*) splittedUsbMessage->messages[1].c_str());
-            }
-
-            if(typedEnumMessage != nullptr) {
-                if(typedEnumMessage->type->id == CanbusMessageType::BOOL.id) {
-                    canbusMessage = new CanbusMessage(generateId(*c, *typedEnumMessage), convertValueToByteArray(splittedUsbMessage->messages[2].equals("TRUE")), 1);
-                } else if(typedEnumMessage->type->id == CanbusMessageType::INT.id) {
-                    canbusMessage = new CanbusMessage(generateId(*c, *typedEnumMessage), convertValueToByteArray((int) splittedUsbMessage->messages[2].toInt()), 4);
-                } else if(typedEnumMessage->type->id == CanbusMessageType::FLOAT.id) {
-                    canbusMessage = new CanbusMessage(generateId(*c, *typedEnumMessage), convertValueToByteArray(splittedUsbMessage->messages[2].toFloat()), 5);
-                }
-            }
-        } else {
-            // this->printlnWrapper("CarduinoNode::handleReceivedSerialMessage is nullptr");
-            canbusMessage = new TypedCanbusMessage(generateId(*c, 0), false);
-            // uint8_t value[1] = {0};
-            // canbusMessage = new CanbusMessage(generateId(*c, 0), value, 1);
-            // this->printlnWrapper("CarduinoNode::handleReceivedSerialMessage created message");
-        }
-
-        if(canbusMessage != nullptr) {
-            usbExecutors->execute(this, canbusMessage);
-            delete canbusMessage;
-        }
-    } else {
-        this->printlnWrapper("MainCarduinoNode::handleReceivedSerialMessage malformed message " + receivedMessage);
-    }
-
-    delete splittedUsbMessage;
-}
-
-void MainCarduinoNode::manageReceivedUsbMessage(CanbusMessage message) {
-    sendByteCanbus(message.id, message.payloadLength, message.payload);
-}
-
-void MainCarduinoNode::sendSerialMessage(CanbusMessage *message) {
-    printlnWrapper("MainCarduinoNode::sendSerialMessage " + message->toSerialHumanString());
-    Serial.println(message->toSerialString());
-    // Serial.flush();
-}
-
-SplittedUsbMessage* MainCarduinoNode::splitReceivedUsbMessage(String message) {
-    SplittedUsbMessage *splittedUsbMessage = new SplittedUsbMessage();
-
-    int i;
-    splittedUsbMessage->isValid = true;
-    for(i = 0; i < 3 && splittedUsbMessage->isValid; i++) {
-        if(message.indexOf(";") >= 0) {
-            splittedUsbMessage->messages[i] = message.substring(0, message.indexOf(";"));
-            message = message.substring(message.indexOf(";") + 1);
-        } else {
-            splittedUsbMessage->isValid = false;
-        }
-    }
-
-    return splittedUsbMessage;
 }
 
 void MainCarduinoNode::executeSwcCommand(MediaControl *mediaControl) {

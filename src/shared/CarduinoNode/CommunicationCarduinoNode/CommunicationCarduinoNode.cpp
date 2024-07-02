@@ -22,8 +22,9 @@ CommunicationCarduinoNode::CommunicationCarduinoNode(uint8_t id, int cs, int int
     BLEAdvertising *pAdvertising = BLEDevice::getAdvertising();
     // pAdvertising->addServiceUUID(SERVICE_UUID);
     bleServer->getAdvertising()->start();
+    this->disableNewPairing();
 
-    BLESecurity *pSecurity = new BLESecurity();
+    pSecurity = new BLESecurity();
     pSecurity->setStaticPIN(123456);
     pSecurity->setAuthenticationMode(ESP_LE_AUTH_REQ_SC_BOND);
     // pSecurity->setKeySize(16); //the key size should be 7~16 bytes
@@ -189,6 +190,10 @@ void CommunicationCarduinoNode::customGapCallback(esp_gap_ble_cb_event_t event, 
             if(param->ble_security.auth_cmpl.success) {
                 this->authenticatedBdAddress = new BLEAddress(param->ble_security.auth_cmpl.bd_addr);
                 this->rssiTask->enable();
+
+                BLEDevice::whiteListAdd(*this->authenticatedBdAddress); //https://github.com/espressif/arduino-esp32/issues/9404
+            } else {
+                // BLEDevice::blackListAdd(*this->authenticatedBdAddress);
             }
             break;
         } // ESP_GAP_BLE_AUTH_CMPL_EVT
@@ -220,6 +225,10 @@ void CommunicationCarduinoNode::customGapCallback(esp_gap_ble_cb_event_t event, 
 
             break;
         } // ESP_GAP_BLE_READ_RSSI_COMPLETE_EVT
+        case ESP_GAP_BLE_UPDATE_WHITELIST_COMPLETE_EVT: {
+            
+        } // ESP_GAP_BLE_UPDATE_WHITELIST_COMPLETE_EVT
+
     }
 }
 
@@ -229,4 +238,14 @@ void CommunicationCarduinoNode::logToFile(String message) {
     String localTime = String(timeInfo.tm_year) + "-" + String(timeInfo.tm_mon) + "-" + String(timeInfo.tm_yday) + " " + String(timeInfo.tm_hour) + ":" + String(timeInfo.tm_min) + ":" + String(timeInfo.tm_sec);
     message = localTime + " " + message;
     appendToFile("/node_logs.txt", message);
+}
+
+void CommunicationCarduinoNode::enableNewPairing() {
+    // bleServer->getAdvertising()->setScanFilter(false,false);
+    pSecurity->setAuthenticationMode(ESP_LE_AUTH_REQ_SC_BOND); // https://github.com/nkolban/esp32-snippets/issues/613#issuecomment-496400715
+}
+
+void CommunicationCarduinoNode::disableNewPairing() {
+    // bleServer->getAdvertising()->setScanFilter(false,true);
+    pSecurity->setAuthenticationMode(ESP_LE_AUTH_REQ_SC_ONLY); // https://github.com/nkolban/esp32-snippets/issues/613#issuecomment-496400715
 }

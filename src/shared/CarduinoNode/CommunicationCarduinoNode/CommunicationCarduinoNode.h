@@ -40,8 +40,11 @@ class CommunicationCarduinoNode : public CarduinoNode {
         bool connected;
         BLEAddress* authenticatedBdAddress;
         Task* rssiTask;
+        void enableNewPairing();
+        void disableNewPairing();
 
     private:
         BLEServer* bleServer;
         BLEDevice* bleDevice;
+        BLESecurity *pSecurity;
 };

@@ -1,8 +1,8 @@
-#include "WriteSettingExecutor.h"
+#include "CarduinoNodeSerialWriteSetting.h"
 
-WriteSettingExecutor::WriteSettingExecutor() : CarduinoNodeExecutorInterface(&Category::WRITE_SETTING) {};
+CarduinoNodeSerialWriteSetting::CarduinoNodeSerialWriteSetting() : CarduinoNodeExecutorInterface(&Category::WRITE_SETTING) {};
 
-void WriteSettingExecutor::execute(CarduinoNode *node, CanbusMessage *message) {
+void CarduinoNodeSerialWriteSetting::execute(CarduinoNode *node, CanbusMessage *message) {
     node->sendCanbusMessage(message);
 
     /**
