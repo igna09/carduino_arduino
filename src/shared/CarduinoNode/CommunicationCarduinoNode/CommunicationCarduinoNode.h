@@ -11,6 +11,7 @@
 #include "utils/MyBLESecurityCallbacks/MyBLESecurityCallbacks.h"
 #include "utils/MyBLEServerCallbacks/MyBLEServerCallbacks.h"
 #include "utils/GAPCallback/GAPCallback.h"
+#include "shared/CarduinoNode/CommunicationCarduinoNode/executors/CommunicationCarduinoNodeEvents/CommunicationCarduinoNodeEvents.h"
 
 #include <BLEDevice.h>            // sets up BLE device constructs
 
@@ -42,6 +43,9 @@ class CommunicationCarduinoNode : public CarduinoNode {
         Task* rssiTask;
         void enableNewPairing();
         void disableNewPairing();
+        bool disabledPairing;
+
+        void test() override;
 
     private:
         BLEServer* bleServer;

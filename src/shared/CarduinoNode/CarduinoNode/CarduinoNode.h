@@ -37,6 +37,7 @@
 #include "shared/CarduinoNode/CarduinoNode/executors/CarduinoNodeCanGetSettings/CarduinoNodeCanGetSettings.h"
 #include "shared/CarduinoNode/CarduinoNode/executors/CarduinoNodeSerialGetSettings/CarduinoNodeSerialGetSettings.h"
 #include "shared/CarduinoNode/CarduinoNode/executors/CarduinoNodeSerialWriteSetting/CarduinoNodeSerialWriteSetting.h"
+#include "shared/CarduinoNode/CarduinoNode/executors/CarduinoNodeEventTest/CarduinoNodeEventTest.h"
 // #include "shared/executors/Executor.h"
 
 /**
@@ -159,4 +160,6 @@ class CarduinoNode : public Logger, public FSBase, public SettingBase {
 
         static uint16_t generateId(const Category category, const Enum messageEnum);
         static uint16_t generateId(const Category category, uint8_t messageId);
+
+        virtual void test();
 };

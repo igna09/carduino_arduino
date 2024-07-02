@@ -3,6 +3,8 @@
 CommunicationCarduinoNode::CommunicationCarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssid, const char *password) : CarduinoNode(id, cs, interruptPin, ssid,  password, false, true, true) {
     this->restoreSettings();
 
+    this->authenticatedBdAddress = nullptr;
+
     // Start BLE service
     /*BLEDevice::init("ESP32");
     Serial.println("BLE started!");
@@ -22,7 +24,6 @@ CommunicationCarduinoNode::CommunicationCarduinoNode(uint8_t id, int cs, int int
     BLEAdvertising *pAdvertising = BLEDevice::getAdvertising();
     // pAdvertising->addServiceUUID(SERVICE_UUID);
     bleServer->getAdvertising()->start();
-    this->disableNewPairing();
 
     pSecurity = new BLESecurity();
     pSecurity->setStaticPIN(123456);
@@ -30,6 +31,8 @@ CommunicationCarduinoNode::CommunicationCarduinoNode(uint8_t id, int cs, int int
     // pSecurity->setKeySize(16); //the key size should be 7~16 bytes
     pSecurity->setInitEncryptionKey(ESP_BLE_ENC_KEY_MASK | ESP_BLE_ID_KEY_MASK);
     pSecurity->setRespEncryptionKey(ESP_BLE_ENC_KEY_MASK | ESP_BLE_ID_KEY_MASK);
+
+    this->disableNewPairing();
 
     printlnWrapper("Waiting a client connection to notify...");
 
@@ -55,7 +58,13 @@ CommunicationCarduinoNode::CommunicationCarduinoNode(uint8_t id, int cs, int int
         esp_err_t rc = esp_ble_gap_read_rssi(*this->authenticatedBdAddress->getNative());
     }, this->scheduler, false);
 
+    usbExecutor->addExecutor(new CommunicationCarduinoNodeEvents());
+
+    /**
+     * TMP
+     */
     otaStartup();
+    this->enable();
 
     logToFile("setup done");
 };
@@ -160,6 +169,7 @@ void CommunicationCarduinoNode::clientAuthenticated() {
 }
 
 void CommunicationCarduinoNode::clearWhitelist() {
+    printlnWrapper("CommunicationCarduinoNode::clearWhitelist");
     esp_ble_gap_clear_whitelist();
 }
 
@@ -191,7 +201,7 @@ void CommunicationCarduinoNode::customGapCallback(esp_gap_ble_cb_event_t event, 
                 this->authenticatedBdAddress = new BLEAddress(param->ble_security.auth_cmpl.bd_addr);
                 this->rssiTask->enable();
 
-                BLEDevice::whiteListAdd(*this->authenticatedBdAddress); //https://github.com/espressif/arduino-esp32/issues/9404
+                // BLEDevice::whiteListAdd(*this->authenticatedBdAddress); //https://github.com/espressif/arduino-esp32/issues/9404
             } else {
                 // BLEDevice::blackListAdd(*this->authenticatedBdAddress);
             }
@@ -242,10 +252,18 @@ void CommunicationCarduinoNode::logToFile(String message) {
 
 void CommunicationCarduinoNode::enableNewPairing() {
     // bleServer->getAdvertising()->setScanFilter(false,false);
-    pSecurity->setAuthenticationMode(ESP_LE_AUTH_REQ_SC_BOND); // https://github.com/nkolban/esp32-snippets/issues/613#issuecomment-496400715
+    // pSecurity->setAuthenticationMode(ESP_LE_AUTH_REQ_SC_BOND); // https://github.com/nkolban/esp32-snippets/issues/613#issuecomment-496400715
+    bleServer->getAdvertising()->start();
+    disabledPairing = false;
 }
 
 void CommunicationCarduinoNode::disableNewPairing() {
     // bleServer->getAdvertising()->setScanFilter(false,true);
-    pSecurity->setAuthenticationMode(ESP_LE_AUTH_REQ_SC_ONLY); // https://github.com/nkolban/esp32-snippets/issues/613#issuecomment-496400715
+    // pSecurity->setAuthenticationMode(ESP_LE_AUTH_REQ_SC_ONLY); // https://github.com/nkolban/esp32-snippets/issues/613#issuecomment-496400715
+    bleServer->getAdvertising()->stop();
+    disabledPairing = true;
+}
+
+void CommunicationCarduinoNode::test() {
+    clearWhitelist();
 }

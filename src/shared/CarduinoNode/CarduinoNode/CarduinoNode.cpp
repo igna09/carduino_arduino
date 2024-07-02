@@ -64,6 +64,7 @@ CarduinoNode::CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssi
     this->usbExecutor = new Executor();
     this->usbExecutor->addExecutor(new CarduinoNodeSerialGetSettings());
     this->usbExecutor->addExecutor(new CarduinoNodeSerialWriteSetting());
+    this->usbExecutor->addExecutor(new CarduinoNodeEventTest());
 
     this->scheduler = new Scheduler();
     this->scheduler->startNow();
@@ -338,7 +339,7 @@ void CarduinoNode::handleReceivedSerialMessage(String receivedMessage) {
 
         CanbusMessage *canbusMessage = nullptr;
         // TODO: replace with a factory
-        if(c->getEnumFromNameFunction != nullptr && c->getEnumFromIdFunction != nullptr) {
+        if((!isNumericMode && c->getEnumFromNameFunction != nullptr) || (isNumericMode && c->getEnumFromIdFunction != nullptr)) {
             const TypedEnum *typedEnumMessage;
 
             if(isNumericMode) {
@@ -643,3 +644,5 @@ void CarduinoNode::sendSerialMessage(CanbusMessage *message) {
     Serial.println(message->toSerialString());
     // Serial.flush();
 }
+
+void CarduinoNode::test() {}

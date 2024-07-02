@@ -13,8 +13,13 @@ void MyBLEServerCallbacks::onDisconnect(BLEServer* pServer) {
     node->printlnWrapper("MyBLEServerCallbacks::onDisconnect");
 
     node->rssiTask->disable();
-    delete node->authenticatedBdAddress;
+    if(node->authenticatedBdAddress != nullptr) {
+        delete node->authenticatedBdAddress;
+        node->authenticatedBdAddress = nullptr;
+    }
 
-    pServer->getAdvertising()->start();
+    if(!node->disabledPairing) {
+        pServer->getAdvertising()->start();
+    }
     node->printlnWrapper("MyBLEServerCallbacks::onDisconnect Waiting a new client connection to notify...");
 }
