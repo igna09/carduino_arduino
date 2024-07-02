@@ -208,7 +208,7 @@ void CommunicationCarduinoNode::customGapCallback(esp_gap_ble_cb_event_t event, 
             printlnWrapper(message);
             logToFile(message);
 
-            if(param->read_rssi_cmpl.rssi < 50) {
+            if(param->read_rssi_cmpl.rssi > -60) {
                 sendEvent(&Event::UNLOCK_CAR);
             } else {
                 sendEvent(&Event::LOCK_CAR);
