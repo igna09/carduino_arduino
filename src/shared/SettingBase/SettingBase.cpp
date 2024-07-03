@@ -10,7 +10,7 @@ SettingBase::SettingBase(Logger* logger, FSBase* fsBase) {
 };
 
 void SettingBase::addSetting(const Setting *setting, bool value, std::function<void(SettingInformation*)> onChange, bool doBackup) {
-    _logger->printlnWrapper("added setting " + String(setting->name), true);
+    // _logger->printlnWrapper("added setting " + String(setting->name), true);
     SettingInformation *settingInformation = new SettingInformation();
     settingInformation->value = new ValueType();
     settingInformation->defaultValue = new ValueType();
