@@ -1,6 +1,6 @@
 #include "CarduinoNode.h"
 
-CarduinoNode::CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssid, const char *password, bool enableI2c, bool logOnServer, bool logOnSerial) : FSBase(), Logger(this, logOnSerial), SettingBase(this) {
+CarduinoNode::CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssid, const char *password, bool enableI2c, bool logOnServer, bool logOnSerial) : FSBase(), Logger(this, logOnSerial), SettingBase(this, this) {
     this->id = id;
     this->can = new MCP_CAN(cs);
     this->server = new AsyncWebServer(80);
@@ -201,32 +201,12 @@ void CarduinoNode::setupServerWebapp() {
         jsonDocument["freeHeap"] = ESP.getFreeHeap();
         jsonDocument["ssid"] = WiFi.softAPSSID();
 
-        JsonDocument doc;
-        JsonArray array = doc.to<JsonArray>();
-
-        File root = _fs->open("/", "r");
-        File entry = root.openNextFile();
-        while(entry) {
-            array.add(String(entry.name()));
-            entry.close();
-            entry = root.openNextFile();
-        }
-        entry.close();
-        jsonDocument["available_files"] = array;
-
         serializeJson(jsonDocument, *response);
         request->send(response);
     });
 
-    /**
-     * tmp api
-     */
-    this->server->on("/download", HTTP_GET, [&](AsyncWebServerRequest *request){
-        AsyncWebServerResponse *response = request->beginResponse(*_fs, "/logs.txt", String(), true);
-    });
-
     this->server->on(
-        "/file",
+        "/download-file",
         HTTP_POST,
         [&](AsyncWebServerRequest *request){
             // printlnWrapper("onRequest");
@@ -250,8 +230,8 @@ void CarduinoNode::setupServerWebapp() {
     );
 
     this->server->on(
-        "/file",
-        HTTP_DELETE,
+        "/delete-file",
+        HTTP_POST,
         [&](AsyncWebServerRequest *request){
             // printlnWrapper("onRequest");
         },
@@ -268,6 +248,44 @@ void CarduinoNode::setupServerWebapp() {
                 _fs->remove(filename);
                 printlnWrapper("deleted " + filename);
                 request->send(200);
+            }
+        }
+    );
+
+    this->server->on(
+        "/file-list",
+        HTTP_POST,
+        [&](AsyncWebServerRequest *request){
+            // printlnWrapper("onRequest");
+        },
+        NULL,
+        [&](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total){
+            // printlnWrapper("onBody");
+            JsonDocument doc;
+            DeserializationError error = deserializeJson(doc, data, len);
+            if (error) {
+                printlnWrapper("error deserializing: " + String(error.c_str()));
+                request->send(500, "text/plain", "error deserializing: " + String(error.c_str()));
+            } else {
+                String path = doc["path"];
+                // printlnWrapper("filename: " + filename);
+                JsonDocument resDoc;
+                JsonArray resArray = resDoc.to<JsonArray>();
+
+                File dir = getOrCreateDirectory(path);
+                File entry = dir.openNextFile();
+                while(entry) {
+                    JsonObject fileEntry = resArray.createNestedObject();
+                    fileEntry["name"] = String(entry.name());
+                    fileEntry["type"] = entry.isDirectory() ? "folder" : "file";
+                    entry.close();
+                    entry = dir.openNextFile();
+                }
+                entry.close();
+                
+                AsyncResponseStream *response = request->beginResponseStream("application/json");
+                serializeJson(resDoc, *response);
+                request->send(response);
             }
         }
     );

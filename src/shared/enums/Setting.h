@@ -3,7 +3,7 @@
 #include "TypedEnum.h"
 #include "CanbusMessageType.h"
 
-#define SETTING_SIZE 4
+#define SETTING_SIZE 5
 
 class Setting : public TypedEnum {
     public:
@@ -12,6 +12,7 @@ class Setting : public TypedEnum {
         static const Setting RESTART;
         static const Setting SWC_PAIR;
         static const Setting ON_REVERSE_LOWER_MIRRORS;
+        // static const Setting* ON_REVERSE_LOWER_MIRRORS;
 
         static const TypedEnum* getValueById(uint8_t id) {
             for(uint8_t i = 0; i < getSize(); i++) {
@@ -42,8 +43,6 @@ class Setting : public TypedEnum {
     private:
         static const TypedEnum* values[];
         static uint8_t index;
-
-        
         
         Setting(uint8_t id, const char *name, const CanbusMessageType *type) : TypedEnum(id, name, type) {
             Setting::values[Setting::index] = this;
@@ -58,3 +57,4 @@ inline const Setting Setting::OTA_MODE = Setting(0x01, "OTA_MODE", &CanbusMessag
 inline const Setting Setting::RESTART = Setting(0x02, "RESTART", &CanbusMessageType::BOOL);
 inline const Setting Setting::SWC_PAIR = Setting(0x03, "SWC_PAIR", &CanbusMessageType::BOOL);
 inline const Setting Setting::ON_REVERSE_LOWER_MIRRORS = Setting(0x04, "ON_REVERSE_LOWER_MIRRORS", &CanbusMessageType::BOOL);
+// inline const Setting* Setting::ON_REVERSE_LOWER_MIRRORS = new Setting(0x04, "ON_REVERSE_LOWER_MIRRORS", &CanbusMessageType::BOOL);

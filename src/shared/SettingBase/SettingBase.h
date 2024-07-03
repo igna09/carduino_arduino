@@ -1,40 +1,35 @@
 #pragma once
 
 #include <Arduino.h>
-#include <EEPROM.h>
 #include <map>
 #include <functional>
-#include "CRC16.h"
-#include "CRC.h"
 
 #include "shared/SharedDefinitions.h"
 #include "shared/enums/Setting.h"
 #include "shared/Logger/Logger.h"
+#include "shared/FSBase/FSBase.h"
 
-#define CRC_ADDRESS 0
-#define CRC_SIZE 2
+#include <ArduinoJson.h>
 
 struct SettingInformation {
     const Setting *setting;
     ValueType *value;
     ValueType *defaultValue;
     std::function<void(SettingInformation*)> onChange;
-    uint8_t address;
     bool doBackup;
 };
 
 class SettingBase {
     private:
         Logger* _logger;
+        FSBase* _fsBase;
 
     public:
         std::map<uint8_t, SettingInformation*> *settings;
-        uint8_t nextAddress;    // next address is based on order of addSetting (so if I change order i have to reset values), TODO: base next address on order of setting id
-        uint8_t settingsMemorySize;
         bool settingsSetupDone;
         bool settingsLoaded;
 
-        SettingBase(Logger*);
+        SettingBase(Logger*, FSBase*);
 
         void addSetting(const Setting *setting, bool value, std::function<void(SettingInformation*)> onChange = nullptr, bool doBackup = false);
         void addSetting(const Setting *setting, int value, std::function<void(SettingInformation*)> onChange = nullptr, bool doBackup = false);
@@ -46,6 +41,5 @@ class SettingBase {
         void backupSettings();
         void restoreSettings();
         void settingsSetup();
-        uint16_t computeSettingsCrc(std::map<uint8_t, SettingInformation*> *settings);
-        void resetEepromSettings();
+        void resetSettings();
 };

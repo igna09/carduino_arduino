@@ -93,11 +93,11 @@ void Logger::logOnServer(String message) {
 }
 
 void Logger::logOnFile(String message) {
-    tm timeInfo;
-    getLocalTime(&timeInfo);
-    String localTime = String(timeInfo.tm_year) + "-" + String(timeInfo.tm_mon) + "-" + String(timeInfo.tm_yday) + " " + String(timeInfo.tm_hour) + ":" + String(timeInfo.tm_min) + ":" + String(timeInfo.tm_sec);
-    message = localTime + " " + message;
-    _fsBase->appendToFile("/node_logs.txt", message);
+    // tm timeInfo;
+    // getLocalTime(&timeInfo);
+    // String localTime = String(timeInfo.tm_year) + "-" + String(timeInfo.tm_mon) + "-" + String(timeInfo.tm_yday) + " " + String(timeInfo.tm_hour) + ":" + String(timeInfo.tm_min) + ":" + String(timeInfo.tm_sec);
+    // message = localTime + " " + message;
+    _fsBase->appendToFile("/logs.txt", message);
 }
 
 void Logger::printlnWrapper(const String &s) {

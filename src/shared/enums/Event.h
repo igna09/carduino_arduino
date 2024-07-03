@@ -3,7 +3,7 @@
 #include "TypedEnum.h"
 #include "CanbusMessageType.h"
 
-#define EVENT_SIZE 12
+#define EVENT_SIZE 14
 
 /**
  * these events send as payload sender id
