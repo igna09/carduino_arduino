@@ -100,16 +100,6 @@ void Logger::logOnFile(String message) {
     _fsBase->appendToFile("/logs.txt", message);
 }
 
-void Logger::printlnWrapper(const String &s) {
-    if(_logOnSerial) Serial.println(s);
-    if(_logOnServer) logOnServer(s + "\n");
-}
-
-void Logger::printlnWrapper(const char c[]) {
-    if(_logOnSerial) Serial.println(c);
-    if(_logOnServer) logOnServer(String(c) + "\n");
-}
-
 void Logger::printlnWrapper(const String &s, bool logToFile) {
     if(_logOnSerial) Serial.println(s);
     if(_logOnServer) logOnServer(s + "\n");

@@ -26,8 +26,6 @@ class Logger {
         void logOnServer(String message);
         void logOnFile(String message);
 
-        void printlnWrapper(const String &s, bool logOnFile);
-        void printlnWrapper(const char c[], bool logOnFile);
-        void printlnWrapper(const String &s);
-        void printlnWrapper(const char c[]);
+        void printlnWrapper(const String &s, bool logOnFile = false);
+        void printlnWrapper(const char c[], bool logOnFile = false);
 };
