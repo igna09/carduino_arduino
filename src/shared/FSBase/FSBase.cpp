@@ -1,33 +1,34 @@
 #include "FSBase.h"
 
-FSBase::FSBase(Logger* logger) {
-    _logger = logger;
+// FSBase::FSBase(Logger* logger) {
+FSBase::FSBase() {
+    // _logger = logger;
 
     #if defined(EXTERNAL_SD)
     _fs = &SD;
     if(!SD.begin(25)) {
-        _logger->printlnWrapper("SD Mount Failed");
+        // _logger->printlnWrapper("SD Mount Failed");
         return;
     } else{
-        _logger->printlnWrapper("SD Mount Done");
+        // _logger->printlnWrapper("SD Mount Done");
         this->_fsInitialized = true;
     }
     #else
         _fs = &LittleFS;
         #ifdef ESP8266
         if(!LittleFS.begin()){
-            _logger->printlnWrapper("LittleFS Mount Failed");
+            // _logger->printlnWrapper("LittleFS Mount Failed");
             return;
         } else{
-            _logger->printlnWrapper("LittleFS Mount Done");
+            // _logger->printlnWrapper("LittleFS Mount Done");
             this->_fsInitialized = true;
         }    
         #elif defined(ESP32)
         if(!LittleFS.begin(true)){
-            _logger->printlnWrapper("LittleFS Mount Failed");
+            // _logger->printlnWrapper("LittleFS Mount Failed");
             return;
         } else{
-            _logger->printlnWrapper("LittleFS Mount Done");
+            // _logger->printlnWrapper("LittleFS Mount Done");
             this->_fsInitialized = true;
         }    
         #endif

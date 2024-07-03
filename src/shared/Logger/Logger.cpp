@@ -1,7 +1,8 @@
 #include "Logger.h"
 
-Logger::Logger(bool logOnSerial) {
+Logger::Logger(FSBase* fsBase, bool logOnSerial) {
     this->_webSocket = nullptr;
+    this->_fsBase = fsBase;
     
     this->_logOnSerial = logOnSerial;
     this->_logOnServer = false;
@@ -91,6 +92,14 @@ void Logger::logOnServer(String message) {
     this->_webSocket->textAll(message);
 }
 
+void Logger::logOnFile(String message) {
+    tm timeInfo;
+    getLocalTime(&timeInfo);
+    String localTime = String(timeInfo.tm_year) + "-" + String(timeInfo.tm_mon) + "-" + String(timeInfo.tm_yday) + " " + String(timeInfo.tm_hour) + ":" + String(timeInfo.tm_min) + ":" + String(timeInfo.tm_sec);
+    message = localTime + " " + message;
+    _fsBase->appendToFile("/node_logs.txt", message);
+}
+
 void Logger::printlnWrapper(const String &s) {
     if(_logOnSerial) Serial.println(s);
     if(_logOnServer) logOnServer(s + "\n");
@@ -101,84 +110,14 @@ void Logger::printlnWrapper(const char c[]) {
     if(_logOnServer) logOnServer(String(c) + "\n");
 }
 
-void Logger::printlnWrapper(char c) {
+void Logger::printlnWrapper(const String &s, bool logToFile) {
+    if(_logOnSerial) Serial.println(s);
+    if(_logOnServer) logOnServer(s + "\n");
+    if(logToFile) logOnFile(s);
+}
+
+void Logger::printlnWrapper(const char c[], bool logToFile) {
     if(_logOnSerial) Serial.println(c);
-}
-
-void Logger::printlnWrapper(unsigned char b, int base) {
-    if(_logOnSerial) Serial.println(b, base);
-}
-
-void Logger::printlnWrapper(int num, int base) {
-    if(_logOnSerial) Serial.println(num, base);
-}
-
-void Logger::printlnWrapper(unsigned int num, int base) {
-    if(_logOnSerial) Serial.println(num, base);
-}
-
-void Logger::printlnWrapper(long num, int base) {
-    if(_logOnSerial) Serial.println(num, base);
-}
-
-void Logger::printlnWrapper(unsigned long num, int base) {
-    if(_logOnSerial) Serial.println(num, base);
-}
-
-void Logger::printlnWrapper(long long num, int base) {
-    if(_logOnSerial) Serial.println(num, base);
-}
-
-void Logger::printlnWrapper(unsigned long long num, int base) {
-    if(_logOnSerial) Serial.println(num, base);
-}
-
-void Logger::printlnWrapper(double num, int digits) {
-    if(_logOnSerial) Serial.println(num, digits);
-}
-
-void Logger::printWrapper(const String &s) {
-    if(_logOnSerial) Serial.print(s);
-    if(_logOnServer) logOnServer(s);
-}
-
-void Logger::printWrapper(const char c[]) {
-    if(_logOnSerial) Serial.print(c);
-    if(_logOnServer) logOnServer(String(c));
-}
-
-void Logger::printWrapper(char c) {
-    if(_logOnSerial) Serial.print(c);
-}
-
-void Logger::printWrapper(unsigned char b, int base) {
-    if(_logOnSerial) Serial.print(b, base);
-}
-
-void Logger::printWrapper(int num, int base) {
-    if(_logOnSerial) Serial.print(num, base);
-}
-
-void Logger::printWrapper(unsigned int num, int base) {
-    if(_logOnSerial) Serial.print(num, base);
-}
-
-void Logger::printWrapper(long num, int base) {
-    if(_logOnSerial) Serial.print(num, base);
-}
-
-void Logger::printWrapper(unsigned long num, int base) {
-    if(_logOnSerial) Serial.print(num, base);
-}
-
-void Logger::printWrapper(long long num, int base) {
-    if(_logOnSerial) Serial.print(num, base);
-}
-
-void Logger::printWrapper(unsigned long long num, int base) {
-    if(_logOnSerial) Serial.print(num, base);
-}
-
-void Logger::printWrapper(double num, int digits) {
-    if(_logOnSerial) Serial.print(num, digits);
+    if(_logOnServer) logOnServer(String(c) + "\n");
+    if(logToFile) logOnFile(String(c));
 }

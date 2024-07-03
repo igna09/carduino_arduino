@@ -6,7 +6,7 @@ void Executor::addExecutor(CarduinoNodeExecutorInterface* executor) {
 };
 
 void Executor::execute(CarduinoNode *node, CanbusMessage *message) {
-    if(node->isEnabled) {
+    if(node->isEnabled || (message->categoryId == Category::EVENT.id && (message->messageId == Event::ENABLE.id || message->messageId == Event::DISABLE.id))) {
         bool logged = false;
         for(uint8_t i = 0; i < this->size; i++) {
             // Serial.print("Executor::execute ");

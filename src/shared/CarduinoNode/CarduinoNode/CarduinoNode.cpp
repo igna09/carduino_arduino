@@ -1,6 +1,6 @@
 #include "CarduinoNode.h"
 
-CarduinoNode::CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssid, const char *password, bool enableI2c, bool logOnServer, bool logOnSerial) : Logger(logOnSerial), FSBase(this), SettingBase(this) {
+CarduinoNode::CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssid, const char *password, bool enableI2c, bool logOnServer, bool logOnSerial) : FSBase(), Logger(this, logOnSerial), SettingBase(this) {
     this->id = id;
     this->can = new MCP_CAN(cs);
     this->server = new AsyncWebServer(80);
@@ -200,6 +200,20 @@ void CarduinoNode::setupServerWebapp() {
         JsonDocument jsonDocument;
         jsonDocument["freeHeap"] = ESP.getFreeHeap();
         jsonDocument["ssid"] = WiFi.softAPSSID();
+
+        JsonDocument doc;
+        JsonArray array = doc.to<JsonArray>();
+
+        File root = _fs->open("/");
+        File entry = root.openNextFile();
+        while(entry) {
+            array.add(entry.name());
+            entry.close();
+            entry = root.openNextFile();
+        }
+        entry.close();
+        jsonDocument["available_files"] = array;
+
         serializeJson(jsonDocument, *response);
         request->send(response);
     });

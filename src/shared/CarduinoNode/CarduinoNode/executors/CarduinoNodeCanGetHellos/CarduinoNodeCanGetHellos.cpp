@@ -6,6 +6,8 @@ void CarduinoNodeCanGetHellos::execute(CarduinoNode *node, CanbusMessage *messag
     // EventMessage *eventMessage = new EventMessage(message);
     // delete eventMessage;
 
+    node->sendLog(10, true);
+
     EventMessage *helloMessage = new EventMessage(&Event::HELLO, node->id);
     node->sendCanbusMessage(helloMessage);
     delete helloMessage;

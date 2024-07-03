@@ -9,7 +9,7 @@ void CarduinoNodeCanPowerEvents::execute(CarduinoNode *node, CanbusMessage *mess
     node->sendLog(3, eventMessage->nodeId);
     node->sendLog(3, node->id);
     node->sendLog(3, eventMessage->event->id);
-    node->sendLog(3, false);
+    node->sendLog(30, true);
 
     if(eventMessage->getIntValue() == node->id || eventMessage->getIntValue() == ALL_NODES) {
         if(eventMessage->event->id == Event::ENABLE.id) {

@@ -8,17 +8,19 @@
 #include <LittleFS.h>
 #endif
 
-#include "shared/Logger/Logger.h"
+// #include "shared/Logger/Logger.h"
 
+// class Logger;
 class FSBase {
     private:
 
     public:
         FS* _fs;
         bool _fsInitialized;
-        Logger* _logger;
+        // Logger* _logger;
 
-        FSBase(Logger*);
+        // FSBase(Logger*);
+        FSBase();
 
         // File getFile(String path);
         bool remove(String path);

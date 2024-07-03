@@ -238,7 +238,6 @@ void CommunicationCarduinoNode::customGapCallback(esp_gap_ble_cb_event_t event, 
         case ESP_GAP_BLE_UPDATE_WHITELIST_COMPLETE_EVT: {
             
         } // ESP_GAP_BLE_UPDATE_WHITELIST_COMPLETE_EVT
-
     }
 }
 
