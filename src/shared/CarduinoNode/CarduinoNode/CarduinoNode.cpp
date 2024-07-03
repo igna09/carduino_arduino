@@ -64,7 +64,7 @@ CarduinoNode::CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssi
     this->usbExecutor = new Executor();
     this->usbExecutor->addExecutor(new CarduinoNodeSerialGetSettings());
     this->usbExecutor->addExecutor(new CarduinoNodeSerialWriteSetting());
-    this->usbExecutor->addExecutor(new CarduinoNodeEventTest());
+    this->usbExecutor->addExecutor(new CarduinoNodeEvent());
 
     this->scheduler = new Scheduler();
     this->scheduler->startNow();
@@ -204,10 +204,10 @@ void CarduinoNode::setupServerWebapp() {
         JsonDocument doc;
         JsonArray array = doc.to<JsonArray>();
 
-        File root = _fs->open("/");
+        File root = _fs->open("/", "r");
         File entry = root.openNextFile();
         while(entry) {
-            array.add(entry.name());
+            array.add(String(entry.name()));
             entry.close();
             entry = root.openNextFile();
         }
@@ -226,7 +226,7 @@ void CarduinoNode::setupServerWebapp() {
     });
 
     this->server->on(
-        "/download",
+        "/file",
         HTTP_POST,
         [&](AsyncWebServerRequest *request){
             // printlnWrapper("onRequest");
@@ -245,6 +245,29 @@ void CarduinoNode::setupServerWebapp() {
                 AsyncWebServerResponse *response = request->beginResponse(*_fs, "/" + filename, String(), true);
                 request->send(response);
                 printlnWrapper("downloaded " + filename);
+            }
+        }
+    );
+
+    this->server->on(
+        "/file",
+        HTTP_DELETE,
+        [&](AsyncWebServerRequest *request){
+            // printlnWrapper("onRequest");
+        },
+        NULL,
+        [&](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total){
+            // printlnWrapper("onBody");
+            JsonDocument doc;
+            DeserializationError error = deserializeJson(doc, data, len);
+            if (error) {
+                printlnWrapper("error deserializing: " + String(error.c_str()));
+                request->send(500, "text/plain", "error deserializing: " + String(error.c_str()));
+            } else {
+                String filename = doc["filename"];
+                _fs->remove(filename);
+                printlnWrapper("deleted " + filename);
+                request->send(200);
             }
         }
     );
