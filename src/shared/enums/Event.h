@@ -22,8 +22,8 @@ class Event : public TypedEnum {
         static const Event HEARTBEAT;
         static const Event LOCK_CAR;
         static const Event UNLOCK_CAR;
-        static const Event ENABLE_NEW_BLE_PAIRING;
-        static const Event DISABLE_NEW_BLE_PAIRING;
+        // static const Event ENABLE_NEW_BLE_PAIRING;
+        // static const Event DISABLE_NEW_BLE_PAIRING;
         static const Event TEST;
         static const Event RESET_WEBAPP;
         static const Event BLE_PAIRING_CODE;
@@ -79,8 +79,8 @@ inline const Event Event::GET_HELLOS = Event(0x07, "GET_HELLOS", &CanbusMessageT
 inline const Event Event::HEARTBEAT = Event(0x08, "HEARTBEAT", &CanbusMessageType::INT);
 inline const Event Event::LOCK_CAR = Event(0x09, "LOCK_CAR", &CanbusMessageType::INT);
 inline const Event Event::UNLOCK_CAR = Event(0x0A, "UNLOCK_CAR", &CanbusMessageType::INT);
-inline const Event Event::ENABLE_NEW_BLE_PAIRING = Event(0x0B, "ENABLE_NEW_BLE_PAIRING", &CanbusMessageType::INT);
-inline const Event Event::DISABLE_NEW_BLE_PAIRING = Event(0x0C, "DISABLE_NEW_BLE_PAIRING", &CanbusMessageType::INT);
-inline const Event Event::TEST = Event(0x0D, "TEST", &CanbusMessageType::INT);
-inline const Event Event::RESET_WEBAPP = Event(0x0E, "RESET_WEBAPP", &CanbusMessageType::INT);
-inline const Event Event::BLE_PAIRING_CODE = Event(0x0F, "BLE_PAIRING_CODE", &CanbusMessageType::INT);
+// inline const Event Event::ENABLE_NEW_BLE_PAIRING = Event(0x0B, "ENABLE_NEW_BLE_PAIRING", &CanbusMessageType::INT);
+// inline const Event Event::DISABLE_NEW_BLE_PAIRING = Event(0x0C, "DISABLE_NEW_BLE_PAIRING", &CanbusMessageType::INT);
+inline const Event Event::TEST = Event(0x0B, "TEST", &CanbusMessageType::INT);
+inline const Event Event::RESET_WEBAPP = Event(0x0C, "RESET_WEBAPP", &CanbusMessageType::INT);
+inline const Event Event::BLE_PAIRING_CODE = Event(0x0D, "BLE_PAIRING_CODE", &CanbusMessageType::INT);

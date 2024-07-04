@@ -1,6 +1,13 @@
 #include "CommunicationCarduinoNode.h"
 
 CommunicationCarduinoNode::CommunicationCarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssid, const char *password) : CarduinoNode(id, cs, interruptPin, ssid,  password, false, true, true) {
+    this->addSetting(&Setting::BLE_PAIRING, false, [&](SettingInformation *settingInformation){
+        if(settingInformation->value->boolValue) {
+            this->enableNewPairing();
+        } else {
+            this->disableNewPairing();
+        }
+    });
     this->restoreSettings();
 
     this->authenticatedBdAddress = nullptr;
