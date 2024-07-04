@@ -6,7 +6,7 @@ void Executor::addExecutor(CarduinoNodeExecutorInterface* executor) {
 };
 
 void Executor::execute(CarduinoNode *node, CanbusMessage *message) {
-    node->printlnWrapper("Executor::execute " + String(message->categoryId) + " " + String(message->messageId));
+    // node->printlnWrapper("Executor::execute " + String(message->categoryId) + " " + String(message->messageId));
     if(node->isEnabled || (message->categoryId == Category::EVENT.id && (message->messageId == Event::ENABLE.id || message->messageId == Event::DISABLE.id))) {
         bool logged = false;
         for(uint8_t i = 0; i < this->size; i++) {
@@ -38,10 +38,10 @@ void Executor::execute(CarduinoNode *node, CanbusMessage *message) {
                         Category *category = (Category*)Category::getValueById(message->categoryId);
                         if(category->createSpecializedCopyFunction != nullptr) {
                             CanbusMessage *specialized = category->createSpecializedCopyFunction(message);
-                            node->printlnWrapper("Executor::execute " + specialized->toSerialHumanString());
+                            node->printlnWrapper("Executor::execute received " + specialized->toSerialHumanString());
                             delete specialized;
                         } else {
-                            node->printlnWrapper("Executor::execute " + message->toSerialHumanString());
+                            node->printlnWrapper("Executor::execute received " + message->toSerialHumanString());
                         }
                     }
                 }

@@ -441,7 +441,6 @@ SplittedUsbMessage* CarduinoNode::splitReceivedUsbMessage(String message) {
 }
 
 void CarduinoNode::readCanMessageFromMcpBuffer() {
-    Serial.println("here");
     while (CAN_MSGAVAIL == can->checkReceive()) {
         CanMessageValues *canMessageValues = new CanMessageValues();
         can->readMsgBuf(&canMessageValues->id, &canMessageValues->len, canMessageValues->buf);

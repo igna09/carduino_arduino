@@ -4,7 +4,7 @@ CarduinoNodeCanEvent::CarduinoNodeCanEvent() : CarduinoNodeExecutorInterface(&Ca
 
 void CarduinoNodeCanEvent::execute(CarduinoNode *node, CanbusMessage *message) {
     EventMessage *eventMessage = new EventMessage(message);
-    node->printlnWrapper("CarduinoNodeCanEvent::execute");
+    // node->printlnWrapper("CarduinoNodeCanEvent::execute");
     // node->sendLog(3, eventMessage->getIntValue());
     // node->sendLog(3, eventMessage->nodeId);
     // node->sendLog(3, node->id);
