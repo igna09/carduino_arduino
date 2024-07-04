@@ -44,6 +44,7 @@ class CommunicationCarduinoNode : public CarduinoNode {
         void enableNewPairing();
         void disableNewPairing();
         bool disabledPairing;
+        void sendBLEPairingCode(int code);
 
         void test() override;
 

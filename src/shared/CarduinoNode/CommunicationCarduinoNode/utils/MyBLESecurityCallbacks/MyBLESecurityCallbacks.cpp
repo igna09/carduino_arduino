@@ -12,6 +12,7 @@ uint32_t MyBLESecurityCallbacks::onPassKeyRequest() {
 
 void MyBLESecurityCallbacks::onPassKeyNotify(uint32_t pass_key) {
     node->printlnWrapper("MyBLESecurityCallbacks:: The passkey Notify number: " + String(pass_key));
+    node->sendBLEPairingCode(pass_key);
 }
 
 bool MyBLESecurityCallbacks::onConfirmPIN(uint32_t pass_key) {

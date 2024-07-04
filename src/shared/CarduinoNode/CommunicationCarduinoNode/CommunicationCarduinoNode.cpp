@@ -33,9 +33,10 @@ CommunicationCarduinoNode::CommunicationCarduinoNode(uint8_t id, int cs, int int
     bleServer->getAdvertising()->start();
 
     pSecurity = new BLESecurity();
-    pSecurity->setStaticPIN(123456);
+    // pSecurity->setStaticPIN(123456);
+	pSecurity->setCapability(ESP_IO_CAP_OUT);
     pSecurity->setAuthenticationMode(ESP_LE_AUTH_REQ_SC_BOND);
-    // pSecurity->setKeySize(16); //the key size should be 7~16 bytes
+    pSecurity->setKeySize(16); //the key size should be 7~16 bytes
     pSecurity->setInitEncryptionKey(ESP_BLE_ENC_KEY_MASK | ESP_BLE_ID_KEY_MASK);
     pSecurity->setRespEncryptionKey(ESP_BLE_ENC_KEY_MASK | ESP_BLE_ID_KEY_MASK);
 
@@ -63,15 +64,15 @@ CommunicationCarduinoNode::CommunicationCarduinoNode(uint8_t id, int cs, int int
         esp_err_t rc = esp_ble_gap_read_rssi(*this->authenticatedBdAddress->getNative());
     }, this->scheduler, false);
 
-    this->disableNewPairing();
+    // this->disableNewPairing();
 
-    usbExecutor->addExecutor(new CommunicationCarduinoNodeEvents());
+    // usbExecutor->addExecutor(new CommunicationCarduinoNodeEvents());
 
     /**
      * TMP
      */
     otaStartup();
-    this->enable();
+    // this->enable();
 
     logToFile("setup done");
 };
@@ -257,19 +258,25 @@ void CommunicationCarduinoNode::logToFile(String message) {
 }
 
 void CommunicationCarduinoNode::enableNewPairing() {
-    // bleServer->getAdvertising()->setScanFilter(false,false);
-    // pSecurity->setAuthenticationMode(ESP_LE_AUTH_REQ_SC_BOND); // https://github.com/nkolban/esp32-snippets/issues/613#issuecomment-496400715
-    bleServer->getAdvertising()->start();
+    bleServer->getAdvertising()->setScanFilter(false,false);
+    pSecurity->setAuthenticationMode(ESP_LE_AUTH_REQ_SC_BOND); // https://github.com/nkolban/esp32-snippets/issues/613#issuecomment-496400715
+    // bleServer->getAdvertising()->start();
     disabledPairing = false;
 }
 
 void CommunicationCarduinoNode::disableNewPairing() {
-    // bleServer->getAdvertising()->setScanFilter(false,true);
-    // pSecurity->setAuthenticationMode(ESP_LE_AUTH_REQ_SC_ONLY); // https://github.com/nkolban/esp32-snippets/issues/613#issuecomment-496400715
-    bleServer->getAdvertising()->stop();
+    bleServer->getAdvertising()->setScanFilter(false,true);
+    pSecurity->setAuthenticationMode(ESP_LE_AUTH_REQ_SC_ONLY); // https://github.com/nkolban/esp32-snippets/issues/613#issuecomment-496400715
+    // bleServer->getAdvertising()->stop();
     disabledPairing = true;
 }
 
 void CommunicationCarduinoNode::test() {
     clearWhitelist();
+}
+
+void CommunicationCarduinoNode::sendBLEPairingCode(int code) {
+    EventMessage *eventMessage = new EventMessage(&Event::BLE_PAIRING_CODE, code);
+    this->sendCanbusMessage(eventMessage);
+    delete eventMessage;
 }
