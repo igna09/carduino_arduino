@@ -222,3 +222,7 @@ void DoorCarduinoNode::enableInterrupt() {
 		this->closeMirrors();
 	}
 }
+
+void DoorCarduinoNode::test() {
+	resetWebapp();
+}

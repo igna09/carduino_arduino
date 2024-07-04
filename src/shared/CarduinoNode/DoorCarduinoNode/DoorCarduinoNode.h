@@ -57,4 +57,6 @@ class DoorCarduinoNode : public CarduinoNode {
         void enableInterrupt() override;
 
         void voltageCallback();
+
+        void test() override;
 };

@@ -39,6 +39,7 @@ CarduinoNode::CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssi
 
     this->pinInformations = new std::map<uint8_t, PinInformation*>();
 
+    // TODO: move to restart setting to event and manage throw executer
     this->addSetting(&Setting::RESTART, false, [&](SettingInformation *settingInformation){
         if(settingInformation->value->boolValue) {
             this->delayTask(1000, [&](){
