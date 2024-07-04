@@ -20,3 +20,7 @@ void CarduinoNodeSerialWriteSetting::execute(CarduinoNode *node, CanbusMessage *
 
     delete settingMessage;
 };
+
+bool CarduinoNodeSerialWriteSetting::canExecute(CarduinoNode *node, CanbusMessage *message) {
+    return true;
+}

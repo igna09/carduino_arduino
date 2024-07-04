@@ -18,6 +18,7 @@
 #include "shared/CarduinoNode/MainCarduinoNode/executors/MainNodeCanEvent/MainNodeCanEvent.h"
 #include "shared/CarduinoNode/MainCarduinoNode/executors/HeartbeatExecutor/HeartbeatExecutor.h"
 #include "shared/CarduinoNode/MainCarduinoNode/executors/MainNodeCanLog/MainNodeCanLog.h"
+#include "shared/CarduinoNode/MainCarduinoNode/executors/MainCarduinoNodeSerialEvent/MainCarduinoNodeSerialEvent.h"
 #include "shared/CanbusMessage/LogMessage/LogMessage.h"
 #include <map>              // user must include to use std::map (see above comment)
 #include <PCF8574.h>

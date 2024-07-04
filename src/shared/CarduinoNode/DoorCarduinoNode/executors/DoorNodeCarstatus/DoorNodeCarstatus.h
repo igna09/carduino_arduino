@@ -14,4 +14,5 @@ class DoorNodeCarstatus : public CarduinoNodeExecutorInterface {
         DoorNodeCarstatus();
 
         void execute(CarduinoNode *node, CanbusMessage *message);
+        bool canExecute(CarduinoNode *node, CanbusMessage *message);
 };

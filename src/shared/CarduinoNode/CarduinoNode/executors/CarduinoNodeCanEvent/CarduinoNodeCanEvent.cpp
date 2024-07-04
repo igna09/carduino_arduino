@@ -5,11 +5,11 @@ CarduinoNodeCanEvent::CarduinoNodeCanEvent() : CarduinoNodeExecutorInterface(&Ca
 void CarduinoNodeCanEvent::execute(CarduinoNode *node, CanbusMessage *message) {
     EventMessage *eventMessage = new EventMessage(message);
     node->printlnWrapper("CarduinoNodeCanEvent::execute");
-    node->sendLog(3, eventMessage->getIntValue());
-    node->sendLog(3, eventMessage->nodeId);
-    node->sendLog(3, node->id);
-    node->sendLog(3, eventMessage->event->id);
-    node->sendLog(30, true);
+    // node->sendLog(3, eventMessage->getIntValue());
+    // node->sendLog(3, eventMessage->nodeId);
+    // node->sendLog(3, node->id);
+    // node->sendLog(3, eventMessage->event->id);
+    // node->sendLog(30, true);
 
     if(eventMessage->getIntValue() == node->id || eventMessage->getIntValue() == ALL_NODES) {
         if(eventMessage->event->id == Event::ENABLE.id) {
@@ -22,9 +22,24 @@ void CarduinoNodeCanEvent::execute(CarduinoNode *node, CanbusMessage *message) {
             node->disableInterrupt();
         } else if(eventMessage->event->id == Event::RESET_WEBAPP.id) {
             node->resetWebapp();
+        } else if(eventMessage->event->id == Event::RESTART.id) {
+            node->delayTask(1000, [&](){
+                node->restart();
+            });
+        } else if(eventMessage->event->id == Event::GET_HELLOS.id) {
+            EventMessage *helloMessage = new EventMessage(&Event::HELLO, node->id);
+            node->sendCanbusMessage(helloMessage);
+            delete helloMessage;
         }
 
     }
 
     delete eventMessage;
 };
+
+bool CarduinoNodeCanEvent::canExecute(CarduinoNode *node, CanbusMessage *message) {
+    return node->isEnabled || (
+        message->messageId == Event::GET_HELLOS.id
+        || message->messageId == Event::ENABLE.id
+    );
+}

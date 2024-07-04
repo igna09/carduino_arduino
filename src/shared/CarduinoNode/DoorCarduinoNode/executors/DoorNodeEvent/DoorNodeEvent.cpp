@@ -18,3 +18,7 @@ void DoorNodeEvent::execute(CarduinoNode *node, CanbusMessage *message) {
 
     delete eventMessage;
 };
+
+bool DoorNodeEvent::canExecute(CarduinoNode *node, CanbusMessage *message) {
+    return true;
+}

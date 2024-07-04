@@ -13,4 +13,5 @@ class CarstatusExecutor : public CarduinoNodeExecutorInterface {
     public:
         CarstatusExecutor();
         void execute(CarduinoNode *node, CanbusMessage *message);
+        bool canExecute(CarduinoNode *node, CanbusMessage *message);
 };

@@ -179,7 +179,7 @@ void DoorCarduinoNode::enable() {
 		this->printlnWrapper("delayed opening " + String(millis()));
 
 		this->mirrorSelectorOnClosed = this->readSelectorClosed();
-		sendLog(1, this->mirrorSelectorOnClosed);
+		// sendLog(1, this->mirrorSelectorOnClosed);
 		if(!this->mirrorSelectorOnClosed) {
 			this->openMirrors();
 		}

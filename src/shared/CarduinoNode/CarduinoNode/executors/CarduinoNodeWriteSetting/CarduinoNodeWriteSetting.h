@@ -14,4 +14,5 @@ class CarduinoNodeWriteSetting : public CarduinoNodeExecutorInterface {
         CarduinoNodeWriteSetting();
 
         void execute(CarduinoNode *node, CanbusMessage *message);
+        bool canExecute(CarduinoNode *node, CanbusMessage *message);
 };

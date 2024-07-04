@@ -12,3 +12,7 @@ void MediaControlExecutor::execute(CarduinoNode *node, CanbusMessage *message){
         ((MainCarduinoNode*)node)->executeSwcCommand(mediaControl);
     }
 };
+
+bool MediaControlExecutor::canExecute(CarduinoNode *node, CanbusMessage *message) {
+    return node->isEnabled;
+}

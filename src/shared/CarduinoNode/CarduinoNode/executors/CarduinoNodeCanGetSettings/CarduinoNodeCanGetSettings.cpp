@@ -9,7 +9,7 @@ void CarduinoNodeCanGetSettings::execute(CarduinoNode *node, CanbusMessage *mess
         /**
          * TODO: add a flag to check if i'm the main node?
         */
-        if(it->first != Setting::OTA_MODE.id && it->first != Setting::RESTART.id) { // these are managed from main node
+        if(it->first != Setting::OTA_MODE.id) { // this is managed from main node
             SettingInformation *settingInformation = it->second;
             Setting *setting = (Setting*) Setting::getValueById(it->first);
 
@@ -27,3 +27,7 @@ void CarduinoNodeCanGetSettings::execute(CarduinoNode *node, CanbusMessage *mess
         }
     }
 };
+
+bool CarduinoNodeCanGetSettings::canExecute(CarduinoNode *node, CanbusMessage *message) {
+    return true;
+}

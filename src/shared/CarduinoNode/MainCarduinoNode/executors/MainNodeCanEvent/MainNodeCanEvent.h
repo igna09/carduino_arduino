@@ -11,4 +11,5 @@ class MainNodeCanEvent : public CarduinoNodeExecutorInterface {
     public:
         MainNodeCanEvent();
         void execute(CarduinoNode *node, CanbusMessage *message);
+        bool canExecute(CarduinoNode *node, CanbusMessage *message);
 };

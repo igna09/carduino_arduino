@@ -10,3 +10,7 @@ void MainNodeCanLog::execute(CarduinoNode *node, CanbusMessage *message) {
 
     delete logMessage;
 };
+
+bool MainNodeCanLog::canExecute(CarduinoNode *node, CanbusMessage *message) {
+    return true;
+}

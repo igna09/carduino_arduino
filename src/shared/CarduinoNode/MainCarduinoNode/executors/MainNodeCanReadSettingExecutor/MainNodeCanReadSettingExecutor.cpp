@@ -9,3 +9,7 @@ void MainNodeCanReadSettingExecutor::execute(CarduinoNode *node, CanbusMessage *
     mainCarduinoNode->sendSerialMessage(settingMessage);
     delete settingMessage;
 };
+
+bool MainNodeCanReadSettingExecutor::canExecute(CarduinoNode *node, CanbusMessage *message) {
+    return true;
+}

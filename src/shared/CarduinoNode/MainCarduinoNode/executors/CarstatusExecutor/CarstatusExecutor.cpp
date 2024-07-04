@@ -12,3 +12,7 @@ void CarstatusExecutor::execute(CarduinoNode *node, CanbusMessage *message) {
 
     delete carstatusMessage;
 }
+
+bool CarstatusExecutor::canExecute(CarduinoNode *node, CanbusMessage *message) {
+    return node->isEnabled;
+}

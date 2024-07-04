@@ -16,3 +16,7 @@ void DoorNodeCarstatus::execute(CarduinoNode *node, CanbusMessage *message) {
     
     delete carstatusMessage;
 };
+
+bool DoorNodeCarstatus::canExecute(CarduinoNode *node, CanbusMessage *message) {
+    return node->isEnabled;
+}

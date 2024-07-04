@@ -16,3 +16,7 @@ void CommunicationCarduinoNodeEvents::execute(CarduinoNode *node, CanbusMessage 
 
     delete eventMessage;
 };
+
+bool CommunicationCarduinoNodeEvents::canExecute(CarduinoNode *node, CanbusMessage *message) {
+    return true;
+}

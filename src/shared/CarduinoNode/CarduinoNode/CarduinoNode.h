@@ -32,7 +32,6 @@
 #include "shared/CanbusMessage/EventMessage/EventMessage.h"
 #include "shared/CanbusMessage/LogMessage/LogMessage.h"
 #include "shared/CarduinoNode/CarduinoNode/executors/CarduinoNodeWriteSetting/CarduinoNodeWriteSetting.h"
-#include "shared/CarduinoNode/CarduinoNode/executors/CarduinoNodeCanGetHellos/CarduinoNodeCanGetHellos.h"
 #include "shared/CarduinoNode/CarduinoNode/executors/CarduinoNodeCanEvent/CarduinoNodeCanEvent.h"
 #include "shared/CarduinoNode/CarduinoNode/executors/CarduinoNodeCanGetSettings/CarduinoNodeCanGetSettings.h"
 #include "shared/CarduinoNode/CarduinoNode/executors/CarduinoNodeSerialGetSettings/CarduinoNodeSerialGetSettings.h"

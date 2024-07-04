@@ -11,4 +11,5 @@ class AllMessageExecutor : public CarduinoNodeExecutorInterface {
     public:
         AllMessageExecutor();
         void execute(CarduinoNode *node, CanbusMessage *message);
+        bool canExecute(CarduinoNode *node, CanbusMessage *message);
 };

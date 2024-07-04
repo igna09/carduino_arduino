@@ -20,3 +20,7 @@ void HeartbeatExecutor::execute(CarduinoNode *node, CanbusMessage *message) {
 
     delete eventMessage;
 };
+
+bool HeartbeatExecutor::canExecute(CarduinoNode *node, CanbusMessage *message) {
+    return node->isEnabled;
+}

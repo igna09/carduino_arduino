@@ -10,15 +10,16 @@ void CarduinoNodeSerialGetSettings::execute(CarduinoNode *node, CanbusMessage *m
     delete otaModeSettingMessage;
 
 
-    SettingMessage *restartSettingMessage = new SettingMessage(&Setting::RESTART, true, node->getSettingValue(&Setting::RESTART)->value->boolValue);
-    node->sendSerialMessage(restartSettingMessage);
-    delete restartSettingMessage;
+    // SettingMessage *restartSettingMessage = new SettingMessage(&Setting::RESTART, true, node->getSettingValue(&Setting::RESTART)->value->boolValue);
+    // node->sendSerialMessage(restartSettingMessage);
+    // delete restartSettingMessage;
+    
     /**
      * THIS LOGIC HAS TO BE REPLICATED HERE BECAUSE CarduinoNodeCanGetSettings WILL BE CALLED ONLY ON CANBUS MESSAGES (HERE WE ARE ON SERIAL)
     */
     std::map<uint8_t, SettingInformation*>::iterator it;
     for (it = node->settings->begin(); it != node->settings->end(); it++) {
-        if(it->first != Setting::OTA_MODE.id && it->first != Setting::RESTART.id) { // these are managed from main node
+        if(it->first != Setting::OTA_MODE.id) { // these are managed from main node
             SettingInformation *settingInformation = it->second;
             Setting *setting = (Setting*) Setting::getValueById(it->first);
 
@@ -36,3 +37,7 @@ void CarduinoNodeSerialGetSettings::execute(CarduinoNode *node, CanbusMessage *m
         }
     }
 };
+
+bool CarduinoNodeSerialGetSettings::canExecute(CarduinoNode *node, CanbusMessage *message) {
+    return true;
+}

@@ -38,15 +38,7 @@ CarduinoNode::CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssi
     attachInterrupt(digitalPinToInterrupt(interruptPin), std::bind(&CarduinoNode::readCanMessageFromMcpBuffer, this), FALLING);
 
     this->pinInformations = new std::map<uint8_t, PinInformation*>();
-
-    // TODO: move to restart setting to event and manage throw executer
-    this->addSetting(&Setting::RESTART, false, [&](SettingInformation *settingInformation){
-        if(settingInformation->value->boolValue) {
-            this->delayTask(1000, [&](){
-                this->restart();
-            });
-        }
-    });
+    
     this->addSetting(&Setting::OTA_MODE, false, [&](SettingInformation *settingInformation){
         if(settingInformation->value->boolValue) {
             this->otaStartup();
@@ -58,7 +50,6 @@ CarduinoNode::CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssi
     
     this->canExecutor = new Executor();
     this->canExecutor->addExecutor(new CarduinoNodeWriteSetting());
-    this->canExecutor->addExecutor(new CarduinoNodeCanGetHellos());
     this->canExecutor->addExecutor(new CarduinoNodeCanEvent());
     this->canExecutor->addExecutor(new CarduinoNodeCanGetSettings());
 
@@ -450,6 +441,7 @@ SplittedUsbMessage* CarduinoNode::splitReceivedUsbMessage(String message) {
 }
 
 void CarduinoNode::readCanMessageFromMcpBuffer() {
+    Serial.println("here");
     while (CAN_MSGAVAIL == can->checkReceive()) {
         CanMessageValues *canMessageValues = new CanMessageValues();
         can->readMsgBuf(&canMessageValues->id, &canMessageValues->len, canMessageValues->buf);
@@ -601,7 +593,7 @@ void CarduinoNode::sendEvent(const Event *event, int nodeId) {
 void CarduinoNode::enable() {
     this->printlnWrapper("CarduinoNode::enable");
 	
-	sendLog(0, true);
+	// sendLog(0, true);
 
     this->isEnabled = true;
 }
@@ -609,7 +601,7 @@ void CarduinoNode::enable() {
 void CarduinoNode::disable() {
     this->printlnWrapper("CarduinoNode::disable");
 	
-	sendLog(20, true);
+	// sendLog(20, true);
 
     this->isEnabled = false;
 }

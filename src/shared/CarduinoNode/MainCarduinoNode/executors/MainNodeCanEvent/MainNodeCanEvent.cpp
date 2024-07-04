@@ -8,8 +8,8 @@ void MainNodeCanEvent::execute(CarduinoNode *node, CanbusMessage *message) {
     
     if(eventMessage->event->id == Event::HELLO.id) {
         NodeInformation *nodeInformation = mainCarduinoNode->createOrGetNodeInformation(eventMessage->nodeId);
-        mainCarduinoNode->sendLog(1, eventMessage->nodeId);
-        mainCarduinoNode->sendLog(2, nodeInformation->id);
+        // mainCarduinoNode->sendLog(1, eventMessage->nodeId);
+        // mainCarduinoNode->sendLog(2, nodeInformation->id);
 
         nodeInformation->lastTimeReceivedHeartBeat = millis();
         nodeInformation->lastCompletedEvent = nullptr;
@@ -27,3 +27,7 @@ void MainNodeCanEvent::execute(CarduinoNode *node, CanbusMessage *message) {
 
     delete eventMessage;
 };
+
+bool MainNodeCanEvent::canExecute(CarduinoNode *node, CanbusMessage *message) {
+    return true;
+}

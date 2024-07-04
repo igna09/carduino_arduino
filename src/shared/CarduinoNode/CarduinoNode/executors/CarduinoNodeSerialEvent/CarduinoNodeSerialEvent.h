@@ -11,4 +11,5 @@ class CarduinoNodeSerialEvent : public CarduinoNodeExecutorInterface {
     public:
         CarduinoNodeSerialEvent();
         void execute(CarduinoNode *node, CanbusMessage *message);
+        bool canExecute(CarduinoNode *node, CanbusMessage *message);
 };

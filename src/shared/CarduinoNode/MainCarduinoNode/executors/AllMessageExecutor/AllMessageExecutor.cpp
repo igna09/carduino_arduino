@@ -12,3 +12,7 @@ void AllMessageExecutor::execute(CarduinoNode *node, CanbusMessage *message) {
     }
     // Serial.println();
 };
+
+bool AllMessageExecutor::canExecute(CarduinoNode *node, CanbusMessage *message) {
+    return true;
+}

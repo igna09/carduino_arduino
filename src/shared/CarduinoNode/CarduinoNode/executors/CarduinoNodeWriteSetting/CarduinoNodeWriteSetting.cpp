@@ -15,3 +15,7 @@ void CarduinoNodeWriteSetting::execute(CarduinoNode *node, CanbusMessage *messag
 
     delete settingMessage;
 };
+
+bool CarduinoNodeWriteSetting::canExecute(CarduinoNode *node, CanbusMessage *message) {
+    return true;
+}

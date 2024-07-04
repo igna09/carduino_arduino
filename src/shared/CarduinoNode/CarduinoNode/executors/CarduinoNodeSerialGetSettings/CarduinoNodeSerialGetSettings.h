@@ -12,4 +12,5 @@ class CarduinoNodeSerialGetSettings : public CarduinoNodeExecutorInterface {
     public:
         CarduinoNodeSerialGetSettings();
         void execute(CarduinoNode *node, CanbusMessage *message);
+        bool canExecute(CarduinoNode *node, CanbusMessage *message);
 };
