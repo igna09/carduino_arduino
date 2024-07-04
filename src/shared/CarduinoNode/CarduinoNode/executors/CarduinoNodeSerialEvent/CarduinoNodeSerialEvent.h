@@ -7,8 +7,8 @@
 #include "shared/enums/Category.h"
 #include "shared/CanbusMessage/EventMessage/EventMessage.h"
 
-class CarduinoNodeEvent : public CarduinoNodeExecutorInterface {
+class CarduinoNodeSerialEvent : public CarduinoNodeExecutorInterface {
     public:
-        CarduinoNodeEvent();
+        CarduinoNodeSerialEvent();
         void execute(CarduinoNode *node, CanbusMessage *message);
 };

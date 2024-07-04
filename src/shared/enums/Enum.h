@@ -2,8 +2,6 @@
 
 #include <Arduino.h>
 
-#define ENUM_MAX_SIZE 15
-
 class Enum {
     public:
         const char *name;

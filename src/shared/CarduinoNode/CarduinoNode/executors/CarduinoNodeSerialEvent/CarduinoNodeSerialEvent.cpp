@@ -1,8 +1,8 @@
-#include "CarduinoNodeEvent.h"
+#include "CarduinoNodeSerialEvent.h"
 
-CarduinoNodeEvent::CarduinoNodeEvent() : CarduinoNodeExecutorInterface(&Category::EVENT) {};
+CarduinoNodeSerialEvent::CarduinoNodeSerialEvent() : CarduinoNodeExecutorInterface(&Category::EVENT) {};
 
-void CarduinoNodeEvent::execute(CarduinoNode *node, CanbusMessage *message) {
+void CarduinoNodeSerialEvent::execute(CarduinoNode *node, CanbusMessage *message) {
     Serial.println(message->messageId);
     if(message->messageId == Event::TEST.id) {
         node->test();

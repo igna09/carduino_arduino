@@ -3,7 +3,7 @@
 #include "TypedEnum.h"
 #include "CanbusMessageType.h"
 
-#define EVENT_SIZE 14
+#define EVENT_SIZE 16
 
 /**
  * these events send as payload sender id
@@ -25,6 +25,8 @@ class Event : public TypedEnum {
         static const Event ENABLE_NEW_BLE_PAIRING;
         static const Event DISABLE_NEW_BLE_PAIRING;
         static const Event TEST;
+        static const Event RESET_WEBAPP;
+        static const Event BLE_PAIRING_CODE;
 
         static const TypedEnum* getValueById(uint8_t id) {
             for(uint8_t i = 0; i < getSize(); i++) {
@@ -80,3 +82,5 @@ inline const Event Event::UNLOCK_CAR = Event(0x0A, "UNLOCK_CAR", &CanbusMessageT
 inline const Event Event::ENABLE_NEW_BLE_PAIRING = Event(0x0B, "ENABLE_NEW_BLE_PAIRING", &CanbusMessageType::INT);
 inline const Event Event::DISABLE_NEW_BLE_PAIRING = Event(0x0C, "DISABLE_NEW_BLE_PAIRING", &CanbusMessageType::INT);
 inline const Event Event::TEST = Event(0x0D, "TEST", &CanbusMessageType::INT);
+inline const Event Event::RESET_WEBAPP = Event(0x0E, "RESET_WEBAPP", &CanbusMessageType::INT);
+inline const Event Event::BLE_PAIRING_CODE = Event(0x0F, "BLE_PAIRING_CODE", &CanbusMessageType::INT);

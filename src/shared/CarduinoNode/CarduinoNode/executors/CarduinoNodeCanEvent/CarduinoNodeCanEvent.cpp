@@ -1,10 +1,10 @@
-#include "CarduinoNodeCanPowerEvents.h"
+#include "CarduinoNodeCanEvent.h"
 
-CarduinoNodeCanPowerEvents::CarduinoNodeCanPowerEvents() : CarduinoNodeExecutorInterface(&Category::EVENT) {};
+CarduinoNodeCanEvent::CarduinoNodeCanEvent() : CarduinoNodeExecutorInterface(&Category::EVENT) {};
 
-void CarduinoNodeCanPowerEvents::execute(CarduinoNode *node, CanbusMessage *message) {
+void CarduinoNodeCanEvent::execute(CarduinoNode *node, CanbusMessage *message) {
     EventMessage *eventMessage = new EventMessage(message);
-    node->printlnWrapper("CarduinoNodeCanPowerEvents::execute");
+    node->printlnWrapper("CarduinoNodeCanEvent::execute");
     node->sendLog(3, eventMessage->getIntValue());
     node->sendLog(3, eventMessage->nodeId);
     node->sendLog(3, node->id);
@@ -20,7 +20,10 @@ void CarduinoNodeCanPowerEvents::execute(CarduinoNode *node, CanbusMessage *mess
             node->enableInterrupt();
         } else if(eventMessage->event->id == Event::DISABLE_INTERRUPT.id) {
             node->disableInterrupt();
+        } else if(eventMessage->event->id == Event::RESET_WEBAPP.id) {
+            node->resetWebapp();
         }
+
     }
 
     delete eventMessage;

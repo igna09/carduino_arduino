@@ -33,11 +33,11 @@
 #include "shared/CanbusMessage/LogMessage/LogMessage.h"
 #include "shared/CarduinoNode/CarduinoNode/executors/CarduinoNodeWriteSetting/CarduinoNodeWriteSetting.h"
 #include "shared/CarduinoNode/CarduinoNode/executors/CarduinoNodeCanGetHellos/CarduinoNodeCanGetHellos.h"
-#include "shared/CarduinoNode/CarduinoNode/executors/CarduinoNodeCanPowerEvents/CarduinoNodeCanPowerEvents.h"
+#include "shared/CarduinoNode/CarduinoNode/executors/CarduinoNodeCanEvent/CarduinoNodeCanEvent.h"
 #include "shared/CarduinoNode/CarduinoNode/executors/CarduinoNodeCanGetSettings/CarduinoNodeCanGetSettings.h"
 #include "shared/CarduinoNode/CarduinoNode/executors/CarduinoNodeSerialGetSettings/CarduinoNodeSerialGetSettings.h"
 #include "shared/CarduinoNode/CarduinoNode/executors/CarduinoNodeSerialWriteSetting/CarduinoNodeSerialWriteSetting.h"
-#include "shared/CarduinoNode/CarduinoNode/executors/CarduinoNodeEvent/CarduinoNodeEvent.h"
+#include "shared/CarduinoNode/CarduinoNode/executors/CarduinoNodeSerialEvent/CarduinoNodeSerialEvent.h"
 // #include "shared/executors/Executor.h"
 
 /**
@@ -157,6 +157,7 @@ class CarduinoNode : public Logger, public FSBase, public SettingBase {
         void sendSerialMessage(CanbusMessage *message);
         SplittedUsbMessage* splitReceivedUsbMessage(String message);
         void handleReceivedSerialMessage(String message);
+        void resetWebapp();
 
         static uint16_t generateId(const Category category, const Enum messageEnum);
         static uint16_t generateId(const Category category, uint8_t messageId);

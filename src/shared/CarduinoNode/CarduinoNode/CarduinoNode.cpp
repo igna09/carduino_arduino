@@ -58,13 +58,13 @@ CarduinoNode::CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssi
     this->canExecutor = new Executor();
     this->canExecutor->addExecutor(new CarduinoNodeWriteSetting());
     this->canExecutor->addExecutor(new CarduinoNodeCanGetHellos());
-    this->canExecutor->addExecutor(new CarduinoNodeCanPowerEvents());
+    this->canExecutor->addExecutor(new CarduinoNodeCanEvent());
     this->canExecutor->addExecutor(new CarduinoNodeCanGetSettings());
 
     this->usbExecutor = new Executor();
     this->usbExecutor->addExecutor(new CarduinoNodeSerialGetSettings());
     this->usbExecutor->addExecutor(new CarduinoNodeSerialWriteSetting());
-    this->usbExecutor->addExecutor(new CarduinoNodeEvent());
+    this->usbExecutor->addExecutor(new CarduinoNodeSerialEvent());
 
     this->scheduler = new Scheduler();
     this->scheduler->startNow();
@@ -701,3 +701,17 @@ void CarduinoNode::sendSerialMessage(CanbusMessage *message) {
 }
 
 void CarduinoNode::test() {}
+
+void CarduinoNode::resetWebapp() {
+    printlnWrapper("CarduinoNode::resetWebapp");
+    
+    remove("/main.js.gz");
+    remove("/polyfills.js.gz");
+    remove("/index.html.gz");
+    remove("/styles.css.gz");
+    remove("/favicon.ico.gz");
+
+    // remove("/settings.json");
+
+    restart();
+}
