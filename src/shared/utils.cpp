@@ -76,7 +76,6 @@ void resetArray(uint8_t *a, int len) {
   }
 }
 
-//TODO: test these functions
 int convertByteArrayToInt(uint8_t bytes[], int size) {
     resetArray(integerByteConverter.array, 4);
     for(int i=0; i < size; i++){

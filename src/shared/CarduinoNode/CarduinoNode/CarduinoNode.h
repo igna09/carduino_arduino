@@ -123,10 +123,6 @@ class CarduinoNode : public Logger, public FSBase, public SettingBase {
         Executor *usbExecutor;
 
         CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssid, const char *password, bool enableI2c = false, bool logOnServer = false, bool logOnSerial = false);
-        
-        /**
-         * TODO: manage saving of settings in eeprom
-        */
 
         void loop();
         void manageReceivedCanbusMessage(CanbusMessage *message);
