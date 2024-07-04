@@ -15,6 +15,8 @@ void MainNodeCanEvent::execute(CarduinoNode *node, CanbusMessage *message) {
         nodeInformation->lastCompletedEvent = nullptr;
 
         node->sendEvent(&Event::ENABLE, eventMessage->nodeId);
+    } else if(eventMessage->event->id == Event::BLE_PAIRING_CODE.id) {
+        mainCarduinoNode->sendSerialMessage(eventMessage);
     }
 
     NodeInformation *nodeInformation = mainCarduinoNode->getNodeInformation(eventMessage->nodeId);

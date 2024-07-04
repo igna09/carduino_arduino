@@ -2,6 +2,7 @@
 
 DoorCarduinoNode::DoorCarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssid, const char *password) : CarduinoNode(id, cs, interruptPin, ssid,  password, true, true, true) {
 	printlnWrapper("DoorCarduinoNode::DoorCarduinoNode start", true);
+	
 	this->addSetting(&Setting::AUTO_CLOSE_REARVIEW_MIRRORS, true, nullptr, true);
     this->addSetting(&Setting::ON_REVERSE_LOWER_MIRRORS, true, nullptr, true);
 	this->restoreSettings();
