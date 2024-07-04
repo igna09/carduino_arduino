@@ -9,8 +9,8 @@ class Setting : public TypedEnum {
     public:
         static const Setting AUTO_CLOSE_REARVIEW_MIRRORS;
         static const Setting OTA_MODE;
-        static const Setting RESTART;
-        static const Setting SWC_PAIR;
+        static const Setting RESTART; //TODO: move to events
+        static const Setting SWC_PAIR; //TODO: move to events
         static const Setting ON_REVERSE_LOWER_MIRRORS;
         // static const Setting* ON_REVERSE_LOWER_MIRRORS;
 
@@ -54,7 +54,7 @@ inline const TypedEnum* Setting::values [SETTING_SIZE] = { 0 };
 inline uint8_t Setting::index = 0;
 inline const Setting Setting::AUTO_CLOSE_REARVIEW_MIRRORS = Setting(0x00, "AUTO_CLOSE_REARVIEW_MIRRORS", &CanbusMessageType::BOOL);
 inline const Setting Setting::OTA_MODE = Setting(0x01, "OTA_MODE", &CanbusMessageType::BOOL);
-inline const Setting Setting::RESTART = Setting(0x02, "RESTART", &CanbusMessageType::BOOL);
-inline const Setting Setting::SWC_PAIR = Setting(0x03, "SWC_PAIR", &CanbusMessageType::BOOL);
+inline const Setting Setting::RESTART = Setting(0x02, "RESTART", &CanbusMessageType::BOOL); //TODO: move to events
+inline const Setting Setting::SWC_PAIR = Setting(0x03, "SWC_PAIR", &CanbusMessageType::BOOL); //TODO: move to events
 inline const Setting Setting::ON_REVERSE_LOWER_MIRRORS = Setting(0x04, "ON_REVERSE_LOWER_MIRRORS", &CanbusMessageType::BOOL);
 // inline const Setting* Setting::ON_REVERSE_LOWER_MIRRORS = new Setting(0x04, "ON_REVERSE_LOWER_MIRRORS", &CanbusMessageType::BOOL);
