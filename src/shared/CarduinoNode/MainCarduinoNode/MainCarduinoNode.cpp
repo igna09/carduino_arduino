@@ -1,6 +1,7 @@
 #include "MainCarduinoNode.h"
 
 MainCarduinoNode::MainCarduinoNode(uint8_t id, int cs, int interruptPin, char *ssid, char *password) : CarduinoNode(id, cs, interruptPin, ssid, password, true, true, false) {
+    // TODO: move to swc pair setting to event and manage in executor
     this->addSetting(&Setting::SWC_PAIR, false, [&](SettingInformation *settingInformation){
         if(settingInformation->value->boolValue) {
             this->startSwcPairing();
