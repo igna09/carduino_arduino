@@ -354,11 +354,11 @@ void CarduinoNode::setupServerFallback() {
 void CarduinoNode::loop() {
     this->scheduler->execute();
 
-    if(CAN_MSGAVAIL == can->checkReceive()) {
-        readCanMessageFromMcpBuffer();
-    } else {
+    // if(CAN_MSGAVAIL == can->checkReceive()) {
+    //     readCanMessageFromMcpBuffer();
+    // } else {
         handleRxBuffer();
-    }
+    // }
 
     /**
      * manage received messages over USB
