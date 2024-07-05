@@ -8,12 +8,12 @@
 #include "shared/enums/MediaControl.h"
 #include "shared/CanbusMessage/MediaControlMessage/MediaControlMessage.h"
 #include "shared/SharedDefinitions.h"
-#include "utils/MyBLESecurityCallbacks/MyBLESecurityCallbacks.h"
 #include "utils/MyBLEServerCallbacks/MyBLEServerCallbacks.h"
 #include "utils/GAPCallback/GAPCallback.h"
 #include "shared/CarduinoNode/CommunicationCarduinoNode/executors/CommunicationCarduinoNodeEvents/CommunicationCarduinoNodeEvents.h"
 
-#include <BLEDevice.h>            // sets up BLE device constructs
+#define CONFIG_NIMBLE_CPP_ENABLE_GAP_EVENT_CODE_TEXT
+#include <NimBLEDevice.h>
 
 // class MyAdvertisedDeviceCallbacks: public BLEAdvertisedDeviceCallbacks 
 // {
@@ -33,10 +33,9 @@ class CommunicationCarduinoNode : public CarduinoNode {
     public:
         CommunicationCarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssid, const char *password);
         void loop();
-        void clientAuthenticated();
+        void clientAuthenticated(ble_gap_conn_desc*);
         void clearWhitelist();
-        void customGapCallback(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param_t *param);
-        void logToFile(String);
+        int customGapCallback(ble_gap_event *event, void *arg);
         bool authenticated;
         bool connected;
         BLEAddress* authenticatedBdAddress;
@@ -45,11 +44,12 @@ class CommunicationCarduinoNode : public CarduinoNode {
         void disableNewPairing();
         bool disabledPairing;
         void sendBLEPairingCode(int code);
+        void listWhitelist();
 
         void test() override;
 
     private:
-        BLEServer* bleServer;
-        BLEDevice* bleDevice;
-        BLESecurity *pSecurity;
+        NimBLEServer* bleServer;
+        NimBLEDevice* bleDevice;
+        NimBLESecurity *pSecurity;
 };
