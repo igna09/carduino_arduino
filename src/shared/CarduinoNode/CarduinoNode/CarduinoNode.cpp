@@ -270,6 +270,7 @@ void CarduinoNode::setupServerWebapp() {
                     JsonObject fileEntry = resArray.createNestedObject();
                     fileEntry["name"] = String(entry.name());
                     fileEntry["type"] = entry.isDirectory() ? "folder" : "file";
+                    fileEntry["size"] = entry.size();
                     entry.close();
                     entry = dir.openNextFile();
                 }
