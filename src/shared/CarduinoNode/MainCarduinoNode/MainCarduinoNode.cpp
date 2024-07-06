@@ -1,6 +1,6 @@
 #include "MainCarduinoNode.h"
 
-MainCarduinoNode::MainCarduinoNode(uint8_t id, int cs, int interruptPin, char *ssid, char *password) : CarduinoNode(id, cs, interruptPin, ssid, password, true, true, true) {
+MainCarduinoNode::MainCarduinoNode(uint8_t id, int cs, int interruptPin, char *ssid, char *password) : CarduinoNode(id, cs, interruptPin, ssid, password, true, true, false) {
     this->restoreSettings();
     
     this->aht = new Adafruit_AHTX0();
