@@ -16,22 +16,19 @@ CommunicationCarduinoNode::CommunicationCarduinoNode(uint8_t id, int cs, int int
      * NimBLE
      */
     NimBLEDevice::init("ESP32");
+    restoreWhitelist();
     
     bleServer = NimBLEDevice::createServer();
     bleServer->setCallbacks(new MyBLEServerCallbacks(this));
 
-    NimBLEDevice::setSecurityAuth(true, true, true);
+    NimBLEDevice::setSecurityAuth(true, false, true);
+    NimBLEDevice::setSecurityIOCap(0); //ESP_IO_CAP_OUT
+    NimBLEDevice::setSecurityInitKey(1 << 0 | 1 << 1); //ESP_BLE_ENC_KEY_MASK | ESP_BLE_ID_KEY_MASK
+    NimBLEDevice::setSecurityRespKey(1 << 0 | 1 << 1); //ESP_BLE_ENC_KEY_MASK | ESP_BLE_ID_KEY_MASK
+    // pSecurity->setKeySize(16); //the key size should be 7~16 bytes
 
-    // GAPCallback<int(ble_gap_event *event, void *arg)>::func = std::bind(&CommunicationCarduinoNode::customGapCallback, this, std::placeholders::_1, std::placeholders::_2);
-    // NimBLEDevice::setCustomGapHandler(static_cast<gap_event_handler>(GAPCallback<int(ble_gap_event *event, void *arg)>::callback));
-
-    pSecurity = new NimBLESecurity();
-    // pSecurity->setStaticPIN(123456);
-	pSecurity->setCapability(ESP_IO_CAP_OUT);
-    pSecurity->setAuthenticationMode(ESP_LE_AUTH_REQ_SC_BOND);
-    pSecurity->setKeySize(16); //the key size should be 7~16 bytes
-    pSecurity->setInitEncryptionKey(ESP_BLE_ENC_KEY_MASK | ESP_BLE_ID_KEY_MASK);
-    pSecurity->setRespEncryptionKey(ESP_BLE_ENC_KEY_MASK | ESP_BLE_ID_KEY_MASK);
+    GAPCallback<int(ble_gap_event *event, void *arg)>::func = std::bind(&CommunicationCarduinoNode::customGapCallback, this, std::placeholders::_1, std::placeholders::_2);
+    NimBLEDevice::setCustomGapHandler(static_cast<gap_event_handler>(GAPCallback<int(ble_gap_event *event, void *arg)>::callback));
     
     NimBLEAdvertising *pAdvertising = NimBLEDevice::getAdvertising();
     pAdvertising->start(); 
@@ -39,8 +36,8 @@ CommunicationCarduinoNode::CommunicationCarduinoNode(uint8_t id, int cs, int int
     printlnWrapper("Waiting a client connection to notify...");
 
     this->rssiTask = new Task(1000, TASK_FOREVER, [&](){
-        // esp_err_t rc = esp_ble_gap_read_rssi(*this->authenticatedBdAddress->getNative());
-
+        // esp_err_t rc = esp_ble_gap_read_rssi((uint8_t*)this->authenticatedBdAddress->getNative());
+        // ble_gap_conn_rssi(this->authenticatedBdAddress->, int8_t *out_rssi);
     }, this->scheduler, true);
 
     // this->disableNewPairing();
@@ -60,24 +57,32 @@ void CommunicationCarduinoNode::loop() {
     CarduinoNode::loop();
 }
 
-void CommunicationCarduinoNode::clientAuthenticated(ble_gap_conn_desc* desc) {
+void CommunicationCarduinoNode::clientAuthenticated(NimBLEConnInfo info) {
     printlnWrapper("CommunicationCarduinoNode::clientAuthenticated");
 
-    NimBLEConnInfo info = bleServer->getPeerIDInfo(desc->conn_handle);
+    if(!info.getIdAddress().isRpa() && info.isBonded()){
+        if(!NimBLEDevice::onWhiteList(info.getIdAddress())) {
+            bleServer->disconnect(info.getConnHandle());
+            NimBLEDevice::deleteBond(info.getIdAddress());
+            printlnWrapper("CommunicationCarduinoNode::clientAuthenticated not on whitelist, cannot connect");
+        } else {
+            String message = "authenticated [bd_addr: ";
+            message += info.getAddress().toString().c_str();
+            message += ", success: ";
+            message += info.isAuthenticated();
+            message += ", bonded: ";
+            message += info.isBonded();
+            message += ", encrypted: ";
+            message += info.isEncrypted();
+            message += "]";
+            printlnWrapper(message, true);
 
-    String message = "authenticated [bd_addr: ";
-    message += info.getAddress().toString().c_str();
-    message += ", success: ";
-    message += info.isAuthenticated();
-    message += ", bonded: ";
-    message += info.isBonded();
-    message += ", encrypted: ";
-    message += info.isEncrypted();
-    message += "]";
-    printlnWrapper(message, true);
-    
-    NimBLEDevice::whiteListAdd(NimBLEAddress(desc->peer_id_addr));
-    listWhitelist();
+            //manage rssi
+            int8_t rssi;
+            ble_gap_conn_rssi(info.getConnHandle(), &rssi);
+            Serial.println("RSSI " + String(rssi));
+        }
+    }
 }
 
 void CommunicationCarduinoNode::clearWhitelist() {
@@ -86,6 +91,7 @@ void CommunicationCarduinoNode::clearWhitelist() {
         auto address = NimBLEDevice::getWhiteListAddress(i);
         NimBLEDevice::whiteListRemove(address);
     }
+    backupWhitelist();
 }
 
 void CommunicationCarduinoNode::listWhitelist() {
@@ -96,30 +102,43 @@ void CommunicationCarduinoNode::listWhitelist() {
     }
 }
 
+void CommunicationCarduinoNode::backupWhitelist() {
+    printlnWrapper("CommunicationCarduinoNode::backupWhitelist");
+    File whitelistFile = getOrCreateFile("/whitelist.json", "w");
+
+    JsonDocument whitelistJson;
+    JsonArray settingsJsonArray = whitelistJson.to<JsonArray>();
+
+    for(uint8_t i = 0; i < NimBLEDevice::getWhiteListCount(); i++) {
+        auto address = NimBLEDevice::getWhiteListAddress(i);
+        printlnWrapper("CommunicationCarduinoNode::backupWhitelist backup whitelist address " + String(address.toString().c_str()));
+        settingsJsonArray.add(address.toString().c_str());
+    }
+
+    serializeJson(whitelistJson, whitelistFile);
+
+    whitelistFile.close();
+}
+
+void CommunicationCarduinoNode::restoreWhitelist() {
+    printlnWrapper("CommunicationCarduinoNode::restoreWhitelist");
+
+    JsonDocument whitelistJson;
+    File whitelistFile = getOrCreateFile("/whitelist.json", "r");
+    deserializeJson(whitelistJson, whitelistFile);
+    whitelistFile.close();
+
+    for(JsonVariant item : whitelistJson.as<JsonArray>()) {
+        String mac = item.as<String>();
+        printlnWrapper("CommunicationCarduinoNode::restoreWhitelist restore whitelist address " + mac);
+        NimBLEDevice::whiteListAdd(NimBLEAddress(mac.c_str(), BLE_ADDR_PUBLIC));
+    }
+}
+
 int CommunicationCarduinoNode::customGapCallback(ble_gap_event *event, void *arg) {
-    // Serial.println("customGapHandler");
-    Serial.println(NimBLEUtils::gapEventToString(event->type));
+    printlnWrapper("CommunicationCarduinoNode::customGapCallback " +  String(NimBLEUtils::gapEventToString(event->type)));
     // switch(event->type) {
     //     case ESP_GAP_BLE_AUTH_CMPL_EVT: {
-    //         String message = "[bd_addr: ";
-    //         message += BLEAddress(param->ble_security.auth_cmpl.bd_addr).toString().c_str();
-    //         message += ", success: ";
-    //         message += param->ble_security.auth_cmpl.success;
-    //         message += ", fail_reason: ";
-    //         message += param->ble_security.auth_cmpl.fail_reason;
-    //         message += ", dev_type: ";
-    //         message += BLEUtils::devTypeToString(param->ble_security.auth_cmpl.dev_type);
-    //         message += "]";
-    //         // log_e("[bd_addr: %s, key_present: %d, key: ***, key_type: %d, success: %d, fail_reason: %d, addr_type: ***, dev_type: %s]",
-    //         //     BLEAddress(param->ble_security.auth_cmpl.bd_addr).toString().c_str(),
-    //         //     param->ble_security.auth_cmpl.key_present,
-    //         //     param->ble_security.auth_cmpl.key_type,
-    //         //     param->ble_security.auth_cmpl.success,
-    //         //     param->ble_security.auth_cmpl.fail_reason,
-    //         //     BLEUtils::devTypeToString(param->ble_security.auth_cmpl.dev_type)
-    //         // );
-    //         printlnWrapper(message);
-    //         logToFile(message);
     //         if(param->ble_security.auth_cmpl.success) {
     //             this->authenticatedBdAddress = new BLEAddress(param->ble_security.auth_cmpl.bd_addr);
     //             this->rssiTask->enable();
@@ -166,12 +185,12 @@ int CommunicationCarduinoNode::customGapCallback(ble_gap_event *event, void *arg
 }
 
 void CommunicationCarduinoNode::enableNewPairing() {
-    bleServer->getAdvertising()->setScanFilter(false,false);
+    // bleServer->getAdvertising()->setScanFilter(false,false);
     disabledPairing = false;
 }
 
 void CommunicationCarduinoNode::disableNewPairing() {
-    bleServer->getAdvertising()->setScanFilter(false,true);
+    // bleServer->getAdvertising()->setScanFilter(false,true);
     disabledPairing = true;
 }
 
@@ -183,4 +202,19 @@ void CommunicationCarduinoNode::sendBLEPairingCode(int code) {
     EventMessage *eventMessage = new EventMessage(&Event::BLE_PAIRING_CODE, code);
     this->sendCanbusMessage(eventMessage);
     delete eventMessage;
+}
+
+void CommunicationCarduinoNode::onIdentity(NimBLEConnInfo info) {
+    printlnWrapper("CommunicationCarduinoNode::onIdentity");
+    if(!disabledPairing) {
+        if(!NimBLEDevice::onWhiteList(info.getIdAddress())) {
+            NimBLEDevice::whiteListAdd(info.getIdAddress());
+            backupWhitelist();
+        }
+        clientAuthenticated(info);
+    } else {
+        bleServer->disconnect(info.getConnHandle());
+        NimBLEDevice::deleteBond(info.getIdAddress());
+        printlnWrapper("CommunicationCarduinoNode::onIdentity disabled pairing, cannot connect");
+    }
 }

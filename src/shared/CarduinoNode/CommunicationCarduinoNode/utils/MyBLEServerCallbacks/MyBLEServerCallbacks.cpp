@@ -5,38 +5,32 @@ MyBLEServerCallbacks::MyBLEServerCallbacks(CommunicationCarduinoNode* carduinoNo
     this->node = carduinoNode;
 }
 
-void MyBLEServerCallbacks::onConnect(NimBLEServer* pServer, ble_gap_conn_desc* desc) {
+void MyBLEServerCallbacks::onConnect(NimBLEServer* pServer, NimBLEConnInfo& desc) {
     node->printlnWrapper("MyBLEServerCallbacks::onConnect");
-
-    NimBLEConnInfo info = pServer->getPeerIDInfo(desc->conn_handle);
-    NimBLEAddress clientAddress(info.getAddress());
-    if(node->disabledPairing && !NimBLEDevice::onWhiteList(clientAddress)) {
-        pServer->disconnect(info.getConnHandle());
-    }
+    // if(!desc.isEncrypted()) {
+    //     pServer->disconnect(desc);
+    // }
 }
 
-void MyBLEServerCallbacks::onDisconnect(NimBLEServer* pServer, ble_gap_conn_desc* desc) {
+void MyBLEServerCallbacks::onDisconnect(NimBLEServer* pServer, NimBLEConnInfo& desc, int reason) {
     node->printlnWrapper("MyBLEServerCallbacks::onDisconnect");
 
-    node->rssiTask->disable();
+    // node->rssiTask->disable();
     if(node->authenticatedBdAddress != nullptr) {
         delete node->authenticatedBdAddress;
         node->authenticatedBdAddress = nullptr;
     }
 
-    if(!node->disabledPairing) {
-        pServer->getAdvertising()->start();
-    }
     node->printlnWrapper("MyBLEServerCallbacks::onDisconnect Waiting a new client connection to notify...");
 }
 
-void MyBLEServerCallbacks::onAuthenticationComplete(ble_gap_conn_desc* desc) {
-    node->printlnWrapper("MyBLEServerCallbacks::onAuthenticationComplete success");
+void MyBLEServerCallbacks::onAuthenticationComplete(const NimBLEConnInfo& desc) {
+    node->printlnWrapper("MyBLEServerCallbacks::onAuthenticationComplete " + String(desc.getIdAddress().toString().c_str()));
 
     node->clientAuthenticated(desc);
 }
 
-uint32_t MyBLEServerCallbacks::onPassKeyRequest() {
+uint32_t MyBLEServerCallbacks::onPassKeyDisplay() {
     String pinString = String(esp_random());
     pinString = pinString.substring(0, 6);
     node->printlnWrapper("MyBLEServerCallbacks::onPassKeyRequest " + pinString);
@@ -45,4 +39,11 @@ uint32_t MyBLEServerCallbacks::onPassKeyRequest() {
     node->sendEvent(&Event::BLE_PAIRING_CODE, pin);
 
     return pin;
+}
+
+void MyBLEServerCallbacks::onIdentity(const NimBLEConnInfo& desc) {
+    node->printlnWrapper("MyBLEServerCallbacks::onIdentity");
+    node->printlnWrapper("MyBLEServerCallbacks::onIdentity identity address " + String(desc.getIdAddress().toString().c_str()));
+
+    node->onIdentity(desc);
 }

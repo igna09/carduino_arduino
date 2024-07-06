@@ -11,8 +11,9 @@ class MyBLEServerCallbacks: public NimBLEServerCallbacks {
         CommunicationCarduinoNode* node;
 
         MyBLEServerCallbacks(CommunicationCarduinoNode* carduinoNode);
-        void onConnect(NimBLEServer* pServer, ble_gap_conn_desc* desc);
-        void onDisconnect(NimBLEServer* pServer, ble_gap_conn_desc* desc);
-        void onAuthenticationComplete(ble_gap_conn_desc* desc);
-        uint32_t onPassKeyRequest();
+        void onConnect(NimBLEServer* pServer, NimBLEConnInfo& desc) override;
+        void onDisconnect(NimBLEServer* pServer, NimBLEConnInfo& desc, int reason) override;
+        void onAuthenticationComplete(const NimBLEConnInfo& connInfo) override;
+        uint32_t onPassKeyDisplay() override;
+        void onIdentity(const NimBLEConnInfo& connInfo) override;
 };

@@ -12,28 +12,13 @@
 #include "utils/GAPCallback/GAPCallback.h"
 #include "shared/CarduinoNode/CommunicationCarduinoNode/executors/CommunicationCarduinoNodeEvents/CommunicationCarduinoNodeEvents.h"
 
-#define CONFIG_NIMBLE_CPP_ENABLE_GAP_EVENT_CODE_TEXT
 #include <NimBLEDevice.h>
-
-// class MyAdvertisedDeviceCallbacks: public BLEAdvertisedDeviceCallbacks 
-// {
-//     void onResult(BLEAdvertisedDevice advertisedDevice) 
-//     {
-//       String strName;
-//       strName = advertisedDevice.getName().c_str();
-//       if ( strName.length() > 0 )
-//       {
-//         // Serial.printf("Name: %s n\n", strName);
-//         Serial.printf("Advertised Device: %s \n", advertisedDevice.toString().c_str());
-//       }
-//     }
-// };
 
 class CommunicationCarduinoNode : public CarduinoNode {
     public:
         CommunicationCarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssid, const char *password);
         void loop();
-        void clientAuthenticated(ble_gap_conn_desc*);
+        void clientAuthenticated(NimBLEConnInfo);
         void clearWhitelist();
         int customGapCallback(ble_gap_event *event, void *arg);
         bool authenticated;
@@ -44,12 +29,16 @@ class CommunicationCarduinoNode : public CarduinoNode {
         void disableNewPairing();
         bool disabledPairing;
         void sendBLEPairingCode(int code);
-        void listWhitelist();
+        void onIdentity(NimBLEConnInfo info);
 
         void test() override;
+        NimBLEServer* bleServer;
 
     private:
-        NimBLEServer* bleServer;
         NimBLEDevice* bleDevice;
-        NimBLESecurity *pSecurity;
+        NimBLEClient* connectedClient;
+
+        void listWhitelist();
+        void backupWhitelist();
+        void restoreWhitelist();
 };
