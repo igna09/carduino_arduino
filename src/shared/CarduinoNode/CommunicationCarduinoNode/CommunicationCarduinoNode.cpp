@@ -38,7 +38,7 @@ CommunicationCarduinoNode::CommunicationCarduinoNode(uint8_t id, int cs, int int
         int8_t rssi;
         NimBLEConnInfo info = bleServer->getPeerInfo(0);
         ble_gap_conn_rssi(info.getConnHandle(), &rssi);
-        String message = "authenticated [bd_addr: ";
+        String message = "rssi [bd_addr: ";
         message += info.getIdAddress().toString().c_str();
         message += ", RSSI: ";
         message += String(rssi);
