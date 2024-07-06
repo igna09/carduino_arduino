@@ -23,7 +23,6 @@ class CommunicationCarduinoNode : public CarduinoNode {
         int customGapCallback(ble_gap_event *event, void *arg);
         bool authenticated;
         bool connected;
-        BLEAddress* authenticatedBdAddress;
         Task* rssiTask;
         void enableNewPairing();
         void disableNewPairing();
@@ -32,11 +31,10 @@ class CommunicationCarduinoNode : public CarduinoNode {
         void onIdentity(NimBLEConnInfo info);
 
         void test() override;
-        NimBLEServer* bleServer;
 
     private:
+        NimBLEServer* bleServer;
         NimBLEDevice* bleDevice;
-        NimBLEClient* connectedClient;
 
         void listWhitelist();
         void backupWhitelist();

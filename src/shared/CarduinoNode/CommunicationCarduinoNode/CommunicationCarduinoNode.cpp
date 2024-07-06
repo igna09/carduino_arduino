@@ -10,8 +10,6 @@ CommunicationCarduinoNode::CommunicationCarduinoNode(uint8_t id, int cs, int int
     });
     this->restoreSettings();
 
-    this->authenticatedBdAddress = nullptr;
-
     /**
      * NimBLE
      */
@@ -37,7 +35,19 @@ CommunicationCarduinoNode::CommunicationCarduinoNode(uint8_t id, int cs, int int
 
     this->rssiTask = new Task(1000, TASK_FOREVER, [&](){
         // esp_err_t rc = esp_ble_gap_read_rssi((uint8_t*)this->authenticatedBdAddress->getNative());
-        // ble_gap_conn_rssi(this->authenticatedBdAddress->, int8_t *out_rssi);
+        int8_t rssi;
+        NimBLEConnInfo info = bleServer->getPeerInfo(0);
+        ble_gap_conn_rssi(info.getConnHandle(), &rssi);
+        String message = "authenticated [bd_addr: ";
+        message += info.getIdAddress().toString().c_str();
+        message += ", RSSI: ";
+        message += String(rssi);
+        message += "]";
+        if(rssi > -60) {
+            sendEvent(&Event::UNLOCK_CAR);
+        } else {
+            sendEvent(&Event::LOCK_CAR);
+        }
     }, this->scheduler, true);
 
     // this->disableNewPairing();
