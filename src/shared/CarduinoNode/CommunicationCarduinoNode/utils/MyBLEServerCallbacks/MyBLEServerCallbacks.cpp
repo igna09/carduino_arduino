@@ -15,6 +15,7 @@ void MyBLEServerCallbacks::onConnect(NimBLEServer* pServer, NimBLEConnInfo& desc
 void MyBLEServerCallbacks::onDisconnect(NimBLEServer* pServer, NimBLEConnInfo& desc, int reason) {
     node->printlnWrapper("MyBLEServerCallbacks::onDisconnect Waiting a new client connection to notify...");
     pServer->getAdvertising()->start();
+    node->rssiTask->disable();
 }
 
 void MyBLEServerCallbacks::onAuthenticationComplete(const NimBLEConnInfo& desc) {

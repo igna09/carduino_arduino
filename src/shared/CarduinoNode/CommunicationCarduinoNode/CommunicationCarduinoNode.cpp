@@ -48,7 +48,7 @@ CommunicationCarduinoNode::CommunicationCarduinoNode(uint8_t id, int cs, int int
         } else {
             sendEvent(&Event::LOCK_CAR);
         }
-    }, this->scheduler, true);
+    }, this->scheduler, false);
 
     // this->disableNewPairing();
 
@@ -87,10 +87,7 @@ void CommunicationCarduinoNode::clientAuthenticated(NimBLEConnInfo info) {
             message += "]";
             printlnWrapper(message, true);
 
-            //manage rssi
-            int8_t rssi;
-            ble_gap_conn_rssi(info.getConnHandle(), &rssi);
-            Serial.println("RSSI " + String(rssi));
+            rssiTask->enable();
         }
     }
 }
