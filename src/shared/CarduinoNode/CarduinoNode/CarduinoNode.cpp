@@ -630,12 +630,19 @@ void CarduinoNode::addPinToRead(uint8_t pin, PCF8574 *pcf8574, std::function<voi
 }
 
 PinInformation* CarduinoNode::getPinInformation(uint8_t pin) {
-    std::map<uint8_t, PinInformation*>::iterator it = this->pinInformations->find(id);
-    if (it != this->pinInformations->end()) {
-        return it->second;
-    } else {
-        return nullptr;
+    // std::map<uint8_t, PinInformation*>::iterator it = this->pinInformations->find(id);
+    // if (it != this->pinInformations->end()) {
+    //     return it->second;
+    // } else {
+    //     return nullptr;
+    // }
+    std::map<uint8_t, PinInformation*>::iterator it;
+    for (it = this->pinInformations->begin(); it != this->pinInformations->end(); it++) {
+        if(it->second->pin == pin) {
+            return it->second;
+        }
     }
+    return nullptr;
 }
 
 void CarduinoNode::readDigitalPins() {
