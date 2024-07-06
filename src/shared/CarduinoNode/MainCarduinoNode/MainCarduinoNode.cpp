@@ -190,9 +190,18 @@ void MainCarduinoNode::pcfDigitalPinsSetup() {
             this->isKeyOn = !pinInformation->isHigh;
             //PIN STATE CHANGED
             if(!this->isKeyOn) {
-                // this->turnOffRadioTask-> // reset remaining timer
-                this->turnOffRadioTask->restartDelayed();
-                this->sendEvent(&Event::DISABLE, ALL_NODES);
+                delayTask(1500, [&](){
+                    PinInformation* pin = getPinInformation(ACCESSORY_12_V_PIN);
+                    if(pin != nullptr) {
+                        bool newKeyIsOn = !pin->isHigh;
+                        if(!newKeyIsOn) {
+
+                            // this->turnOffRadioTask-> // reset remaining timer
+                            this->turnOffRadioTask->restartDelayed();
+                            this->sendEvent(&Event::DISABLE, ALL_NODES);
+                        }
+                    }
+                });
             } else if(this->isKeyOn && this->turnOffRadioTask->isEnabled()) {
                 this->turnOffRadioTask->disable();
                 this->sendEvent(&Event::DISABLE_INTERRUPT, ALL_NODES);
