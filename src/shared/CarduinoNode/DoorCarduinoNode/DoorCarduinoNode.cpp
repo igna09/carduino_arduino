@@ -1,7 +1,7 @@
 #include "DoorCarduinoNode.h"
 
 DoorCarduinoNode::DoorCarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssid, const char *password) : CarduinoNode(id, cs, interruptPin, ssid,  password, true, true, true) {
-	printlnWrapper("DoorCarduinoNode::DoorCarduinoNode start", true);
+	printlnWrapper("DoorCarduinoNode::DoorCarduinoNode start", false);
 	
 	this->addSetting(&Setting::AUTO_CLOSE_REARVIEW_MIRRORS, true, nullptr, true);
     this->addSetting(&Setting::ON_REVERSE_LOWER_MIRRORS, true, nullptr, true);
@@ -31,7 +31,7 @@ DoorCarduinoNode::DoorCarduinoNode(uint8_t id, int cs, int interruptPin, const c
 	// this->closedMirrors = this->readClosedMirrors();
 	// this->mirrorSelectorOnClosed = this->readSelectorClosed();
 
-	printlnWrapper("DoorCarduinoNode::DoorCarduinoNode finish", true);
+	printlnWrapper("DoorCarduinoNode::DoorCarduinoNode finish", false);
 };
 
 void DoorCarduinoNode::loop() {
@@ -173,7 +173,7 @@ bool DoorCarduinoNode::readSelectorClosed() {
 
 void DoorCarduinoNode::enable() {
 	CarduinoNode::enable();
-	printlnWrapper("DoorCarduinoNode::enable start", true);
+	printlnWrapper("DoorCarduinoNode::enable start", false);
 
 	delayTask(DELAY_CLOSING_MIRROR_ON_POWER_EVENTS, [&](){
 		this->printlnWrapper("delayed opening " + String(millis()));
@@ -185,12 +185,12 @@ void DoorCarduinoNode::enable() {
 		}
 	});
 
-	printlnWrapper("DoorCarduinoNode::enable finish", true);
+	printlnWrapper("DoorCarduinoNode::enable finish", false);
 }
 
 void DoorCarduinoNode::disable() {
 	CarduinoNode::disable();
-	printlnWrapper("DoorCarduinoNode::disable start", true);
+	printlnWrapper("DoorCarduinoNode::disable start", false);
 
 	delayTask(DELAY_CLOSING_MIRROR_ON_POWER_EVENTS, [&](){
 		this->printlnWrapper("delayed closing " + String(millis()));
@@ -201,7 +201,7 @@ void DoorCarduinoNode::disable() {
 		}
 	});
 
-	printlnWrapper("DoorCarduinoNode::disable finish", true);
+	printlnWrapper("DoorCarduinoNode::disable finish", false);
 }
 
 void DoorCarduinoNode::disableInterrupt() {
