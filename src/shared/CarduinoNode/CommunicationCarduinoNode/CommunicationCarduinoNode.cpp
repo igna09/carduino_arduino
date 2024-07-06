@@ -43,6 +43,7 @@ CommunicationCarduinoNode::CommunicationCarduinoNode(uint8_t id, int cs, int int
         message += ", RSSI: ";
         message += String(rssi);
         message += "]";
+        printlnWrapper(message, true); 
         if(rssi > -60) {
             sendEvent(&Event::UNLOCK_CAR);
         } else {
