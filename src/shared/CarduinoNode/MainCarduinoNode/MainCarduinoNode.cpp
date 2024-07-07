@@ -1,6 +1,7 @@
 #include "MainCarduinoNode.h"
 
 MainCarduinoNode::MainCarduinoNode(uint8_t id, int cs, int interruptPin, char *ssid, char *password) : CarduinoNode(id, cs, interruptPin, ssid, password, true, true, false) {
+    this->enable();
     this->restoreSettings();
     
     this->aht = new Adafruit_AHTX0();
@@ -33,9 +34,7 @@ MainCarduinoNode::MainCarduinoNode(uint8_t id, int cs, int interruptPin, char *s
     this->isRadioOn = true;
     this->isKeyOn = true;
 
-    this->enable();
-
-    this->sendEvent(&Event::GET_HELLOS);
+    this->sendEvent(&Event::GET_HELLOS, ALL_NODES);
 };
 
 void MainCarduinoNode::luminanceCallback() {
