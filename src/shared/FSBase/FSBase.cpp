@@ -8,6 +8,7 @@ FSBase::FSBase() {
     _fs = &SD;
     if(!SD.begin(25)) {
         // _logger->printlnWrapper("SD Mount Failed");
+        this->_fsInitialized = false;
         return;
     } else{
         // _logger->printlnWrapper("SD Mount Done");
@@ -18,6 +19,7 @@ FSBase::FSBase() {
         #ifdef ESP8266
         if(!LittleFS.begin()){
             // _logger->printlnWrapper("LittleFS Mount Failed");
+            this->_fsInitialized = false;
             return;
         } else{
             // _logger->printlnWrapper("LittleFS Mount Done");
@@ -26,6 +28,7 @@ FSBase::FSBase() {
         #elif defined(ESP32)
         if(!LittleFS.begin(true)){
             // _logger->printlnWrapper("LittleFS Mount Failed");
+            this->_fsInitialized = false;
             return;
         } else{
             // _logger->printlnWrapper("LittleFS Mount Done");

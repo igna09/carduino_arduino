@@ -58,6 +58,8 @@ void SettingBase::putSettingValue(const Setting *setting, bool value) {
             settingInformation->onChange(settingInformation);
         }
     }
+
+    // backupSettings();
 }
 
 void SettingBase::putSettingValue(const Setting *setting, float value) {
@@ -69,6 +71,8 @@ void SettingBase::putSettingValue(const Setting *setting, float value) {
             settingInformation->onChange(settingInformation);
         }
     }
+
+    // backupSettings();
 }
 
 void SettingBase::putSettingValue(const Setting *setting, int value) {
@@ -80,6 +84,8 @@ void SettingBase::putSettingValue(const Setting *setting, int value) {
             settingInformation->onChange(settingInformation);
         }
     }
+
+    // backupSettings();
 }
 
 SettingInformation* SettingBase::getSettingValue(const Setting *setting) {
