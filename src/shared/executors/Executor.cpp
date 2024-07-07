@@ -7,7 +7,7 @@ void Executor::addExecutor(CarduinoNodeExecutorInterface* executor) {
 
 void Executor::execute(CarduinoNode *node, CanbusMessage *message) {
     // node->printlnWrapper("Executor::execute " + String(message->categoryId) + " " + String(message->messageId));
-    if(node->isEnabled || (message->categoryId == Category::EVENT.id && (message->messageId == Event::ENABLE.id || message->messageId == Event::DISABLE.id))) {
+    //if(node->isEnabled || (message->categoryId == Category::EVENT.id && (message->messageId == Event::ENABLE.id || message->messageId == Event::DISABLE.id || message->messageId == Event::HELLO.id || message->messageId == Event::GET_HELLOS.id))) {
         bool logged = false;
         for(uint8_t i = 0; i < this->size; i++) {
             // Serial.print("Executor::execute ");
@@ -20,8 +20,7 @@ void Executor::execute(CarduinoNode *node, CanbusMessage *message) {
             if(
                 executor->categoryFilter == nullptr
                 || (
-                    executor->canExecute(node, message)
-                    && executor->categoryFilter != nullptr
+                    executor->categoryFilter != nullptr
                     && executor->categoryFilter->id == message->categoryId
                     && (
                         executor->filterMessage == false
@@ -30,6 +29,7 @@ void Executor::execute(CarduinoNode *node, CanbusMessage *message) {
                             && executor->messageId == message->messageId
                         )
                     )
+                    && executor->canExecute(node, message)
                 )
             ) {
                 if(!logged) {
@@ -48,5 +48,5 @@ void Executor::execute(CarduinoNode *node, CanbusMessage *message) {
                 executor->execute(node, message);
             }
         }
-    }
+    //}
 }

@@ -41,5 +41,6 @@ bool CarduinoNodeCanEvent::canExecute(CarduinoNode *node, CanbusMessage *message
     return node->isEnabled || (
         message->messageId == Event::GET_HELLOS.id
         || message->messageId == Event::ENABLE.id
+        || message->messageId == Event::DISABLE.id
     );
 }
