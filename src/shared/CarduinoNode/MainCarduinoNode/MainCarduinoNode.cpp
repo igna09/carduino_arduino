@@ -189,15 +189,23 @@ void MainCarduinoNode::pcfDigitalPinsSetup() {
             this->isKeyOn = !pinInformation->isHigh;
             //PIN STATE CHANGED
             if(!this->isKeyOn) {
-                delayTask(1500, [&](){
+            // Serial.println("key off");
+                delayTask(2500, [&](){
+            // Serial.println("delayed");
                     PinInformation* pin = getPinInformation(ACCESSORY_12_V_PIN);
                     if(pin != nullptr) {
                         bool newKeyIsOn = !pin->isHigh;
                         if(!newKeyIsOn) {
-
+            // Serial.println("delayed key off");
                             // this->turnOffRadioTask-> // reset remaining timer
                             this->turnOffRadioTask->restartDelayed();
                             this->sendEvent(&Event::DISABLE, ALL_NODES);
+                        }else if(newKeyIsOn) {
+            // Serial.println("delayed key on");
+                            this->turnOffRadioTask->disable();
+                            this->sendEvent(&Event::DISABLE_INTERRUPT, ALL_NODES);
+                        } else {
+                            // Serial.println("delayed no action");
                         }
                     }
                 });
@@ -249,4 +257,9 @@ void MainCarduinoNode::sendLog(uint8_t nodeId, int value) {
     LogMessage *logMessage = new LogMessage(this->id, nodeId, value);
 	this->sendSerialMessage(logMessage);
     delete logMessage;
+}
+
+void MainCarduinoNode::test() {
+    EventMessage m(&Event::BLE_PAIRING_CODE, 123456);
+    sendSerialMessage(&m);
 }

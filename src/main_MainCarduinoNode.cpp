@@ -27,6 +27,7 @@ unsigned long lastSent = 0;
 void loop(void) {
   carduinoNode->loop();
   // if(millis() > lastSent + 10000 && lastSent == 0) {
+  //   carduinoNode->test();
       // Serial.println(micros() - lastSent);
 			// lastSent = micros();
       // uint8_t a[] = {0x01};

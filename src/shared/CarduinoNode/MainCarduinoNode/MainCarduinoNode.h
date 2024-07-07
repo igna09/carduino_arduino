@@ -84,4 +84,6 @@ class MainCarduinoNode : public CarduinoNode {
         void luminanceCallback();
         void temperatureCallback();
         void voltageCallback();
+
+        void test() override;
 };
