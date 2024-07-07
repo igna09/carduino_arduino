@@ -32,6 +32,11 @@ DoorCarduinoNode::DoorCarduinoNode(uint8_t id, int cs, int interruptPin, const c
 	// this->mirrorSelectorOnClosed = this->readSelectorClosed();
 
 	printlnWrapper("DoorCarduinoNode::DoorCarduinoNode finish", false);
+
+	/**
+	 * TMP
+	*/
+	enable();
 };
 
 void DoorCarduinoNode::loop() {
@@ -175,7 +180,7 @@ void DoorCarduinoNode::enable() {
 	CarduinoNode::enable();
 	printlnWrapper("DoorCarduinoNode::enable start", false);
 
-	delayTask(DELAY_CLOSING_MIRROR_ON_POWER_EVENTS, [&](){
+	delayTask(DELAY_OPENING_MIRROR_ON_POWER_EVENTS, [&](){
 		this->printlnWrapper("delayed opening " + String(millis()));
 
 		this->mirrorSelectorOnClosed = this->readSelectorClosed();
