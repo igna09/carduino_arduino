@@ -3,6 +3,7 @@
 MainNodeCanEvent::MainNodeCanEvent() : CarduinoNodeExecutorInterface(&Category::EVENT) {};
 
 void MainNodeCanEvent::execute(CarduinoNode *node, CanbusMessage *message) {
+    // node->printlnWrapper("here " + String(Event::HELLO.id));
     EventMessage *eventMessage = new EventMessage(message);
     MainCarduinoNode *mainCarduinoNode = (MainCarduinoNode*)node;
     

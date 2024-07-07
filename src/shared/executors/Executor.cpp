@@ -38,10 +38,10 @@ void Executor::execute(CarduinoNode *node, CanbusMessage *message) {
                         Category *category = (Category*)Category::getValueById(message->categoryId);
                         if(category->createSpecializedCopyFunction != nullptr) {
                             CanbusMessage *specialized = category->createSpecializedCopyFunction(message);
-                            node->printlnWrapper("Executor::execute received " + specialized->toSerialHumanString());
+                            node->printlnWrapper("Executor::execute executing " + specialized->toSerialHumanString());
                             delete specialized;
                         } else {
-                            node->printlnWrapper("Executor::execute received " + message->toSerialHumanString());
+                            node->printlnWrapper("Executor::execute executing " + message->toSerialHumanString());
                         }
                     }
                 }

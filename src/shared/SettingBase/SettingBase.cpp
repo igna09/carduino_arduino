@@ -14,42 +14,39 @@ void SettingBase::addSetting(const Setting *setting, bool value, std::function<v
     SettingInformation *settingInformation = new SettingInformation();
     settingInformation->value = new ValueType();
     settingInformation->defaultValue = new ValueType();
-    
-    (*this->settings)[setting->id] = settingInformation;
-
-    settingInformation->setting = setting;
-    settingInformation->onChange = onChange;
     settingInformation->value->boolValue = value;
     settingInformation->defaultValue->boolValue = value;
+    settingInformation->setting = setting;
+    settingInformation->onChange = onChange;
     settingInformation->doBackup = doBackup;
+    
+    (*this->settings)[setting->id] = settingInformation;
 }
 
 void SettingBase::addSetting(const Setting *setting, int value, std::function<void(SettingInformation*)> onChange, bool doBackup) {
     SettingInformation *settingInformation = new SettingInformation();
     settingInformation->value = new ValueType();
     settingInformation->defaultValue = new ValueType();
-    
-    (*this->settings)[setting->id] = settingInformation;
-
-    settingInformation->setting = setting;
-    settingInformation->onChange = onChange;
     settingInformation->value->intValue = value;
     settingInformation->defaultValue->intValue = value;
+    settingInformation->setting = setting;
+    settingInformation->onChange = onChange;
     settingInformation->doBackup = doBackup;
+    
+    (*this->settings)[setting->id] = settingInformation;
 }
 
 void SettingBase::addSetting(const Setting *setting, float value, std::function<void(SettingInformation*)> onChange, bool doBackup) {
     SettingInformation *settingInformation = new SettingInformation();
     settingInformation->value = new ValueType();
     settingInformation->defaultValue = new ValueType();
-    
-    (*this->settings)[setting->id] = settingInformation;
-
-    settingInformation->setting = setting;
-    settingInformation->onChange = onChange;
     settingInformation->value->floatValue = value;
     settingInformation->defaultValue->floatValue = value;
+    settingInformation->setting = setting;
+    settingInformation->onChange = onChange;
     settingInformation->doBackup = doBackup;
+
+    (*this->settings)[setting->id] = settingInformation;
 }
 
 void SettingBase::putSettingValue(const Setting *setting, bool value) {
