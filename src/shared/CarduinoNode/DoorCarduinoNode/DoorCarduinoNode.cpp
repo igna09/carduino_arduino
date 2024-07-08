@@ -21,7 +21,7 @@ DoorCarduinoNode::DoorCarduinoNode(uint8_t id, int cs, int interruptPin, const c
 	*/
     this->stopMoveMirrorsTask = new Task(MIRRORS_MOVING_TIME, 1, std::bind(&DoorCarduinoNode::stopMoveMirrors, this), this->scheduler, false);
 
-    temperatureTask = new Task(VOLTAGE_READING_INTERVAL, TASK_FOREVER, std::bind(&DoorCarduinoNode::voltageCallback, this), this->scheduler, true);
+    new Task(VOLTAGE_READING_INTERVAL, TASK_FOREVER, std::bind(&DoorCarduinoNode::voltageCallback, this), this->scheduler, true);
 
 	this->lastReceivedEvent = nullptr;
 
@@ -36,7 +36,7 @@ DoorCarduinoNode::DoorCarduinoNode(uint8_t id, int cs, int interruptPin, const c
 	/**
 	 * TMP
 	*/
-	enable();
+	// enable();
 };
 
 void DoorCarduinoNode::loop() {

@@ -61,12 +61,15 @@ CarduinoNode::CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssi
     this->scheduler = new Scheduler();
     this->scheduler->startNow();
 
-    new Task(HEARTBEAT_INTERVAL, TASK_FOREVER, std::bind(&CarduinoNode::sendHeartbeat, this), this->scheduler, true);
+    Task* heartbeatTask = new Task(HEARTBEAT_INTERVAL, TASK_FOREVER, std::bind(&CarduinoNode::sendHeartbeat, this), this->scheduler, false);
+    heartbeatTask->restartDelayed();
     // SecondaryLoopCallback<void(void)>::func = std::bind(&CarduinoNode::secondaryLoopCallback, this);
     // new Task(100, TASK_FOREVER, static_cast<TaskCallback>(SecondaryLoopCallback<void(void)>::callback), this->scheduler, true);
     new Task(DIGITAL_PINS_UPDATE_INTERVAL, TASK_FOREVER, std::bind(&CarduinoNode::readDigitalPins, this), this->scheduler, true);
 
-    this->sendEvent(&Event::HELLO);
+    delayTask(200, [&](){
+        this->sendEvent(&Event::HELLO);
+    });
 
     // if(!this->settingsLoaded) {
     //     this->restoreSettings();
@@ -579,6 +582,10 @@ void CarduinoNode::sendHeartbeat() {
     EventMessage *eventMessage = new EventMessage(&Event::HEARTBEAT, this->id);
     sendCanbusMessage(eventMessage);
     delete eventMessage;
+
+    // if(!isEnabled) {
+    //     this->sendEvent(&Event::HELLO);
+    // }
 }
 
 void CarduinoNode::sendEvent(const Event *event) {
