@@ -25,7 +25,6 @@ CarduinoNode::CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssi
         Wire.begin(NODE_SDA, NODE_SCL);
     }
 
-    previousSentCanbusMessageWasError = false;
     setupCanbus();
     pinMode(interruptPin, INPUT);                            // Configuring pin for /INT input
     attachInterrupt(digitalPinToInterrupt(interruptPin), std::bind(&CarduinoNode::readCanMessageFromMcpBuffer, this), FALLING);
@@ -84,7 +83,6 @@ void CarduinoNode::setupCanbus() {
     if(can->begin(MCP_ANY, CAN_500KBPS, MCP_8MHZ) == CAN_OK) {
         this->printlnWrapper("MCP2515 Initialized Successfully!");
         this->initializedCan = true;
-        previousSentCanbusMessageWasError = false;
     } else {
         printlnWrapper("Error Initializing MCP2515...");
         this->initializedCan = false;
@@ -524,11 +522,7 @@ void CarduinoNode::sendByteCanbus(uint16_t messageId, int len, uint8_t *buf) {
     byte sndStat = can->sendMsgBuf(messageId, 0, len, buf);
     if(sndStat != CAN_OK){
         printlnWrapper("Error Sending Message... " + String(sndStat));
-        previousSentCanbusMessageWasError = true;
-    } else {
-        if(previousSentCanbusMessageWasError) {
-            setupCanbus();
-        }
+        setupCanbus();
     }
 };
 
