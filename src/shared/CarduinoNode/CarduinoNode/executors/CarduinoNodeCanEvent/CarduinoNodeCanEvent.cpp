@@ -30,6 +30,8 @@ void CarduinoNodeCanEvent::execute(CarduinoNode *node, CanbusMessage *message) {
             EventMessage *helloMessage = new EventMessage(&Event::HELLO, node->id);
             node->sendCanbusMessage(helloMessage);
             delete helloMessage;
+        } else if(eventMessage->event->id == Event::HEARTBEAT.id) {
+            node->lastTimeReceivedHeartbeat = millis();
         }
 
     }

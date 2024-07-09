@@ -106,7 +106,7 @@ class CarduinoNode : public Logger, public FSBase, public SettingBase {
         uint8_t nextMessageBufferIndexToInsert = 0;
         uint8_t nextMessageBufferIndexToRead = 0;
         void setupCanbus();
-        bool previousSentCanbusMessageWasError;
+        void heartbeatWDT();
 
     public:
         uint8_t id;
@@ -122,6 +122,7 @@ class CarduinoNode : public Logger, public FSBase, public SettingBase {
         std::map<uint8_t, PinInformation*> *pinInformations;
         bool isEnabled;
         Executor *usbExecutor;
+        unsigned long lastTimeReceivedHeartbeat;
 
         CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssid, const char *password, bool enableI2c = false, bool logOnServer = false, bool logOnSerial = false);
 
