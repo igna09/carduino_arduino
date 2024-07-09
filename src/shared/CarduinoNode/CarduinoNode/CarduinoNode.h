@@ -105,6 +105,8 @@ class CarduinoNode : public Logger, public FSBase, public SettingBase {
         CanMessageValues* messageBuffer[CAN_MESSAGE_VALUES_BUFFER_SIZE];
         uint8_t nextMessageBufferIndexToInsert = 0;
         uint8_t nextMessageBufferIndexToRead = 0;
+        void setupCanbus();
+        bool previousSentCanbusMessageWasError;
 
     public:
         uint8_t id;
