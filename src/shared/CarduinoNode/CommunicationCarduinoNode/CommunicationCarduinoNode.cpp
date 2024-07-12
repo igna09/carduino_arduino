@@ -86,7 +86,7 @@ void CommunicationCarduinoNode::clientAuthenticated(NimBLEConnInfo info) {
             message += ", encrypted: ";
             message += info.isEncrypted();
             message += "]";
-            printlnWrapper(message, true);
+            printlnWrapper(message, false);
 
             rssiTask->enable();
         }

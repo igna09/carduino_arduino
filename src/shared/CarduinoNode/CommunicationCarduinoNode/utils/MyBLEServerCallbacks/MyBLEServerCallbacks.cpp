@@ -7,9 +7,16 @@ MyBLEServerCallbacks::MyBLEServerCallbacks(CommunicationCarduinoNode* carduinoNo
 
 void MyBLEServerCallbacks::onConnect(NimBLEServer* pServer, NimBLEConnInfo& desc) {
     node->printlnWrapper("MyBLEServerCallbacks::onConnect");
-    // if(!desc.isEncrypted()) {
-    //     pServer->disconnect(desc);
-    // }
+    String message = "onConnect [bd_addr: ";
+    message += desc.getAddress().toString().c_str();
+    message += ", success: ";
+    message += desc.isAuthenticated();
+    message += ", bonded: ";
+    message += desc.isBonded();
+    message += ", encrypted: ";
+    message += desc.isEncrypted();
+    message += "]";
+    node->printlnWrapper(message, false);
 }
 
 void MyBLEServerCallbacks::onDisconnect(NimBLEServer* pServer, NimBLEConnInfo& desc, int reason) {
