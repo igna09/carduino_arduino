@@ -27,7 +27,10 @@ CarduinoNode::CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssi
 
     setupCanbus();
     pinMode(interruptPin, INPUT);                            // Configuring pin for /INT input
+
+    #ifndef DISABLE_CAN_INTERRUPT
     attachInterrupt(digitalPinToInterrupt(interruptPin), std::bind(&CarduinoNode::readCanMessageFromMcpBuffer, this), FALLING);
+    #endif
 
     this->pinInformations = new std::map<uint8_t, PinInformation*>();
     
@@ -364,6 +367,12 @@ void CarduinoNode::setupServerFallback() {
 void CarduinoNode::loop() {
     this->scheduler->execute();
 
+    #ifdef DISABLE_CAN_INTERRUPT
+    if (initializedCan && availableCanbusMessages()) {
+      readCanMessageFromMcpBuffer();
+    }
+    #endif
+
     // if(CAN_MSGAVAIL == can->checkReceive()) {
     //     readCanMessageFromMcpBuffer();
     // } else {
@@ -451,6 +460,10 @@ SplittedUsbMessage* CarduinoNode::splitReceivedUsbMessage(String message) {
 }
 
 void CarduinoNode::readCanMessageFromMcpBuffer() {
+    // iterate over all pending messages
+    // If either the bus is saturated or the MCU is busy,
+    // both RX buffers may be in use and reading a single
+    // message does not clear the IRQ conditon.
     while (CAN_MSGAVAIL == can->checkReceive()) {
         CanMessageValues *canMessageValues = new CanMessageValues();
         can->readMsgBuf(&canMessageValues->id, &canMessageValues->len, canMessageValues->buf);
