@@ -18,6 +18,9 @@ class Category : public Enum {
         static const Category LOG; // used to start reading all settings
         static const Category ERROR;
         static const Category EVENT;
+        /**
+         * TODO: move to event
+        */
         static const Category GET_SETTINGS; // used to start reading all settings
 
 
