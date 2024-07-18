@@ -8,6 +8,7 @@ CommunicationCarduinoNode::CommunicationCarduinoNode(uint8_t id, int cs, int int
             this->disableNewPairing();
         }
     });
+    this->addSetting(&Setting::BLE_UNLOCKING, false, nullptr, true);
     this->restoreSettings();
 
     /**
@@ -43,11 +44,13 @@ CommunicationCarduinoNode::CommunicationCarduinoNode(uint8_t id, int cs, int int
         message += ", RSSI: ";
         message += String(rssi);
         message += "]";
-        printlnWrapper(message, true); 
-        if(rssi > -60) {
-            sendEvent(&Event::UNLOCK_CAR);
-        } else {
-            sendEvent(&Event::LOCK_CAR);
+        printlnWrapper(message, false); 
+        if(getSettingValue(Setting::BLE_UNLOCKING)->value->boolValue) {
+            if(rssi > -60) {
+                sendEvent(&Event::UNLOCK_CAR);
+            } else {
+                sendEvent(&Event::LOCK_CAR);
+            }
         }
     }, this->scheduler, false);
 

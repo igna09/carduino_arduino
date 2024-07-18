@@ -3,7 +3,7 @@
 #include "TypedEnum.h"
 #include "CanbusMessageType.h"
 
-#define SETTING_SIZE 4
+#define SETTING_SIZE 5
 
 class Setting : public TypedEnum {
     public:
@@ -11,6 +11,7 @@ class Setting : public TypedEnum {
         static const Setting OTA_MODE;
         static const Setting ON_REVERSE_LOWER_MIRRORS;
         static const Setting BLE_PAIRING;
+        static const Setting BLE_UNLOCKING;
         // static const Setting* ON_REVERSE_LOWER_MIRRORS;
 
         static const TypedEnum* getValueById(uint8_t id) {
@@ -55,4 +56,5 @@ inline const Setting Setting::AUTO_CLOSE_REARVIEW_MIRRORS = Setting(0x00, "AUTO_
 inline const Setting Setting::OTA_MODE = Setting(0x01, "OTA_MODE", &CanbusMessageType::BOOL);
 inline const Setting Setting::ON_REVERSE_LOWER_MIRRORS = Setting(0x04, "ON_REVERSE_LOWER_MIRRORS", &CanbusMessageType::BOOL);
 inline const Setting Setting::BLE_PAIRING = Setting(0x05, "BLE_PAIRING", &CanbusMessageType::BOOL);
+inline const Setting Setting::BLE_UNLOCKING = Setting(0x06, "BLE_UNLOCKING", &CanbusMessageType::BOOL);
 // inline const Setting* Setting::ON_REVERSE_LOWER_MIRRORS = new Setting(0x04, "ON_REVERSE_LOWER_MIRRORS", &CanbusMessageType::BOOL);
