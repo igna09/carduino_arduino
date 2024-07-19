@@ -3,13 +3,15 @@
 KlineCarduinoNode::KlineCarduinoNode(uint8_t id, uint8_t pin_rx, uint8_t pin_tx, int cs, int interruptPin, const char *ssid, const char *password) : CarduinoNode(id, cs, interruptPin, ssid,  password, false, true, true) {
     this->restoreSettings();
 
-	const uint32_t myMask = 0b11100000000;         // where to look at
-    const uint32_t getSettingsFilter = 0b11100000000;       // what to find
-    can->init_Mask(0, 0, myMask);                // Init first mask
-    can->init_Filt(0, 0, getSettingsFilter);              // Init first filter
-    const uint32_t writeSettingFilter = 0b01100000000;       // what to find
-    can->init_Mask(1, 0, myMask);                // Init second mask - must be set, otherwise first mask isn't working
-    can->init_Filt(1, 0, writeSettingFilter);              // Init second filter...
+	// const uint32_t myMask = 0b11100000000;         // where to look at
+    // const uint32_t getSettingsFilter = 0b11100000000;       // what to find
+    // can->init_Mask(0, 0, myMask);                // Init first mask
+    // can->init_Filt(0, 0, getSettingsFilter);              // Init first filter
+    // const uint32_t writeSettingFilter = 0b01100000000;       // what to find
+    // can->init_Mask(1, 0, myMask);                // Init second mask - must be set, otherwise first mask isn't working
+    // can->init_Filt(1, 0, writeSettingFilter);              // Init second filter...
+
+	heartbeatWdtTask->disable();
 	
 	this->pin_rx = pin_rx;
     this->pin_tx = pin_tx;
