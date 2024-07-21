@@ -7,7 +7,8 @@
 #include "shared/CanbusMessage/MediaControlMessage/MediaControlMessage.h"
 #include "shared/SharedDefinitions.h"
 
-#define ENCODER_READING_INTERVAL 75
+// #define ENCODER_READING_INTERVAL 75
+#define ENCODER_READING_INTERVAL 0
 
 class MediaControlCarduinoNode : public CarduinoNode {
     public:
