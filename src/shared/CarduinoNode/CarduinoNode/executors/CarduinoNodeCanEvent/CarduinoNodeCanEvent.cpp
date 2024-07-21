@@ -30,10 +30,11 @@ void CarduinoNodeCanEvent::execute(CarduinoNode *node, CanbusMessage *message) {
             EventMessage *helloMessage = new EventMessage(&Event::HELLO, node->id);
             node->sendCanbusMessage(helloMessage);
             delete helloMessage;
-        } else if(eventMessage->event->id == Event::HEARTBEAT.id) {
-            node->lastTimeReceivedHeartbeat = millis();
         }
+    }
 
+    if(eventMessage->event->id == Event::HEARTBEAT.id) {
+        node->lastTimeReceivedHeartbeat = millis();
     }
 
     delete eventMessage;
@@ -44,5 +45,6 @@ bool CarduinoNodeCanEvent::canExecute(CarduinoNode *node, CanbusMessage *message
         message->messageId == Event::GET_HELLOS.id
         || message->messageId == Event::ENABLE.id
         || message->messageId == Event::DISABLE.id
+        || message->messageId == Event::HEARTBEAT.id
     );
 }

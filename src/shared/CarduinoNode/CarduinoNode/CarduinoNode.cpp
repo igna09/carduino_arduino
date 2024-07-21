@@ -58,7 +58,7 @@ CarduinoNode::CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssi
 
     Task* heartbeatTask = new Task(HEARTBEAT_INTERVAL, TASK_FOREVER, std::bind(&CarduinoNode::sendHeartbeat, this), this->scheduler, false);
     heartbeatTask->restartDelayed();
-    heartbeatWdtTask = new Task(HEARTBEAT_INTERVAL + HEARTBEAT_INTERVAL_TOLERANCE, TASK_FOREVER, std::bind(&CarduinoNode::heartbeatWDT, this), this->scheduler, false);
+    heartbeatWdtTask = new Task(1000, TASK_FOREVER, std::bind(&CarduinoNode::heartbeatWDT, this), this->scheduler, false);
     heartbeatWdtTask->restartDelayed();
     // SecondaryLoopCallback<void(void)>::func = std::bind(&CarduinoNode::secondaryLoopCallback, this);
     // new Task(100, TASK_FOREVER, static_cast<TaskCallback>(SecondaryLoopCallback<void(void)>::callback), this->scheduler, true);
@@ -606,7 +606,7 @@ void CarduinoNode::sendHeartbeat() {
 }
 
 void CarduinoNode::heartbeatWDT() {
-    if(lastTimeReceivedHeartbeat + HEARTBEAT_INTERVAL + HEARTBEAT_INTERVAL_TOLERANCE < millis()) {
+    if(millis() - lastTimeReceivedHeartbeat > HEARTBEAT_INTERVAL + HEARTBEAT_INTERVAL_TOLERANCE) {
         printlnWrapper("CarduinoNode::heartbeatWDT heartbeat watchdog triggered");
         setupCanbus();
         // restart();
