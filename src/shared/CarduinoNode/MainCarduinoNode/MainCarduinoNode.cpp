@@ -3,6 +3,8 @@
 MainCarduinoNode::MainCarduinoNode(uint8_t id, int cs, int interruptPin, char *ssid, char *password) : CarduinoNode(id, cs, interruptPin, ssid, password, true, true, false) {
     this->enable();
     this->restoreSettings();
+
+    heartbeatWdtTask->disable();
     
     this->aht = new Adafruit_AHTX0();
     this->aht->begin();
