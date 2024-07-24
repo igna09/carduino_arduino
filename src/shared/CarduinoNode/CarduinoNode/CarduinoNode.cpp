@@ -72,10 +72,12 @@ CarduinoNode::CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssi
     //     this->restoreSettings();
     //     this->printlnWrapper("CarduinoNode::CarduinoNode settings loaded");
     // }
+    #ifndef DISABLE_SETTINGS_BACKUP
     Task *backupSettingsTask = new Task(WRITE_SETTINGS_ON_EEPROM_INTERVAL, TASK_FOREVER, [&](){
         this->backupSettings();
     }, this->scheduler);
     backupSettingsTask->restartDelayed();
+    #endif
     
     if(!this->initializedCan) {
         this->otaStartup();
