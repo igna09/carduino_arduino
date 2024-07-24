@@ -28,6 +28,7 @@ class SettingBase {
         std::map<uint8_t, SettingInformation*> *settings;
         bool settingsSetupDone;
         bool settingsLoaded;
+        bool settingsChanged;
 
         SettingBase(Logger*, FSBase*);
 

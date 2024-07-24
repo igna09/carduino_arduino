@@ -4,6 +4,7 @@ SettingBase::SettingBase(Logger* logger, FSBase* fsBase) {
     this->settings = new std::map<uint8_t, SettingInformation*>();
     this->settingsSetupDone = false;
     this->settingsLoaded = false;
+    this->settingsChanged = false;
     
     this->_logger = logger;
     this->_fsBase = fsBase;
@@ -57,6 +58,8 @@ void SettingBase::putSettingValue(const Setting *setting, bool value) {
         if(settingInformation->onChange != nullptr) {
             settingInformation->onChange(settingInformation);
         }
+
+        settingsChanged = true;
     }
 
     // backupSettings();
@@ -70,6 +73,8 @@ void SettingBase::putSettingValue(const Setting *setting, float value) {
         if(settingInformation->onChange != nullptr) {
             settingInformation->onChange(settingInformation);
         }
+
+        settingsChanged = true;
     }
 
     // backupSettings();
@@ -83,6 +88,8 @@ void SettingBase::putSettingValue(const Setting *setting, int value) {
         if(settingInformation->onChange != nullptr) {
             settingInformation->onChange(settingInformation);
         }
+
+        settingsChanged = true;
     }
 
     // backupSettings();
@@ -100,6 +107,12 @@ SettingInformation* SettingBase::getSettingValue(const Setting *setting) {
 
 void SettingBase::backupSettings() {
     _logger->printlnWrapper("SettingBase::backupSettings");
+
+    if(!settingsChanged) {
+        _logger->printlnWrapper("SettingBase::backupSettings no changes to save");
+        return;
+    }
+
     if(!this->settingsSetupDone) {
         this->settingsSetup();
     }
@@ -132,6 +145,8 @@ void SettingBase::backupSettings() {
     File settingsFile = _fsBase->getOrCreateFile("/settings.json", "w");
     serializeJson(settingsJson, settingsFile);
     settingsFile.close();
+
+    settingsChanged = false;
 
     // EEPROM.commit();
 }
