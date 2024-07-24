@@ -76,7 +76,7 @@ CarduinoNode::CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssi
         this->backupSettings();
         this->printlnWrapper("CarduinoNode::CarduinoNode LAMBDA settings saved");
     }, this->scheduler);
-    // backupSettingsTask->restartDelayed();
+    backupSettingsTask->restartDelayed();
     
     if(!this->initializedCan) {
         this->otaStartup();
