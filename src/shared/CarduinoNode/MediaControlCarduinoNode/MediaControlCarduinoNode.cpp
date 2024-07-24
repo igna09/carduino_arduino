@@ -12,10 +12,10 @@ MediaControlCarduinoNode::MediaControlCarduinoNode(uint8_t id, uint8_t clk, uint
 			return;
 		}
 		this->lastRead = millis();
-		if(rotation == 1) { // clockwise
+		if(rotation == 255) { // clockwise
 			this->sendMediaControlMessage(&MediaControl::VOLUME_UP);
 			// Serial.println("VOLUME_UP");
-		} else if (rotation == 255) { //counter clockwise
+		} else if (rotation == 1) { //counter clockwise
 			this->sendMediaControlMessage(&MediaControl::VOLUME_DOWN);
 			// Serial.println("VOLUME_DOWN");
 		}
