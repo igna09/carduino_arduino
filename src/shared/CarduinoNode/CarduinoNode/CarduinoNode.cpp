@@ -124,92 +124,10 @@ bool CarduinoNode::existsAllFiles() {
     return mainJsExists && polyfillsJsExists && indexHtmlExists && stylesCssExists;
 }
 
-void CarduinoNode::setupServerWebapp() {
-    this->_fallbackPage = false;
-    this->setupLogger(this->server, false, this->_originalLogOnSerial);
-    this->server->serveStatic("/", *_fs, "/").setDefaultFile("/index.html");
-
-    this->server->on("/update-firmware", HTTP_POST, [](AsyncWebServerRequest *request){
-        AsyncWebServerResponse *response;
-        if(Update.hasError()) {
-            #if defined(ESP8266)
-            response = request->beginResponse(500, "text/plain", Update.getErrorString());
-            #elif defined(ESP32)
-            response = request->beginResponse(500, "text/plain", Update.errorString());
-            #endif
-        } else {
-            response = request->beginResponse(200, "text/plain");
-        }
-        response->addHeader("Connection", "close");
-        request->send(response);
-        ESP.restart();
-    },[](AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final){
-        if(!index){
-            Serial.printf("Update Start: %s\n", filename.c_str());
-            #if defined(ESP8266)
-            Update.runAsync(true);
-            #endif
-            if(!Update.begin((ESP.getFreeSketchSpace() - 0x1000) & 0xFFFFF000)){
-                Update.printError(Serial);
-            }
-        }
-        if(!Update.hasError()){
-            if(Update.write(data, len) != len){
-                Update.printError(Serial);
-            }
-        }
-        if(final){
-            if(Update.end(true)){
-                Serial.printf("Update Success: %uB\n", index+len);
-            } else {
-                Update.printError(Serial);
-            }
-        }
-    });
-
-    this->server->on("/file-upload", HTTP_POST, [&](AsyncWebServerRequest *request){
-        AsyncWebServerResponse *response = request->beginResponse(200, "text/plain");
-        response->addHeader("Connection", "close");
-        request->send(response);
-    },[&](AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final){
-        if (!index) {
-            printlnWrapper("Upload Start: " + String(filename));
-            // open the file on first call and store the file handle in the request object
-            request->_tempFile = getOrCreateFile("/" + filename, "w");
-        }
-
-        if (len) {
-            // stream the incoming chunk to the opened file
-            request->_tempFile.write(data, len);
-            // printlnWrapper("Writing file: " + String(filename) + " index=" + String(index) + " len=" + String(len));
-        }
-
-        if (final) {
-            // close the file handle as the upload is now done
-            request->_tempFile.close();
-            printlnWrapper("Upload Complete: " + String(filename) + ",size: " + String(index + len));
-        }
-    });
-
-    this->server->on("/restart", HTTP_GET, [&](AsyncWebServerRequest *request){
-        AsyncWebServerResponse *response = request->beginResponse(200, "text/plain");
-        response->addHeader("Connection", "close");
-        request->send(response);
-
-        delay(250);
-        this->restart();
-    });
-
-    this->server->on("/status", HTTP_GET, [&](AsyncWebServerRequest *request){
-        AsyncResponseStream *response = request->beginResponseStream("application/json");
-        JsonDocument jsonDocument;
-        jsonDocument["freeHeap"] = ESP.getFreeHeap();
-        jsonDocument["ssid"] = WiFi.softAPSSID();
-
-        serializeJson(jsonDocument, *response);
-        request->send(response);
-    });
-
+void CarduinoNode::setupServerAPI() {
+    /**
+     * API for file management
+     */
     this->server->on(
         "/download-file",
         HTTP_POST,
@@ -265,7 +183,6 @@ void CarduinoNode::setupServerWebapp() {
         },
         NULL,
         [&](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total){
-            // printlnWrapper("onBody");
             JsonDocument doc;
             DeserializationError error = deserializeJson(doc, data, len);
             if (error) {
@@ -273,7 +190,6 @@ void CarduinoNode::setupServerWebapp() {
                 request->send(500, "text/plain", "error deserializing: " + String(error.c_str()));
             } else {
                 String path = doc["path"];
-                // printlnWrapper("filename: " + filename);
                 JsonDocument resDoc;
                 JsonArray resArray = resDoc.to<JsonArray>();
 
@@ -295,30 +211,13 @@ void CarduinoNode::setupServerWebapp() {
             }
         }
     );
-}
 
-void CarduinoNode::setupServerFallback() {
-    this->_fallbackPage = true;
-    this->setupLogger(this->server, false, this->_originalLogOnSerial);
-
-    this->server->on("/", HTTP_GET, [&](AsyncWebServerRequest * request) {
-        String logmessage = "Client:" + request->client()->remoteIP().toString() + " " + request->url();
-        printlnWrapper(logmessage);
-        request->send_P(200, "text/html", FALLBACK_PAGE/*, [&](const String& var){
-            return this->fallbackPageProcessor(var);
-        }*/);
-    });
-
-    this->requestsCounter = 0;
     this->server->on("/file-upload", HTTP_POST, [&](AsyncWebServerRequest *request){
-        if(this->existsAllFiles() && this->requestsCounter == 0) {
-            this->server->reset();
-            this->setupServerWebapp();
-        }
-        request->redirect("/");
+        AsyncWebServerResponse *response = request->beginResponse(200, "text/plain");
+        response->addHeader("Connection", "close");
+        request->send(response);
     },[&](AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final){
         if (!index) {
-            this->requestsCounter++;
             printlnWrapper("Upload Start: " + String(filename));
             // open the file on first call and store the file handle in the request object
             request->_tempFile = getOrCreateFile("/" + filename, "w");
@@ -331,38 +230,93 @@ void CarduinoNode::setupServerFallback() {
         }
 
         if (final) {
-            this->requestsCounter--;
             // close the file handle as the upload is now done
             request->_tempFile.close();
             printlnWrapper("Upload Complete: " + String(filename) + ",size: " + String(index + len));
         }
     });
+}
 
-    this->server->serveStatic("/", *_fs, "/");
-    
-    this->server->on(
-        "/download",
-        HTTP_POST,
-        [&](AsyncWebServerRequest *request){
-            // printlnWrapper("onRequest");
-        },
-        NULL,
-        [&](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total){
-            // printlnWrapper("onBody");
-            JsonDocument doc;
-            DeserializationError error = deserializeJson(doc, data, len);
-            if (error) {
-                printlnWrapper("error deserializing: " + String(error.c_str()));
-                request->send(500, "text/plain", "error deserializing: " + String(error.c_str()));
-            } else {
-                String filename = doc["filename"];
-                // printlnWrapper("filename: " + filename);
-                AsyncWebServerResponse *response = request->beginResponse(*_fs, "/" + filename, String(), true);
-                request->send(response);
-                printlnWrapper("downloaded " + filename);
+void CarduinoNode::setupServerWebapp() {
+    this->_fallbackPage = false;
+    this->setupLogger(this->server, false, this->_originalLogOnSerial);
+    this->server->serveStatic("/", *_fs, "/").setDefaultFile("/index.html");
+
+    this->setupServerAPI();
+
+    this->server->on("/update-firmware", HTTP_POST, [](AsyncWebServerRequest *request){
+        AsyncWebServerResponse *response;
+        if(Update.hasError()) {
+            #if defined(ESP8266)
+            response = request->beginResponse(500, "text/plain", Update.getErrorString());
+            #elif defined(ESP32)
+            response = request->beginResponse(500, "text/plain", Update.errorString());
+            #endif
+        } else {
+            response = request->beginResponse(200, "text/plain");
+        }
+        response->addHeader("Connection", "close");
+        request->send(response);
+        ESP.restart();
+    },[](AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final){
+        if(!index){
+            Serial.printf("Update Start: %s\n", filename.c_str());
+            #if defined(ESP8266)
+            Update.runAsync(true);
+            #endif
+            if(!Update.begin((ESP.getFreeSketchSpace() - 0x1000) & 0xFFFFF000)){
+                Update.printError(Serial);
             }
         }
-    );
+        if(!Update.hasError()){
+            if(Update.write(data, len) != len){
+                Update.printError(Serial);
+            }
+        }
+        if(final){
+            if(Update.end(true)){
+                Serial.printf("Update Success: %uB\n", index+len);
+            } else {
+                Update.printError(Serial);
+            }
+        }
+    });
+
+    this->server->on("/restart", HTTP_GET, [&](AsyncWebServerRequest *request){
+        AsyncWebServerResponse *response = request->beginResponse(200, "text/plain");
+        response->addHeader("Connection", "close");
+        request->send(response);
+
+        delay(250);
+        this->restart();
+    });
+
+    this->server->on("/status", HTTP_GET, [&](AsyncWebServerRequest *request){
+        AsyncResponseStream *response = request->beginResponseStream("application/json");
+        JsonDocument jsonDocument;
+        jsonDocument["freeHeap"] = ESP.getFreeHeap();
+        jsonDocument["ssid"] = WiFi.softAPSSID();
+
+        serializeJson(jsonDocument, *response);
+        request->send(response);
+    });
+}
+
+void CarduinoNode::setupServerFallback() {
+    this->_fallbackPage = true;
+    this->setupLogger(this->server, false, this->_originalLogOnSerial);
+
+    this->server->serveStatic("/", *_fs, "/");
+
+    setupServerAPI();
+
+    this->server->on("/", HTTP_GET, [&](AsyncWebServerRequest * request) {
+        String logmessage = "Client:" + request->client()->remoteIP().toString() + " " + request->url();
+        printlnWrapper(logmessage);
+        request->send_P(200, "text/html", FALLBACK_PAGE/*, [&](const String& var){
+            return this->fallbackPageProcessor(var);
+        }*/);
+    });
 }
 
 void CarduinoNode::loop() {

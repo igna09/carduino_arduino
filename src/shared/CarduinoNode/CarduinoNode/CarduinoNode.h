@@ -40,33 +40,11 @@
 // #include "shared/executors/Executor.h"
 
 /**
- * Send message to android --> Category;payload;
- * READ_SETTINGS;auto_close_rearview_mirrors-true;
- * CAR_STATUS;INTERNAL_LUMINANCE-2700;
- * Receive message from android --> Category;paylod;
- * READ_SETTINGS;get;
- * WRITE_SETTING;auto_close_rearview_mirrors-false;
- * 
  * This node has got a canbus interface and a wifi AP to update software
 */
 
 const char FALLBACK_PAGE[] PROGMEM = R"rawliteral(
-<!DOCTYPE HTML>
-<html lang="en">
-<head>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta charset="UTF-8">
-</head>
-<body>
-<p><h1>File Upload</h1></p>
-<form method="POST" action="/file-upload" enctype="multipart/form-data">
-    <p><input type="file" name="file" multiple/></p>
-    <input type="submit" name="upload" value="Upload" title="Upload File">
-</form>
-<p>Some files are missing, upload ALL webapp files (favicon.ico.gz index.html.gz main.js.gz polyfills.js.gz styles.css.gz)</p>
-<p>You will be redirect as soon as the upload ends (if you uploaded ALL files)</p>
-</body>
-</html>
+<!DOCTYPE HTML><html lang="en"><head><meta name="viewport" content="width=device-width,initial-scale=1"><meta charset="UTF-8"><script type="text/javascript">let baseUrl,currentPath=(baseUrl=window.location.search.includes("NODE_ENV=development")?"http://localhost":window.location.protocol+"//"+window.location.host,document.write("<base href='"+baseUrl+"' />"),"/");function post(e,t,n){httpRequest("POST",e,t,n)}function get(e,t){httpRequest("GET",e,void 0,t)}function httpRequest(e,t,n,o){let l=new XMLHttpRequest;l.open(e,t),l.setRequestHeader("Content-Type","application/json"),l.setRequestHeader("Accept","application/json"),l.setRequestHeader("Access-Control-Allow-Origin","*"),l.onload=e=>{200<=l.status&&l.status<300?o(JSON.parse(l.response)):console.error(l.statusText,l.response)},n?l.send(JSON.stringify(n)):l.send()}function getAllFiles(e){post("/file-list",{path:currentPath=e},e=>{var t=document.getElementById("file-list");t.innerHTML="";let o=document.createElement("table");var n=o.insertRow(),l=n.insertCell(),n=n.insertCell();l.textContent="Name",n.textContent="Action",e.forEach(e=>{var t=o.insertRow(),n=t.insertCell(),t=t.insertCell();n.textContent=e.name,"file"===e.type?((n=document.createElement("button")).textContent="Download",n.addEventListener("click",()=>{window.open("/"+e.name)}),t.appendChild(n)):"folder"===e.type&&((n=document.createElement("button")).textContent="Open",n.addEventListener("click",()=>{getAllFiles(e.name)}),t.appendChild(n))}),t.appendChild(o),document.getElementById("home-button").disabled="/"===currentPath})}function goHome(){getAllFiles("/")}getAllFiles("/")</script></head><body><p></p><h1>Files</h1><button id="home-button" onclick="goHome()" disabled="disabled">Torna alla home</button><div id="file-list"></div><p></p><p></p><h1>File upload</h1><form method="POST" action="/file-upload" enctype="multipart/form-data"><span><input type="file" name="file" multiple="multiple"></span><input type="submit" name="upload" value="Upload" title="Upload File"></form><span>If you are seeing this page means that not every angular has been uploaded (favicon.ico.gz index.html.gz main.js.gz polyfills.js.gz styles.css.gz)</span><p></p></body></html>
 )rawliteral";
 
 #define DIGITAL_PINS_UPDATE_INTERVAL 20
@@ -99,6 +77,7 @@ class CarduinoNode : public Logger, public FSBase, public SettingBase {
         String fallbackPageProcessor(const String& var);
         bool existsAllFiles();
         int requestsCounter;
+        void setupServerAPI();
         void setupServerWebapp();
         void setupServerFallback();
         bool _fallbackPage;
