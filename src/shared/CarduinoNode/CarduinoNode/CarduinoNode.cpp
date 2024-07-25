@@ -657,11 +657,12 @@ void CarduinoNode::readDigitalPins() {
     }
 }
 
-void CarduinoNode::delayTask(int delay, std::function<void()> lambdaCallback) {
+Task* CarduinoNode::delayTask(int delay, std::function<void()> lambdaCallback) {
 	this->printlnWrapper("CarduinoNode::delayTask " + String(millis()));
     Task *lambdaTask = new Task(delay, 1, lambdaCallback, this->scheduler);
     lambdaTask->setSelfDestruct(true);
     lambdaTask->restartDelayed();
+    return lambdaTask;
 }
 
 void CarduinoNode::sendLog(uint8_t id, bool value) {

@@ -124,7 +124,7 @@ class CarduinoNode : public Logger, public FSBase, public SettingBase {
         virtual void disable();
         virtual void enableInterrupt();
         virtual void disableInterrupt();
-        void delayTask(int delay, std::function<void()> lambdaCallback);
+        Task* delayTask(int delay, std::function<void()> lambdaCallback);
         virtual void sendLog(uint8_t id, int value);
         virtual void sendLog(uint8_t id, bool value);
         virtual void sendLog(uint8_t id, float value);
