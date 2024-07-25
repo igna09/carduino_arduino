@@ -42,6 +42,7 @@ CarduinoNode::CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssi
         }
     }, true);
     WiFi.mode(WIFI_OFF);
+    // WiFi.persistent(false);
     
     this->canExecutor = new Executor();
     this->canExecutor->addExecutor(new CarduinoNodeWriteSetting());
