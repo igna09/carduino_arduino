@@ -1,7 +1,8 @@
 #pragma once
 
-#define SERVICE_UUID        "4fafc201-1fb5-459e-8fcc-c5c9c331914b"
-#define CHARACTERISTIC_UUID "beb5483e-36e1-4688-b7f5-ea07361b26a8"
+#define SERVICE_UUID                                    "4fafc201-1fb5-459e-8fcc-c5c9c331914b"
+#define CHARACTERISTIC_LOCK_CONTROL_NOTIFICATION_UUID   "beb5483e-36e1-4688-b7f5-ea07361b26a8"
+#define CHARACTERISTIC_LOCK_CONTROL_FROM_APP_UUID       "beb5483e-36e1-4688-b7f5-ea07361b26a9"
 
 #include <Arduino.h>
 #include "shared/CarduinoNode/CarduinoNode/CarduinoNode.h"
@@ -9,6 +10,7 @@
 #include "shared/CanbusMessage/MediaControlMessage/MediaControlMessage.h"
 #include "shared/SharedDefinitions.h"
 #include "utils/MyBLEServerCallbacks/MyBLEServerCallbacks.h"
+#include "utils/MyCharacteristicCallbacks/MyCharacteristicCallbacks.h"
 #include "utils/GAPCallback/GAPCallback.h"
 #include "shared/CarduinoNode/CommunicationCarduinoNode/executors/CommunicationCarduinoNodeEvents/CommunicationCarduinoNodeEvents.h"
 
@@ -16,7 +18,6 @@
 
 #define SLEEP_TIME 4
 #define ON_TIME 1
-
 
 class CommunicationCarduinoNode : public CarduinoNode {
     public:
@@ -38,7 +39,8 @@ class CommunicationCarduinoNode : public CarduinoNode {
     private:
         NimBLEServer* bleServer;
         NimBLEDevice* bleDevice;
-        NimBLECharacteristic *pCharacteristic;
+        NimBLECharacteristic *lockControlNotificationCharacteristic;
+        NimBLECharacteristic *lockControlFromAppCharacteristic;
 
         void listWhitelist();
         void backupWhitelist();

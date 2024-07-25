@@ -26,32 +26,32 @@ CommunicationCarduinoNode::CommunicationCarduinoNode(uint8_t id, int cs, int int
     NimBLEDevice::setSecurityRespKey(1 << 0 | 1 << 1); //ESP_BLE_ENC_KEY_MASK | ESP_BLE_ID_KEY_MASK
     // pSecurity->setKeySize(16); //the key size should be 7~16 bytes
 
-    GAPCallback<int(ble_gap_event *event, void *arg)>::func = std::bind(&CommunicationCarduinoNode::customGapCallback, this, std::placeholders::_1, std::placeholders::_2);
-    NimBLEDevice::setCustomGapHandler(static_cast<gap_event_handler>(GAPCallback<int(ble_gap_event *event, void *arg)>::callback));
+    // GAPCallback<int(ble_gap_event *event, void *arg)>::func = std::bind(&CommunicationCarduinoNode::customGapCallback, this, std::placeholders::_1, std::placeholders::_2);
+    // NimBLEDevice::setCustomGapHandler(static_cast<gap_event_handler>(GAPCallback<int(ble_gap_event *event, void *arg)>::callback));
 
     // Create a service
     NimBLEService *pService = bleServer->createService(SERVICE_UUID);
 
     // Create a characteristic
-    pCharacteristic = pService->createCharacteristic(
-        CHARACTERISTIC_UUID,
-        NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::WRITE | NIMBLE_PROPERTY::NOTIFY
+    lockControlNotificationCharacteristic = pService->createCharacteristic(
+        CHARACTERISTIC_LOCK_CONTROL_NOTIFICATION_UUID,
+        NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::READ_ENC | NIMBLE_PROPERTY::READ_AUTHEN | NIMBLE_PROPERTY::NOTIFY
     );
-    pCharacteristic->setValue(String(millis()).c_str());
-    /** 2904 descriptors are a special case, when createDescriptor is called with
-     *  0x2904 a NimBLE2904 class is created with the correct properties and sizes.
-     *  However we must cast the returned reference to the correct type as the method
-     *  only returns a pointer to the base NimBLEDescriptor class.
-     */
-    /** Handler class for descriptor actions */
-    NimBLE2904* pBeef2904 = (NimBLE2904*)pCharacteristic->createDescriptor("2904");
-    pBeef2904->setFormat(NimBLE2904::FORMAT_UTF8);
+    lockControlFromAppCharacteristic = pService->createCharacteristic(
+        CHARACTERISTIC_LOCK_CONTROL_FROM_APP_UUID,
+        NIMBLE_PROPERTY::WRITE | NIMBLE_PROPERTY::WRITE_ENC | NIMBLE_PROPERTY::WRITE_AUTHEN
+    );
+    lockControlFromAppCharacteristic->setCallbacks(new MyCharacteristicCallbacks(this));
 
     // Start the service
     pService->start();
 
     NimBLEAdvertising *pAdvertising = NimBLEDevice::getAdvertising();
     pAdvertising->addServiceUUID(SERVICE_UUID);
+    /** If your device is battery powered you may consider setting scan response
+     *  to false as it will extend battery life at the expense of less data sent.
+     */
+    // pAdvertising->setScanResponse(true);
     pAdvertising->start(); 
 
     printlnWrapper("Waiting a client connection to notify...");
@@ -62,9 +62,6 @@ CommunicationCarduinoNode::CommunicationCarduinoNode(uint8_t id, int cs, int int
         NimBLEConnInfo info = bleServer->getPeerInfo(0);
         ble_gap_conn_rssi(info.getConnHandle(), &rssi);
 
-        pCharacteristic->setValue(String(millis()).c_str());
-        pCharacteristic->notify();
-
         String message = "rssi [bd_addr: ";
         message += info.getIdAddress().toString().c_str();
         message += ", RSSI: ";
@@ -74,8 +71,14 @@ CommunicationCarduinoNode::CommunicationCarduinoNode(uint8_t id, int cs, int int
         
         if(getSettingValue(&Setting::BLE_UNLOCKING)->value->boolValue) {
             if(rssi > -60) {
+                lockControlNotificationCharacteristic->setValue(String(Event::UNLOCK_CAR.name));
+                lockControlNotificationCharacteristic->notify();
+                
                 sendEvent(&Event::UNLOCK_CAR);
             } else {
+                lockControlNotificationCharacteristic->setValue(String(Event::LOCK_CAR.name));
+                lockControlNotificationCharacteristic->notify();
+
                 sendEvent(&Event::LOCK_CAR);
             }
         }
@@ -84,11 +87,11 @@ CommunicationCarduinoNode::CommunicationCarduinoNode(uint8_t id, int cs, int int
     this->disableNewPairing();
 
     connected = false;
-    delayTask(SECONDS_TO_MILLISECONDS(ON_TIME), [&](){
-        if(!connected) {
-            esp_sleep_enable_timer_wakeup(SECONDS_TO_MICROSECONDS(SLEEP_TIME));
-        }
-    });
+    // delayTask(SECONDS_TO_MILLISECONDS(ON_TIME), [&](){
+    //     if(!connected) {
+    //         esp_sleep_enable_timer_wakeup(SECONDS_TO_MICROSECONDS(SLEEP_TIME));
+    //     }
+    // });
 
     // usbExecutor->addExecutor(new CommunicationCarduinoNodeEvents());
 
@@ -177,7 +180,8 @@ void CommunicationCarduinoNode::restoreWhitelist() {
     for(JsonVariant item : whitelistJson.as<JsonArray>()) {
         String mac = item.as<String>();
         printlnWrapper("CommunicationCarduinoNode::restoreWhitelist restore whitelist address " + mac);
-        NimBLEDevice::whiteListAdd(NimBLEAddress(mac.c_str(), BLE_ADDR_PUBLIC));
+        NimBLEAddress addr = NimBLEAddress(mac.c_str(), BLE_ADDR_PUBLIC);
+        NimBLEDevice::whiteListAdd(addr);
     }
 }
 
