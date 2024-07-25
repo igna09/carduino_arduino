@@ -38,6 +38,7 @@ class CommunicationCarduinoNode : public CarduinoNode {
     private:
         NimBLEServer* bleServer;
         NimBLEDevice* bleDevice;
+        NimBLECharacteristic *pCharacteristic;
 
         void listWhitelist();
         void backupWhitelist();

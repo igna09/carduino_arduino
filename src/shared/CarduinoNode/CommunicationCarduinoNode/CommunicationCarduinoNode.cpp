@@ -28,8 +28,30 @@ CommunicationCarduinoNode::CommunicationCarduinoNode(uint8_t id, int cs, int int
 
     GAPCallback<int(ble_gap_event *event, void *arg)>::func = std::bind(&CommunicationCarduinoNode::customGapCallback, this, std::placeholders::_1, std::placeholders::_2);
     NimBLEDevice::setCustomGapHandler(static_cast<gap_event_handler>(GAPCallback<int(ble_gap_event *event, void *arg)>::callback));
-    
+
+    // Create a service
+    NimBLEService *pService = bleServer->createService(SERVICE_UUID);
+
+    // Create a characteristic
+    pCharacteristic = pService->createCharacteristic(
+        CHARACTERISTIC_UUID,
+        NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::WRITE | NIMBLE_PROPERTY::NOTIFY
+    );
+    pCharacteristic->setValue(String(millis()).c_str());
+    /** 2904 descriptors are a special case, when createDescriptor is called with
+     *  0x2904 a NimBLE2904 class is created with the correct properties and sizes.
+     *  However we must cast the returned reference to the correct type as the method
+     *  only returns a pointer to the base NimBLEDescriptor class.
+     */
+    /** Handler class for descriptor actions */
+    NimBLE2904* pBeef2904 = (NimBLE2904*)pCharacteristic->createDescriptor("2904");
+    pBeef2904->setFormat(NimBLE2904::FORMAT_UTF8);
+
+    // Start the service
+    pService->start();
+
     NimBLEAdvertising *pAdvertising = NimBLEDevice::getAdvertising();
+    pAdvertising->addServiceUUID(SERVICE_UUID);
     pAdvertising->start(); 
 
     printlnWrapper("Waiting a client connection to notify...");
@@ -39,6 +61,9 @@ CommunicationCarduinoNode::CommunicationCarduinoNode(uint8_t id, int cs, int int
         int8_t rssi;
         NimBLEConnInfo info = bleServer->getPeerInfo(0);
         ble_gap_conn_rssi(info.getConnHandle(), &rssi);
+
+        pCharacteristic->setValue(String(millis()).c_str());
+        pCharacteristic->notify();
 
         String message = "rssi [bd_addr: ";
         message += info.getIdAddress().toString().c_str();
