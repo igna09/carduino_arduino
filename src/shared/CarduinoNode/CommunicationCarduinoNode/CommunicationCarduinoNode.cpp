@@ -39,13 +39,15 @@ CommunicationCarduinoNode::CommunicationCarduinoNode(uint8_t id, int cs, int int
         int8_t rssi;
         NimBLEConnInfo info = bleServer->getPeerInfo(0);
         ble_gap_conn_rssi(info.getConnHandle(), &rssi);
+
         String message = "rssi [bd_addr: ";
         message += info.getIdAddress().toString().c_str();
         message += ", RSSI: ";
         message += String(rssi);
         message += "]";
-        printlnWrapper(message, false); 
-        if(getSettingValue(Setting::BLE_UNLOCKING)->value->boolValue) {
+        printlnWrapper(message, false);
+        
+        if(getSettingValue(&Setting::BLE_UNLOCKING)->value->boolValue) {
             if(rssi > -60) {
                 sendEvent(&Event::UNLOCK_CAR);
             } else {
@@ -54,14 +56,21 @@ CommunicationCarduinoNode::CommunicationCarduinoNode(uint8_t id, int cs, int int
         }
     }, this->scheduler, false);
 
-    // this->disableNewPairing();
+    this->disableNewPairing();
+
+    connected = false;
+    delayTask(SECONDS_TO_MILLISECONDS(ON_TIME), [&](){
+        if(!connected) {
+            esp_sleep_enable_timer_wakeup(SECONDS_TO_MICROSECONDS(SLEEP_TIME));
+        }
+    });
 
     // usbExecutor->addExecutor(new CommunicationCarduinoNodeEvents());
 
     /**
      * TMP
      */
-    otaStartup();
+    // otaStartup();
     // this->enable();
 
     printlnWrapper("setup done");
@@ -91,6 +100,7 @@ void CommunicationCarduinoNode::clientAuthenticated(NimBLEConnInfo info) {
             message += "]";
             printlnWrapper(message, false);
 
+            connected = true;
             rssiTask->enable();
         }
     }

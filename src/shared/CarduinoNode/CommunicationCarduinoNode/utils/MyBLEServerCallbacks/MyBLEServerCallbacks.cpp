@@ -7,6 +7,7 @@ MyBLEServerCallbacks::MyBLEServerCallbacks(CommunicationCarduinoNode* carduinoNo
 
 void MyBLEServerCallbacks::onConnect(NimBLEServer* pServer, NimBLEConnInfo& desc) {
     node->printlnWrapper("MyBLEServerCallbacks::onConnect");
+    
     String message = "onConnect [bd_addr: ";
     message += desc.getAddress().toString().c_str();
     message += ", success: ";

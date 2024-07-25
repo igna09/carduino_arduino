@@ -14,6 +14,10 @@
 
 #include <NimBLEDevice.h>
 
+#define SLEEP_TIME 4
+#define ON_TIME 1
+
+
 class CommunicationCarduinoNode : public CarduinoNode {
     public:
         CommunicationCarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssid, const char *password);
@@ -21,7 +25,6 @@ class CommunicationCarduinoNode : public CarduinoNode {
         void clientAuthenticated(NimBLEConnInfo);
         void clearWhitelist();
         int customGapCallback(ble_gap_event *event, void *arg);
-        bool authenticated;
         bool connected;
         Task* rssiTask;
         void enableNewPairing();
