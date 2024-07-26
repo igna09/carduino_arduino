@@ -34,6 +34,9 @@ class CommunicationCarduinoNode : public CarduinoNode {
         void sendBLEPairingCode(int code);
         void onIdentity(NimBLEConnInfo info);
 
+        void otaStartup();
+        void otaShutdown();
+
         void test() override;
 
     private:

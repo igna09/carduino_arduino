@@ -85,6 +85,7 @@ CommunicationCarduinoNode::CommunicationCarduinoNode(uint8_t id, int cs, int int
     }, this->scheduler, false);
 
     this->disableNewPairing();
+    CarduinoNode::otaShutdown();
 
     connected = false;
     // delayTask(SECONDS_TO_MILLISECONDS(ON_TIME), [&](){
@@ -269,4 +270,14 @@ void CommunicationCarduinoNode::onIdentity(NimBLEConnInfo info) {
         NimBLEDevice::deleteBond(info.getIdAddress());
         printlnWrapper("CommunicationCarduinoNode::onIdentity disabled pairing, cannot connect");
     }
+}
+
+void CommunicationCarduinoNode::otaStartup() {
+    bleServer->getAdvertising()->stop();
+    CarduinoNode::otaStartup();
+}
+
+void CommunicationCarduinoNode::otaShutdown() {
+    bleServer->getAdvertising()->start();
+    CarduinoNode::otaShutdown();
 }
