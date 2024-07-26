@@ -13,6 +13,7 @@
 #include "utils/MyCharacteristicCallbacks/MyCharacteristicCallbacks.h"
 #include "utils/GAPCallback/GAPCallback.h"
 #include "shared/CarduinoNode/CommunicationCarduinoNode/executors/CommunicationCarduinoNodeEvents/CommunicationCarduinoNodeEvents.h"
+#include "shared/CircularArray/CircularArray.h"
 
 #include <NimBLEDevice.h>
 
@@ -44,6 +45,9 @@ class CommunicationCarduinoNode : public CarduinoNode {
         NimBLEDevice* bleDevice;
         NimBLECharacteristic *lockControlNotificationCharacteristic;
         NimBLECharacteristic *lockControlFromAppCharacteristic;
+
+        CircularArray<int, 6>* averageRssiArray;
+        const Event* lastLockStatusChangedEvent;
 
         void listWhitelist();
         void backupWhitelist();

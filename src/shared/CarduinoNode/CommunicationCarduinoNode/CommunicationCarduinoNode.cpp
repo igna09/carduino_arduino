@@ -56,11 +56,15 @@ CommunicationCarduinoNode::CommunicationCarduinoNode(uint8_t id, int cs, int int
 
     printlnWrapper("Waiting a client connection to notify...");
 
+    averageRssiArray = new CircularArray<int, 6>();
+    lastLockStatusChangedEvent = &Event::LOCK_CAR;
     this->rssiTask = new Task(1000, TASK_FOREVER, [&](){
         // esp_err_t rc = esp_ble_gap_read_rssi((uint8_t*)this->authenticatedBdAddress->getNative());
         int8_t rssi;
         NimBLEConnInfo info = bleServer->getPeerInfo(0);
         ble_gap_conn_rssi(info.getConnHandle(), &rssi);
+
+        averageRssiArray->push(rssi);
 
         String message = "rssi [bd_addr: ";
         message += info.getIdAddress().toString().c_str();
@@ -69,17 +73,43 @@ CommunicationCarduinoNode::CommunicationCarduinoNode(uint8_t id, int cs, int int
         message += "]";
         printlnWrapper(message, false);
         
-        if(getSettingValue(&Setting::BLE_UNLOCKING)->value->boolValue) {
-            if(rssi > -60) {
-                lockControlNotificationCharacteristic->setValue(String(Event::UNLOCK_CAR.name));
+        if(getSettingValue(&Setting::BLE_UNLOCKING)->value->boolValue && averageRssiArray->size() > 2) {
+            int sumRssi = 0;
+            uint8_t maxIndexNotToSum = 0;
+            int maxValue = -1000;
+            uint8_t minIndexNotToSum = 0;
+            int minValue = 1000;
+            for (int i = 0; i < averageRssiArray->size(); i++) {
+                if((*averageRssiArray)[i] > maxValue) {
+                    maxValue = (*averageRssiArray)[i];
+                    maxIndexNotToSum = i;
+                }
+                if((*averageRssiArray)[i] < minValue) {
+                    minValue = (*averageRssiArray)[i];
+                    minIndexNotToSum = i;
+                }
+            }
+            for (int i = 0; i < averageRssiArray->size(); i++) {
+                if(i != maxIndexNotToSum && i != minIndexNotToSum) {
+                    sumRssi += (*averageRssiArray)[i] * -1;
+                }
+            }
+            int averageRssi = sumRssi / (averageRssiArray->size() - (maxIndexNotToSum != minIndexNotToSum ? 2 : 1));
+            averageRssi *= -1;
+
+            printlnWrapper("average RSSI is " + String(averageRssi));
+
+            const Event* lockEvent = (averageRssi > -60 ? &Event::UNLOCK_CAR : &Event::LOCK_CAR);
+
+            if(lastLockStatusChangedEvent->id != lockEvent->id) {
+                lastLockStatusChangedEvent = lockEvent;
+
+                printlnWrapper(String(lockEvent->id == Event::UNLOCK_CAR.id ? "unlocking" : "locking") + " car");
+
+                lockControlNotificationCharacteristic->setValue(String(lockEvent->name));
                 lockControlNotificationCharacteristic->notify();
                 
-                sendEvent(&Event::UNLOCK_CAR);
-            } else {
-                lockControlNotificationCharacteristic->setValue(String(Event::LOCK_CAR.name));
-                lockControlNotificationCharacteristic->notify();
-
-                sendEvent(&Event::LOCK_CAR);
+                sendEvent(lockEvent);
             }
         }
     }, this->scheduler, false);
