@@ -7,12 +7,14 @@ class CircularArray {
   public:
     CircularArray() : head(0), tail(0) {}
 
-    void push(const T& value) {
+    size_t push(const T& value) {
       array[head] = value;
+      size_t index = head;
       head = (head + 1) % N;
       if (head == tail) {
         tail = (tail + 1) % N;
       }
+      return index;
     }
 
     T pop() {
@@ -44,7 +46,6 @@ class CircularArray {
       return array[(tail + index) % N];
     }
 
-  private:
     T array[N];
     size_t head;
     size_t tail;
