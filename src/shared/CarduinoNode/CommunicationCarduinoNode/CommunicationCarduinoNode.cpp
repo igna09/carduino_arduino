@@ -261,6 +261,7 @@ void CommunicationCarduinoNode::onIdentity(NimBLEConnInfo info) {
         if(!NimBLEDevice::onWhiteList(info.getIdAddress())) {
             NimBLEDevice::whiteListAdd(info.getIdAddress());
             backupWhitelist();
+            putSettingValue(&Setting::BLE_PAIRING, false);
         }
         clientAuthenticated(info);
     } else {
