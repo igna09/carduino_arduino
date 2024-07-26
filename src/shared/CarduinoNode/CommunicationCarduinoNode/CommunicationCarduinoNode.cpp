@@ -8,6 +8,7 @@ CommunicationCarduinoNode::CommunicationCarduinoNode(uint8_t id, int cs, int int
             this->disableNewPairing();
         }
     });
+    this->addSetting(&Setting::BLE_RSSI_THRESHOLD, -70, nullptr, true);
     this->addSetting(&Setting::BLE_UNLOCKING, false, nullptr, true);
     this->restoreSettings();
 
@@ -58,7 +59,7 @@ CommunicationCarduinoNode::CommunicationCarduinoNode(uint8_t id, int cs, int int
 
     averageRssiArray = new CircularArray<int, 6>();
     lastLockStatusChangedEvent = &Event::LOCK_CAR;
-    this->rssiTask = new Task(1000, TASK_FOREVER, [&](){
+    this->rssiTask = new Task(500, TASK_FOREVER, [&](){
         // esp_err_t rc = esp_ble_gap_read_rssi((uint8_t*)this->authenticatedBdAddress->getNative());
         int8_t rssi;
         NimBLEConnInfo info = bleServer->getPeerInfo(0);
@@ -99,7 +100,7 @@ CommunicationCarduinoNode::CommunicationCarduinoNode(uint8_t id, int cs, int int
 
             printlnWrapper("average RSSI is " + String(averageRssi));
 
-            const Event* lockEvent = (averageRssi > -60 ? &Event::UNLOCK_CAR : &Event::LOCK_CAR);
+            const Event* lockEvent = (averageRssi > getSettingValue(&Setting::BLE_RSSI_THRESHOLD)->value->intValue ? &Event::UNLOCK_CAR : &Event::LOCK_CAR);
 
             if(lastLockStatusChangedEvent->id != lockEvent->id) {
                 lastLockStatusChangedEvent = lockEvent;
@@ -118,11 +119,11 @@ CommunicationCarduinoNode::CommunicationCarduinoNode(uint8_t id, int cs, int int
     CarduinoNode::otaShutdown();
 
     connected = false;
-    // delayTask(SECONDS_TO_MILLISECONDS(ON_TIME), [&](){
-    //     if(!connected) {
-    //         esp_sleep_enable_timer_wakeup(SECONDS_TO_MICROSECONDS(SLEEP_TIME));
-    //     }
-    // });
+    delayTask(SECONDS_TO_MILLISECONDS(ON_TIME), [&](){
+        if(!connected) {
+            esp_sleep_enable_timer_wakeup(SECONDS_TO_MICROSECONDS(SLEEP_TIME));
+        }
+    });
 
     // usbExecutor->addExecutor(new CommunicationCarduinoNodeEvents());
 
