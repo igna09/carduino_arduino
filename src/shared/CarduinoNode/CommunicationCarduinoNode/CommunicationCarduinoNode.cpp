@@ -57,7 +57,7 @@ CommunicationCarduinoNode::CommunicationCarduinoNode(uint8_t id, int cs, int int
 
     printlnWrapper("Waiting a client connection to notify...");
 
-    averageRssiArray = new CircularArray<int, 6>();
+    averageRssiArray = new CircularArray<int, RSSI_ARRAY_SIZE>();
     lastLockStatusChangedEvent = &Event::LOCK_CAR;
     this->rssiTask = new Task(500, TASK_FOREVER, [&](){
         // esp_err_t rc = esp_ble_gap_read_rssi((uint8_t*)this->authenticatedBdAddress->getNative());
@@ -90,12 +90,44 @@ CommunicationCarduinoNode::CommunicationCarduinoNode(uint8_t id, int cs, int int
                     minIndexNotToSum = i;
                 }
             }
+            CircularArray<int, RSSI_ARRAY_SIZE> tmpCircularArray;
             for (int i = 0; i < averageRssiArray->size(); i++) {
                 if(i != maxIndexNotToSum && i != minIndexNotToSum) {
-                    sumRssi += (*averageRssiArray)[i] * -1;
+                    tmpCircularArray.push((*averageRssiArray)[i]);
                 }
             }
-            int averageRssi = sumRssi / (averageRssiArray->size() - (maxIndexNotToSum != minIndexNotToSum ? 2 : 1));
+            // /**
+            //  * print
+            //  */
+            // for (int i = 0; i < tmpCircularArray.size(); i++) {
+            //     Serial.print(tmpCircularArray[i]);
+            //     Serial.print(" ");
+            // }
+            // Serial.println("");
+            /**
+             * average filter
+             */
+            tmpCircularArray[0] = (tmpCircularArray[0] + tmpCircularArray[1]) / 2;
+            for (int i = 1; i < tmpCircularArray.size() - 1; i++) {
+                tmpCircularArray[i] = (tmpCircularArray[i - 1] + tmpCircularArray[i] + tmpCircularArray[i + 1]) /3;
+            }
+            tmpCircularArray[tmpCircularArray.size() - 1] = (tmpCircularArray[tmpCircularArray.size() - 1] + tmpCircularArray[tmpCircularArray.size() - 2]) / 2;
+            // /**
+            //  * print
+            //  */
+            // for (int i = 0; i < tmpCircularArray.size(); i++) {
+            //     Serial.print(tmpCircularArray[i]);
+            //     Serial.print(" ");
+            // }
+            // Serial.println("");
+            /**
+             * average
+             */
+            for (int i = 0; i < tmpCircularArray.size(); i++) {
+                sumRssi += tmpCircularArray[i] * -1;
+            }
+
+            int averageRssi = sumRssi / tmpCircularArray.size();
             averageRssi *= -1;
 
             printlnWrapper("average RSSI is " + String(averageRssi));
