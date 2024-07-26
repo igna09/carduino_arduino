@@ -65,7 +65,7 @@ CommunicationCarduinoNode::CommunicationCarduinoNode(uint8_t id, int cs, int int
         NimBLEConnInfo info = bleServer->getPeerInfo(0);
         ble_gap_conn_rssi(info.getConnHandle(), &rssi);
 
-        averageRssiArray->push(rssi);
+        uint8_t i = averageRssiArray->push(rssi);
 
         String message = "rssi [bd_addr: ";
         message += info.getIdAddress().toString().c_str();
