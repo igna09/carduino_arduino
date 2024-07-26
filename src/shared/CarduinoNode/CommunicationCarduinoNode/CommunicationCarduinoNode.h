@@ -48,6 +48,7 @@ class CommunicationCarduinoNode : public CarduinoNode {
 
         CircularArray<int, 6>* averageRssiArray;
         const Event* lastLockStatusChangedEvent;
+        Task* sleepTask;
 
         void listWhitelist();
         void backupWhitelist();
