@@ -153,6 +153,7 @@ void CommunicationCarduinoNode::listWhitelist() {
 
 void CommunicationCarduinoNode::backupWhitelist() {
     printlnWrapper("CommunicationCarduinoNode::backupWhitelist");
+    remove("/whitelist.json");
     File whitelistFile = getOrCreateFile("/whitelist.json", "w");
 
     JsonDocument whitelistJson;
@@ -161,7 +162,7 @@ void CommunicationCarduinoNode::backupWhitelist() {
     for(uint8_t i = 0; i < NimBLEDevice::getWhiteListCount(); i++) {
         auto address = NimBLEDevice::getWhiteListAddress(i);
         printlnWrapper("CommunicationCarduinoNode::backupWhitelist backup whitelist address " + String(address.toString().c_str()));
-        settingsJsonArray.add(address.toString().c_str());
+        settingsJsonArray.add(String(address.toString().c_str()));
     }
 
     serializeJson(whitelistJson, whitelistFile);
