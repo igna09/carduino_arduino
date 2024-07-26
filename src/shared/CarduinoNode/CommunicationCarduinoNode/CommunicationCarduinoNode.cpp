@@ -257,7 +257,7 @@ void CommunicationCarduinoNode::sendBLEPairingCode(int code) {
 
 void CommunicationCarduinoNode::onIdentity(NimBLEConnInfo info) {
     printlnWrapper("CommunicationCarduinoNode::onIdentity");
-    if(!disabledPairing) {
+    if(!disabledPairing && info.isBonded()) {
         if(!NimBLEDevice::onWhiteList(info.getIdAddress())) {
             NimBLEDevice::whiteListAdd(info.getIdAddress());
             backupWhitelist();
