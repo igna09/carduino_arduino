@@ -119,11 +119,11 @@ CommunicationCarduinoNode::CommunicationCarduinoNode(uint8_t id, int cs, int int
     CarduinoNode::otaShutdown();
 
     connected = false;
-    sleepTask = new Task(2500, TASK_FOREVER, [&](){
-        Serial.println(connected ? "connected1" : "disconnected1");
+    sleepTask = new Task(2000, TASK_FOREVER, [&](){
+        // Serial.println(connected ? "connected1" : "disconnected1");
         if(!connected && !disabledPairing) { //TODO: && engineisoff
             delayTask(SECONDS_TO_MILLISECONDS(ON_TIME), [&](){
-                Serial.println(connected ? "connected2" : "disconnected2");
+                // Serial.println(connected ? "connected2" : "disconnected2");
                 if(!connected) {
                     esp_sleep_enable_timer_wakeup(SECONDS_TO_MICROSECONDS(SLEEP_TIME));
                     esp_deep_sleep_start();
