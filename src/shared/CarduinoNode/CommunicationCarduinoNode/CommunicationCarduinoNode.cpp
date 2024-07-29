@@ -57,7 +57,8 @@ CommunicationCarduinoNode::CommunicationCarduinoNode(uint8_t id, int cs, int int
 
     printlnWrapper("Waiting a client connection to notify...");
 
-    averageRssiArray = new CircularArray<int, RSSI_ARRAY_SIZE>();
+    latestRSSIs = new CircularArray<int, LATEST_RSSI_ARRAY_SIZE>();
+    latestAverageRSSIs = new CircularArray<int, LATEST_RSSI_AVERAGE_ARRAY_SIZE>();
     lastLockStatusChangedEvent = &Event::LOCK_CAR;
     this->rssiTask = new Task(500, TASK_FOREVER, [&](){
         // esp_err_t rc = esp_ble_gap_read_rssi((uint8_t*)this->authenticatedBdAddress->getNative());
@@ -65,7 +66,7 @@ CommunicationCarduinoNode::CommunicationCarduinoNode(uint8_t id, int cs, int int
         NimBLEConnInfo info = bleServer->getPeerInfo(0);
         ble_gap_conn_rssi(info.getConnHandle(), &rssi);
 
-        uint8_t i = averageRssiArray->push(rssi);
+        uint8_t i = latestRSSIs->push(rssi);
 
         String message = "rssi [bd_addr: ";
         message += info.getIdAddress().toString().c_str();
@@ -74,26 +75,26 @@ CommunicationCarduinoNode::CommunicationCarduinoNode(uint8_t id, int cs, int int
         message += "]";
         printlnWrapper(message, false);
         
-        if(getSettingValue(&Setting::BLE_UNLOCKING)->value->boolValue && averageRssiArray->size() > 2) {
+        if(getSettingValue(&Setting::BLE_UNLOCKING)->value->boolValue && latestRSSIs->size() > 2) {
             int sumRssi = 0;
             uint8_t maxIndexNotToSum = 0;
             int maxValue = -1000;
             uint8_t minIndexNotToSum = 0;
             int minValue = 1000;
-            for (int i = 0; i < averageRssiArray->size(); i++) {
-                if((*averageRssiArray)[i] > maxValue) {
-                    maxValue = (*averageRssiArray)[i];
+            for (int i = 0; i < latestRSSIs->size(); i++) {
+                if((*latestRSSIs)[i] > maxValue) {
+                    maxValue = (*latestRSSIs)[i];
                     maxIndexNotToSum = i;
                 }
-                if((*averageRssiArray)[i] < minValue) {
-                    minValue = (*averageRssiArray)[i];
+                if((*latestRSSIs)[i] < minValue) {
+                    minValue = (*latestRSSIs)[i];
                     minIndexNotToSum = i;
                 }
             }
-            CircularArray<int, RSSI_ARRAY_SIZE> tmpCircularArray;
-            for (int i = 0; i < averageRssiArray->size(); i++) {
+            CircularArray<int, LATEST_RSSI_ARRAY_SIZE> tmpCircularArray;
+            for (int i = 0; i < latestRSSIs->size(); i++) {
                 if(i != maxIndexNotToSum && i != minIndexNotToSum) {
-                    tmpCircularArray.push((*averageRssiArray)[i]);
+                    tmpCircularArray.push((*latestRSSIs)[i]);
                 }
             }
             // /**
@@ -130,11 +131,23 @@ CommunicationCarduinoNode::CommunicationCarduinoNode(uint8_t id, int cs, int int
             int averageRssi = sumRssi / tmpCircularArray.size();
             averageRssi *= -1;
 
+            latestAverageRSSIs->push(averageRssi);
+
             printlnWrapper("average RSSI is " + String(averageRssi));
 
             const Event* lockEvent = (averageRssi > getSettingValue(&Setting::BLE_RSSI_THRESHOLD)->value->intValue ? &Event::UNLOCK_CAR : &Event::LOCK_CAR);
 
-            if(lastLockStatusChangedEvent->id != lockEvent->id) {
+            bool validRSSI = true;
+            for(int i = 0; i < latestAverageRSSIs->size() - 1; i++) {
+                int averageRssiI = (*latestAverageRSSIs)[i];
+                if(averageRssi > getSettingValue(&Setting::BLE_RSSI_THRESHOLD)->value->intValue) {
+                    validRSSI = validRSSI && (averageRssiI > getSettingValue(&Setting::BLE_RSSI_THRESHOLD)->value->intValue);
+                } else {
+                    validRSSI = validRSSI && (averageRssiI <= getSettingValue(&Setting::BLE_RSSI_THRESHOLD)->value->intValue);
+                }
+            }
+
+            if(validRSSI && lastLockStatusChangedEvent->id != lockEvent->id) {
                 lastLockStatusChangedEvent = lockEvent;
 
                 printlnWrapper(String(lockEvent->id == Event::UNLOCK_CAR.id ? "unlocking" : "locking") + " car");

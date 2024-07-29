@@ -20,7 +20,8 @@
 #define SLEEP_TIME 4
 #define ON_TIME 1
 
-#define RSSI_ARRAY_SIZE (6 + 1)
+#define LATEST_RSSI_ARRAY_SIZE (6 + 1)
+#define LATEST_RSSI_AVERAGE_ARRAY_SIZE (3 + 1)
 
 class CommunicationCarduinoNode : public CarduinoNode {
     public:
@@ -48,7 +49,8 @@ class CommunicationCarduinoNode : public CarduinoNode {
         NimBLECharacteristic *lockControlNotificationCharacteristic;
         NimBLECharacteristic *lockControlFromAppCharacteristic;
 
-        CircularArray<int, RSSI_ARRAY_SIZE>* averageRssiArray;
+        CircularArray<int, LATEST_RSSI_ARRAY_SIZE>* latestRSSIs;
+        CircularArray<int, LATEST_RSSI_AVERAGE_ARRAY_SIZE>* latestAverageRSSIs;
         const Event* lastLockStatusChangedEvent;
         Task* sleepTask;
 
