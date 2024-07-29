@@ -35,8 +35,8 @@ union ValueType {
 #define NODE_SCL ESP32_SCL
 #endif
 
-#define BLE_PIN 3411
-
 #define SECONDS_TO_MILLISECONDS(seconds) ((seconds) * 1000)
 #define SECONDS_TO_MICROSECONDS(seconds) ((seconds) * 1000000)
 #define MILLISECONDS_TO_MICROSECONDS(milliseconds) ((milliseconds) * 1000)
+
+#define __VERSION__ 0
