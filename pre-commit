@@ -2,6 +2,7 @@
 
 import re
 import subprocess
+from git import Repo
 
 def increase_version(filename, define_name):
     """
@@ -30,6 +31,9 @@ def increase_version(filename, define_name):
 
     with open(filename, 'w') as f:
         f.write(content)
+
+    repo = Repo('c:\\Users\\I.Abbate\\Documents\\PlatformioProjects\\carduino_arduino')
+    repo.index.add('src\\shared\\SharedDefinitions.h')
 
 def main():
     """
