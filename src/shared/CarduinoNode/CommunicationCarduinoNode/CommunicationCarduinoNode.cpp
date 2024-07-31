@@ -133,8 +133,6 @@ CommunicationCarduinoNode::CommunicationCarduinoNode(uint8_t id, int cs, int int
 
             latestAverageRSSIs->push(averageRssi);
 
-            printlnWrapper("average RSSI is " + String(averageRssi));
-
             const Event* lockEvent = (averageRssi > getSettingValue(&Setting::BLE_RSSI_THRESHOLD)->value->intValue ? &Event::UNLOCK_CAR : &Event::LOCK_CAR);
 
             bool validRSSI = true;
@@ -146,6 +144,8 @@ CommunicationCarduinoNode::CommunicationCarduinoNode(uint8_t id, int cs, int int
                     validRSSI = validRSSI && (averageRssiI <= getSettingValue(&Setting::BLE_RSSI_THRESHOLD)->value->intValue);
                 }
             }
+
+            printlnWrapper("average RSSI " + String(averageRssi) + " is " + (validRSSI ? "valid" : "invalid"));
 
             if(validRSSI && lastLockStatusChangedEvent->id != lockEvent->id) {
                 lastLockStatusChangedEvent = lockEvent;

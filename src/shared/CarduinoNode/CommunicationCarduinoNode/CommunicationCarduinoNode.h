@@ -20,7 +20,7 @@
 #define SLEEP_TIME 4
 #define ON_TIME 1
 
-#define LATEST_RSSI_ARRAY_SIZE (6 + 1)
+#define LATEST_RSSI_ARRAY_SIZE (7 + 1)
 #define LATEST_RSSI_AVERAGE_ARRAY_SIZE (3 + 1)
 
 class CommunicationCarduinoNode : public CarduinoNode {
