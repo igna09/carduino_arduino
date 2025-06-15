@@ -2,6 +2,8 @@
 
 MainCarduinoNode::MainCarduinoNode(uint8_t id, int cs, int interruptPin, char *ssid, char *password) : CarduinoNode(id, cs, interruptPin, ssid, password, true, true, false) {
     this->enable();
+
+	this->addSetting(&Setting::SEND_ALL_MESSAGES_TO_RADIO, false, nullptr, true);
     this->restoreSettings();
 
     heartbeatWdtTask->disable();
@@ -28,6 +30,7 @@ MainCarduinoNode::MainCarduinoNode(uint8_t id, int cs, int interruptPin, char *s
     this->canExecutor->addExecutor(new MainNodeCanReadSettingExecutor());
     this->canExecutor->addExecutor(new MainNodeCanEvent());
     this->canExecutor->addExecutor(new MainNodeCanLog());
+    this->canExecutor->addExecutor(new AllMessageExecutor());
 
     this->usbExecutor->addExecutor(new MainCarduinoNodeSerialEvent());
 

@@ -6,6 +6,7 @@
 #include "shared/executors/CarduinoNodeExecutorInterface.h"
 #include "shared/enums/Setting.h"
 // #include "../../../CanbusMessage/SettingMessage/SettingMessage.h"
+#include "shared/CarduinoNode/MainCarduinoNode/MainCarduinoNode.h"
 
 class AllMessageExecutor : public CarduinoNodeExecutorInterface {
     public:
