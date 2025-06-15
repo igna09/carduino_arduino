@@ -87,7 +87,9 @@ CarduinoNode::CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssi
 
 void CarduinoNode::setupCanbus() {
     // Initialize MCP2515 running at 8MHz with a baudrate of 500kb/s and the masks and filters disabled.
-    if(can->begin(MCP_ANY, CAN_500KBPS, MCP_8MHZ) == CAN_OK) {
+    byte res = can->begin(MCP_ANY, CAN_500KBPS, MCP_8MHZ);
+    this->printlnWrapper("setting up MCP2515... " + String(res));
+    if(res == CAN_OK) {
         this->printlnWrapper("MCP2515 Initialized Successfully!");
         this->initializedCan = true;
     } else {
@@ -563,6 +565,7 @@ void CarduinoNode::sendHeartbeat() {
 
 void CarduinoNode::heartbeatWDT() {
     if(millis() - lastTimeReceivedHeartbeat > HEARTBEAT_INTERVAL + HEARTBEAT_INTERVAL_TOLERANCE) {
+        this->lastTimeReceivedHeartbeat = millis();
         onOnlineEvent(OnlineEnum::OFFLINE);
     }
 }
