@@ -8,10 +8,10 @@ union ValueType {
     bool boolValue;
 };
 
-enum OnlineEnum {
+typedef enum {
     ONLINE,
     OFFLINE
-}
+} OnlineEnum;
 
 #define BAUD_RATE 115200
 
