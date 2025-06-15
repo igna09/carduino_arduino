@@ -15,7 +15,7 @@ CarduinoNode::CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssi
 
     this->setupLogger(this->server, false, this->_originalLogOnSerial);
 
-    if(existsAllFiles()) {
+    if(existsAllFiles() && false) {
         setupServerWebapp();
     } else {
         setupServerFallback();
