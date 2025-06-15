@@ -563,9 +563,22 @@ void CarduinoNode::sendHeartbeat() {
 
 void CarduinoNode::heartbeatWDT() {
     if(millis() - lastTimeReceivedHeartbeat > HEARTBEAT_INTERVAL + HEARTBEAT_INTERVAL_TOLERANCE) {
-        printlnWrapper("CarduinoNode::heartbeatWDT heartbeat watchdog triggered");
-        setupCanbus();
-        // restart();
+        onOnlineEvent(OnlineEnum::OFFLINE);
+    }
+}
+
+void CarduinoNode::onOnlineEvent(OnlineEnum event) {
+    switch(event) {
+        case OnlineEnum::ONLINE:
+
+            break;
+        case OnlineEnum::OFFLINE:
+            printlnWrapper("CarduinoNode::heartbeatWDT heartbeat watchdog triggered");
+            setupCanbus();
+            // restart();
+            break;
+        default:
+            break;
     }
 }
 

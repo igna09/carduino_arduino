@@ -8,6 +8,11 @@ union ValueType {
     bool boolValue;
 };
 
+enum OnlineEnum {
+    ONLINE,
+    OFFLINE
+}
+
 #define BAUD_RATE 115200
 
 #define HEARTBEAT_INTERVAL 10000

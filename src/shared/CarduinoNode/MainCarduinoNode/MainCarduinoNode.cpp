@@ -265,3 +265,11 @@ void MainCarduinoNode::test() {
     EventMessage m(&Event::BLE_PAIRING_CODE, 123456);
     sendSerialMessage(&m);
 }
+
+void MainCarduinoNode::onOnlineEvent(OnlineEnum event) {
+    CarduinoNode::onOnlineEvent(event);
+
+    if(event == OnlineEnum::ONLINE) {
+        
+    }
+}
