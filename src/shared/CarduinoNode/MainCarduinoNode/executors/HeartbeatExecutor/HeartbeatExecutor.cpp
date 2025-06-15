@@ -12,6 +12,7 @@ void HeartbeatExecutor::execute(CarduinoNode *node, CanbusMessage *message) {
     if(nodeInformation != nullptr) {
         nodeInformation->lastTimeReceivedHeartBeat = millis();
         node->printlnWrapper("----- HEARTBEAT ----- " + String(eventMessage->nodeId) + " " + String(millis() - nodeInformation->lastTimeReceivedHeartBeat));
+        //will nevere enter here, lastTimeReceivedHeartBeat is updated two lines above
         if(nodeInformation->lastTimeReceivedHeartBeat != 0 && millis() - nodeInformation->lastTimeReceivedHeartBeat > HEARTBEAT_INTERVAL + HEARTBEAT_INTERVAL_TOLERANCE) { // ERROR
             //TODO: error management
             node->printlnWrapper("----- HEARTBEAT ERROR -----");
