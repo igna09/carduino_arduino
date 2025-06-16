@@ -1,6 +1,6 @@
 #include "CarduinoNodeSerialGetSettings.h"
 
-CarduinoNodeSerialGetSettings::CarduinoNodeSerialGetSettings() : CarduinoNodeExecutorInterface(&Category::GET_SETTINGS) {};
+CarduinoNodeSerialGetSettings::CarduinoNodeSerialGetSettings() : CarduinoNodeExecutorInterface(&Category::EVENT, Event::GET_SETTINGS.id) {};
 
 void CarduinoNodeSerialGetSettings::execute(CarduinoNode *node, CanbusMessage *message) {
     node->sendCanbusMessage(message);

@@ -6,7 +6,7 @@
 #include "MediaControl.h"
 #include "Event.h"
 
-#define CATEGORY_SIZE 8
+#define CATEGORY_SIZE 7
 
 class CanbusMessage;
 class Category : public Enum {
@@ -18,10 +18,7 @@ class Category : public Enum {
         static const Category LOG; // used to start reading all settings
         static const Category ERROR;
         static const Category EVENT;
-        /**
-         * TODO: move to event
-        */
-        static const Category GET_SETTINGS; // used to start reading all settings
+        // static const Category GET_SETTINGS; // used to start reading all settings
 
 
         std::function<CanbusMessage*(CanbusMessage*)> createSpecializedCopyFunction;

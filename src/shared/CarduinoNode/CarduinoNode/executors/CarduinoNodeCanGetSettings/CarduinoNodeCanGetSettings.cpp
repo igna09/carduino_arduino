@@ -1,6 +1,6 @@
 #include "CarduinoNodeCanGetSettings.h"
 
-CarduinoNodeCanGetSettings::CarduinoNodeCanGetSettings() : CarduinoNodeExecutorInterface(&Category::GET_SETTINGS) {};
+CarduinoNodeCanGetSettings::CarduinoNodeCanGetSettings() : CarduinoNodeExecutorInterface(&Category::EVENT, Event::GET_SETTINGS.id) {};
 
 void CarduinoNodeCanGetSettings::execute(CarduinoNode *node, CanbusMessage *message) {
     std::map<uint8_t, SettingInformation*>::iterator it;
