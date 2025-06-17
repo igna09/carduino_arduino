@@ -2,16 +2,16 @@
 
 /**
  * TODO: 
- * 	taskscheduler che riporta la resistenza a 0 dopo tot di ms (da recuperare da main node)
- * 	portare la gestione del mapping dei pulsanti da main node a qui
- * 	durante la registrazione dei pulsanti mandare messaggio alla radio (non visibile perché siamo su app radio swc)
- * 	aggiungere buzzer
+ * 	TEST taskscheduler che riporta la resistenza a 0 dopo tot di ms (da recuperare da main node)
+ * 	portare la registrazione dei pulsanti da main node a qui
+ * 	durante la registrazione dei pulsanti mandare messaggio alla radio (non visibile perché siamo su app radio swc, BLE_PAIRING_CODE)
+ * 	TEST aggiungere buzzer
  * 	far suonare buzzer durante il cambio pulsanti registrazione
  * 	aggiungere mapping MediaControl => resistance value
  * 	far partire registrazione dei pulsanti solo quando viene premuto il pulsante
  */
 
-MediaControlCarduinoNode::MediaControlCarduinoNode(uint8_t id, uint8_t clk, uint8_t dt, uint8_t sw, int cs, int interruptPin, uint8_t digiPotCs, uint8_t digiPotUd, uint8_t digiPotInc, const char *ssid, const char *password) : CarduinoNode(id, cs, interruptPin, ssid,  password, false, true, true) {
+MediaControlCarduinoNode::MediaControlCarduinoNode(uint8_t id, uint8_t clk, uint8_t dt, uint8_t sw, int cs, int interruptPin, uint8_t digiPotCs, uint8_t digiPotUd, uint8_t digiPotInc, uint8_t buzzer, const char *ssid, const char *password) : CarduinoNode(id, cs, interruptPin, ssid,  password, false, true, true) {
     this->restoreSettings();
 	
 	versatileEncoder = new Versatile_RotaryEncoder(clk, dt, sw);
@@ -24,13 +24,11 @@ MediaControlCarduinoNode::MediaControlCarduinoNode(uint8_t id, uint8_t clk, uint
 		if(rotation == 255) { // clockwise
 			// this->sendMediaControlMessage(&MediaControl::VOLUME_UP);
 			// Serial.println("VOLUME_UP");
-			this->x9c103s->setResistance(100);
-			this->releaseButtonDelayed();
+			this->pressButton(100);
 		} else if (rotation == 1) { //counter clockwise
 			// this->sendMediaControlMessage(&MediaControl::VOLUME_DOWN);
 			// Serial.println("VOLUME_DOWN");
-			this->x9c103s->setResistance(80);
-			this->releaseButtonDelayed();
+			this->pressButton(80);
 		}
 	});
 	versatileEncoder->setHandlePressRelease([this](){
@@ -39,8 +37,7 @@ MediaControlCarduinoNode::MediaControlCarduinoNode(uint8_t id, uint8_t clk, uint
 		}
 		this->lastRead = millis();
 		// this->sendMediaControlMessage(&MediaControl::PLAY_PAUSE);
-		this->x9c103s->setResistance(60);
-		this->releaseButtonDelayed();
+		this->pressButton(60);
 	});
 	versatileEncoder->setHandleDoublePressRelease([this](){
 		if(!this->canRead()) {
@@ -48,8 +45,7 @@ MediaControlCarduinoNode::MediaControlCarduinoNode(uint8_t id, uint8_t clk, uint
 		}
 		this->lastRead = millis();
 		// this->sendMediaControlMessage(&MediaControl::NEXT);
-		this->x9c103s->setResistance(40);
-		this->releaseButtonDelayed();
+		this->pressButton(40);
 	});
 	versatileEncoder->setHandleLongPress([this](){
 		if(!this->canRead()) {
@@ -61,17 +57,33 @@ MediaControlCarduinoNode::MediaControlCarduinoNode(uint8_t id, uint8_t clk, uint
 
 	x9c103s = new X9C103S(digiPotInc, digiPotUd, digiPotInc);
 	x9c103s->initializePot();
+
+	this->buzzerPin = buzzer;
 };
 
-void MediaControlCarduinoNode::releaseButtonDelayed() {
-	if(noButtonTask->isEnabled()) {
-		noButtonTask->cancel();
+void MediaControlCarduinoNode::pressButton(uint8_t resistance) {
+	this->x9c103s->setResistance(resistance);
+
+	if(releaseButtonTask->isEnabled()) {
+		releaseButtonTask->cancel();
 	}
 
-	noButtonTask = this->delayTask(SWC_PRESS_INTERVAL, [&](){
+	releaseButtonTask = this->delayTask(SWC_PRESS_INTERVAL, [&](){
 		this->x9c103s->setResistance(0);
 	});
-};
+}
+
+void MediaControlCarduinoNode::buzzer(int time) {
+	digitalWrite(buzzerPin, HIGH);
+
+	if(stopBuzzerTask->isEnabled()) {
+		stopBuzzerTask->cancel();
+	}
+
+	stopBuzzerTask = this->delayTask(time, [&](){
+		digitalWrite(buzzerPin, HIGH);
+	});
+}
 
 void MediaControlCarduinoNode::sendMediaControlMessage(const MediaControl *mediaControl) {
 	MediaControlMessage *m = new MediaControlMessage(mediaControl);

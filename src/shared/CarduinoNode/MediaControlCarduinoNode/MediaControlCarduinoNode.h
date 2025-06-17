@@ -19,15 +19,18 @@
 
 class MediaControlCarduinoNode : public CarduinoNode {
     public:
-        MediaControlCarduinoNode(uint8_t id, uint8_t clk, uint8_t dt, uint8_t sw, int cs, int interruptPin, uint8_t digiPotCs, uint8_t digiPotUd, uint8_t digiPotInc, const char *ssid, const char *password);
+        MediaControlCarduinoNode(uint8_t id, uint8_t clk, uint8_t dt, uint8_t sw, int cs, int interruptPin, uint8_t digiPotCs, uint8_t digiPotUd, uint8_t digiPotInc, uint8_t buzzer, const char *ssid, const char *password);
         void loop();
         void sendMediaControlMessage(const MediaControl*);
-        void releaseButtonDelayed();
+        void pressButton(uint8_t resistance);//convert to MediaControl
+        void buzzer(int time);//convert to MediaControl
 
     private:
         Versatile_RotaryEncoder *versatileEncoder;
         X9C103S *x9c103s;
-        Task *noButtonTask;
+        Task *releaseButtonTask;
+        Task *stopBuzzerTask;
         unsigned long lastRead;
+        uint8_t buzzerPin;
         bool canRead();
 };
