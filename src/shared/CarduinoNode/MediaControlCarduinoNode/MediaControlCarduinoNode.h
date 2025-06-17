@@ -24,6 +24,7 @@ class MediaControlCarduinoNode : public CarduinoNode {
         void sendMediaControlMessage(const MediaControl*);
         void pressButton(uint8_t resistance);//convert to MediaControl
         void buzzer(int time);//convert to MediaControl
+        void startSwcPairing();
 
     private:
         Versatile_RotaryEncoder *versatileEncoder;

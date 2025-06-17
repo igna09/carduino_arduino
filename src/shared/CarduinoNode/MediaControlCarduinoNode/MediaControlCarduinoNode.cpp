@@ -24,11 +24,11 @@ MediaControlCarduinoNode::MediaControlCarduinoNode(uint8_t id, uint8_t clk, uint
 		if(rotation == 255) { // clockwise
 			// this->sendMediaControlMessage(&MediaControl::VOLUME_UP);
 			// Serial.println("VOLUME_UP");
-			this->pressButton(100);
+			this->pressButton(MediaControl::VOLUME_UP.resistance);
 		} else if (rotation == 1) { //counter clockwise
 			// this->sendMediaControlMessage(&MediaControl::VOLUME_DOWN);
 			// Serial.println("VOLUME_DOWN");
-			this->pressButton(80);
+			this->pressButton(MediaControl::VOLUME_DOWN.resistance);
 		}
 	});
 	versatileEncoder->setHandlePressRelease([this](){
@@ -37,7 +37,7 @@ MediaControlCarduinoNode::MediaControlCarduinoNode(uint8_t id, uint8_t clk, uint
 		}
 		this->lastRead = millis();
 		// this->sendMediaControlMessage(&MediaControl::PLAY_PAUSE);
-		this->pressButton(60);
+		this->pressButton(MediaControl::PLAY_PAUSE.resistance);
 	});
 	versatileEncoder->setHandleDoublePressRelease([this](){
 		if(!this->canRead()) {
@@ -45,7 +45,7 @@ MediaControlCarduinoNode::MediaControlCarduinoNode(uint8_t id, uint8_t clk, uint
 		}
 		this->lastRead = millis();
 		// this->sendMediaControlMessage(&MediaControl::NEXT);
-		this->pressButton(40);
+		this->pressButton(MediaControl::NEXT.resistance);
 	});
 	versatileEncoder->setHandleLongPress([this](){
 		if(!this->canRead()) {
@@ -60,6 +60,21 @@ MediaControlCarduinoNode::MediaControlCarduinoNode(uint8_t id, uint8_t clk, uint
 
 	this->buzzerPin = buzzer;
 };
+
+void MediaControlCarduinoNode::startSwcPairing() {
+	std::function<void(uint8_t)> swcPairingCallback = [&](uint8_t mediaControlIndex){
+		this->x9c103s->setResistance(((MediaControl*) MediaControl::getValues()[mediaControlIndex])->resistance);
+		this->delayTask(SWC_PAIRING_INTERVAL, [&](){
+			this->x9c103s->setResistance(0);
+			if(mediaControlIndex < (MEDIA_CONTROL_SIZE - 1)) {
+				this->delayTask(SWC_WAITING_PAIRING_INTERVAL, [&](){
+					swcPairingCallback(++mediaControlIndex);
+				});
+			}
+		});
+	};
+	swcPairingCallback(0);
+}
 
 void MediaControlCarduinoNode::pressButton(uint8_t resistance) {
 	this->x9c103s->setResistance(resistance);
