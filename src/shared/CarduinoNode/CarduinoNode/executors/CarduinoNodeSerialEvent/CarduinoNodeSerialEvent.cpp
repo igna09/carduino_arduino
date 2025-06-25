@@ -7,12 +7,13 @@ void CarduinoNodeSerialEvent::execute(CarduinoNode *node, CanbusMessage *message
     if(eventMessage->getIntValue() != node->id || eventMessage->getIntValue() == ALL_NODES) {
         node->sendCanbusMessage(eventMessage);
     }
-    if(eventMessage->getIntValue() == node->id || eventMessage->getIntValue() == ALL_NODES) {
-        if(message->messageId == Event::RESTART.id) {
-            node->delayTask(1000, [&](){
-                node->restart();
-            });
-        }
+    if(
+        message->messageId == Event::RESTART.id
+        && (eventMessage->getIntValue() == node->id || eventMessage->getIntValue() == ALL_NODES)
+    ) {
+        node->delayTask(1000, [&](){
+            node->restart();
+        });
     }
     delete eventMessage;
 

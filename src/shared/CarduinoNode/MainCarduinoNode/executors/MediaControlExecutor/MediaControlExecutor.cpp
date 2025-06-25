@@ -8,9 +8,9 @@ void MediaControlExecutor::execute(CarduinoNode *node, CanbusMessage *message){
         MediaControlMessage *mediaControlMessage = new MediaControlMessage(mediaControl);
         ((MainCarduinoNode*)node)->sendSerialMessage(mediaControlMessage);
         delete mediaControlMessage;
-    } else if(mediaControl->id != MediaControl::LONG_PRESS.id) { // TODO: move to new node canbus executor
+    } /*else if(mediaControl->id != MediaControl::LONG_PRESS.id) { // TODO: move to new node canbus executor
         ((MainCarduinoNode*)node)->executeSwcCommand(mediaControl);
-    }
+    }*/
 };
 
 bool MediaControlExecutor::canExecute(CarduinoNode *node, CanbusMessage *message) {

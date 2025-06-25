@@ -12,7 +12,7 @@ class MediaControl : public TypedEnum {
         static const MediaControl NEXT;
         static const MediaControl LONG_PRESS;
 
-        uint8_t pin;
+        uint8_t resistance;
 
         MediaControl() : TypedEnum() {};
 
@@ -50,18 +50,18 @@ class MediaControl : public TypedEnum {
             return MediaControl::values;
         }
 
-        MediaControl(uint8_t id, const char *name, uint8_t pin) : TypedEnum(id, name, &CanbusMessageType::BOOL) {
+        MediaControl(uint8_t id, const char *name, uint8_t resistance) : TypedEnum(id, name, &CanbusMessageType::BOOL) {
             MediaControl::values[MediaControl::index] = this;
             MediaControl::index++;
 
-            this->pin = pin;
+            this->resistance = resistance;
         };
 
         MediaControl(uint8_t id, const char *name) : TypedEnum(id, name, &CanbusMessageType::BOOL) {
             MediaControl::values[MediaControl::index] = this;
             MediaControl::index++;
 
-            this->pin = 255;
+            this->resistance = 0;
         };
 
     private:
@@ -71,8 +71,8 @@ class MediaControl : public TypedEnum {
 
 inline const TypedEnum* MediaControl::values [MEDIA_CONTROL_SIZE] = { 0 };
 inline uint8_t MediaControl::index = 0;
-inline const MediaControl MediaControl::VOLUME_UP = MediaControl(0x00, "VOLUME_UP", 0);
-inline const MediaControl MediaControl::VOLUME_DOWN = MediaControl(0x01, "VOLUME_DOWN", 1);
-inline const MediaControl MediaControl::PLAY_PAUSE = MediaControl(0x02, "PLAY_PAUSE", 2);
-inline const MediaControl MediaControl::NEXT = MediaControl(0x03, "NEXT", 3);
+inline const MediaControl MediaControl::VOLUME_UP = MediaControl(0x00, "VOLUME_UP", 100);
+inline const MediaControl MediaControl::VOLUME_DOWN = MediaControl(0x01, "VOLUME_DOWN", 80);
+inline const MediaControl MediaControl::PLAY_PAUSE = MediaControl(0x02, "PLAY_PAUSE", 60);
+inline const MediaControl MediaControl::NEXT = MediaControl(0x03, "NEXT", 40);
 inline const MediaControl MediaControl::LONG_PRESS = MediaControl(0x04, "LONG_PRESS");

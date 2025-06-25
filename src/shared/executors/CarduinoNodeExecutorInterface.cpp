@@ -1,5 +1,13 @@
 #include "CarduinoNodeExecutorInterface.h"
 
+CarduinoNodeExecutorInterface::CarduinoNodeExecutorInterface() {
+    // CarduinoNodeExecutorInterface(const Category *categoryFilter, nullptr);
+    this->categoryFilter = nullptr;
+    
+    this->filterMessage = false;
+    this->messageId = 0;
+}
+
 CarduinoNodeExecutorInterface::CarduinoNodeExecutorInterface(const Category *categoryFilter) {
     // CarduinoNodeExecutorInterface(const Category *categoryFilter, nullptr);
     this->categoryFilter = categoryFilter;

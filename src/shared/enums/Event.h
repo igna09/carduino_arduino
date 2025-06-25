@@ -3,7 +3,7 @@
 #include "TypedEnum.h"
 #include "CanbusMessageType.h"
 
-#define EVENT_SIZE 17
+#define EVENT_SIZE 20
 
 /**
  * these events send as payload sender id
@@ -28,6 +28,9 @@ class Event : public TypedEnum {
         static const Event RESTART;
         static const Event SWC_PAIR;
         static const Event GET_SETTINGS;
+        static const Event WARNING_SEVERITY_LOW;
+        static const Event WARNING_SEVERITY_MEDIUM;
+        static const Event WARNING_SEVERITY_HIGH;
 
         static const TypedEnum* getValueById(uint8_t id) {
             for(uint8_t i = 0; i < getSize(); i++) {
@@ -86,3 +89,6 @@ inline const Event Event::BLE_PAIRING_CODE = Event(0x0D, "BLE_PAIRING_CODE", &Ca
 inline const Event Event::RESTART = Event(0x0E, "RESTART", &CanbusMessageType::INT);
 inline const Event Event::SWC_PAIR = Event(0x0F, "SWC_PAIR", &CanbusMessageType::INT);
 inline const Event Event::GET_SETTINGS = Event(0x10, "GET_SETTINGS", &CanbusMessageType::INT);
+inline const Event Event::WARNING_SEVERITY_LOW = Event(0x11, "WARNING_SEVERITY_LOW", &CanbusMessageType::INT);
+inline const Event Event::WARNING_SEVERITY_MEDIUM = Event(0x12, "WARNING_SEVERITY_MEDIUM", &CanbusMessageType::INT);
+inline const Event Event::WARNING_SEVERITY_HIGH = Event(0x13, "WARNING_SEVERITY_HIGH", &CanbusMessageType::INT);

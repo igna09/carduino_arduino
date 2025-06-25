@@ -11,7 +11,7 @@ MainCarduinoNode::MainCarduinoNode(uint8_t id, int cs, int interruptPin, char *s
     this->aht = new Adafruit_AHTX0();
     this->aht->begin();
 
-    this->pcfSwcSetup();
+    // this->pcfSwcSetup();
     this->pcfDigitalPinsSetup();
 
     this->lastPressedMillis = 0;
@@ -32,7 +32,7 @@ MainCarduinoNode::MainCarduinoNode(uint8_t id, int cs, int interruptPin, char *s
     this->canExecutor->addExecutor(new MainNodeCanLog());
     this->canExecutor->addExecutor(new AllMessageExecutor());
 
-    this->usbExecutor->addExecutor(new MainCarduinoNodeSerialEvent());
+    // this->usbExecutor->addExecutor(new MainCarduinoNodeSerialEvent());
 
     turnOffRadioTask = new Task(RADIO_TURN_OFF_TIMER, 1, std::bind(&MainCarduinoNode::turnOffSystem, this), this->scheduler, false);
     
@@ -71,62 +71,62 @@ void MainCarduinoNode::loop() {
         handleReceivedSerialMessage("READ_SETTINGS;OTA_MODE;false;");
     }*/
 
-    manageSwc();
+    // manageSwc();
 }
 
-void MainCarduinoNode::executeSwcCommand(MediaControl *mediaControl) {
-    if(!this->isPressing && mediaControl->pin != 255) {
-        this->isPressing = true;
-        this->pressedPin = mediaControl->pin;
-        this->pcf8574Swc->digitalWrite(mediaControl->pin, LOW);
-        this->lastPressedMillis = millis();
-    }
-}
+// void MainCarduinoNode::executeSwcCommand(MediaControl *mediaControl) {
+//     if(!this->isPressing && mediaControl->pin != 255) {
+//         this->isPressing = true;
+//         this->pressedPin = mediaControl->pin;
+//         this->pcf8574Swc->digitalWrite(mediaControl->pin, LOW);
+//         this->lastPressedMillis = millis();
+//     }
+// }
 
-void MainCarduinoNode::startSwcPairing() {
-    this->isWaitingPairing = true;
-    this->pressedPin = 0;
-    this->lastPressedMillis = millis();
+// void MainCarduinoNode::startSwcPairing() {
+//     this->isWaitingPairing = true;
+//     this->pressedPin = 0;
+//     this->lastPressedMillis = millis();
 
-    this->printlnWrapper("Start waiting PIN " + String(this->pressedPin) + " " + String(millis()));
-}
+//     this->printlnWrapper("Start waiting PIN " + String(this->pressedPin) + " " + String(millis()));
+// }
 
-void MainCarduinoNode::manageSwc() {
-    if(this->isPressing) {
-        if(millis() > this->lastPressedMillis + SWC_PRESS_INTERVAL) {
-            this->pcf8574Swc->digitalWrite(this->pressedPin, HIGH);
-            this->isPressing = false;
-        }
-    } else if(this->isPairing) {
-        if(millis() > this->lastPressedMillis + SWC_PAIRING_INTERVAL) {
-            this->pcf8574Swc->digitalWrite(this->pressedPin, HIGH);
-            this->printlnWrapper("Stop pressing PIN " + String(this->pressedPin) + " " + String(millis()));
-            this->isPairing = false;
-            if(this->pressedPin < SWC_PIN_SIZE - 1) {
-                this->pressedPin++;
-                this->isWaitingPairing = true;
-                this->lastPressedMillis = millis();
+// void MainCarduinoNode::manageSwc() {
+//     if(this->isPressing) {
+//         if(millis() > this->lastPressedMillis + SWC_PRESS_INTERVAL) {
+//             this->pcf8574Swc->digitalWrite(this->pressedPin, HIGH);
+//             this->isPressing = false;
+//         }
+//     } else if(this->isPairing) {
+//         if(millis() > this->lastPressedMillis + SWC_PAIRING_INTERVAL) {
+//             this->pcf8574Swc->digitalWrite(this->pressedPin, HIGH);
+//             this->printlnWrapper("Stop pressing PIN " + String(this->pressedPin) + " " + String(millis()));
+//             this->isPairing = false;
+//             if(this->pressedPin < SWC_PIN_SIZE - 1) {
+//                 this->pressedPin++;
+//                 this->isWaitingPairing = true;
+//                 this->lastPressedMillis = millis();
 
-                this->printlnWrapper("Start waiting PIN " + String(this->pressedPin) + " " + String(millis()));
-            }
-        }
-    } else if(this->isWaitingPairing) {
-        int intervalToWait;
-        if(this->pressedPin == 0) {
-            intervalToWait = SWC_FIRST_WAITING_PAIRING_INTERVAL;
-        } else {
-            intervalToWait = SWC_WAITING_PAIRING_INTERVAL;
-        }
+//                 this->printlnWrapper("Start waiting PIN " + String(this->pressedPin) + " " + String(millis()));
+//             }
+//         }
+//     } else if(this->isWaitingPairing) {
+//         int intervalToWait;
+//         if(this->pressedPin == 0) {
+//             intervalToWait = SWC_FIRST_WAITING_PAIRING_INTERVAL;
+//         } else {
+//             intervalToWait = SWC_WAITING_PAIRING_INTERVAL;
+//         }
 
-        if(millis() > this->lastPressedMillis + intervalToWait) {
-            this->pcf8574Swc->digitalWrite(this->pressedPin, LOW);
-            this->lastPressedMillis = millis();
-            this->isWaitingPairing = false;
-            this->isPairing = true;
-            this->printlnWrapper("stop waiting and start pressing PIN " + String(this->pressedPin) + " " + String(millis()));
-        }
-    }
-}
+//         if(millis() > this->lastPressedMillis + intervalToWait) {
+//             this->pcf8574Swc->digitalWrite(this->pressedPin, LOW);
+//             this->lastPressedMillis = millis();
+//             this->isWaitingPairing = false;
+//             this->isPairing = true;
+//             this->printlnWrapper("stop waiting and start pressing PIN " + String(this->pressedPin) + " " + String(millis()));
+//         }
+//     }
+// }
 
 void MainCarduinoNode::turnOffSystem() {
     printlnWrapper("MainCarduinoNode::turnOffSystem");
@@ -152,31 +152,31 @@ void MainCarduinoNode::turnOffSystem() {
 //     }
 // }
 
-void MainCarduinoNode::pcfSwcSetup() {
-    this->pcf8574Swc = new PCF8574(0x20, NODE_SDA, NODE_SCL);
+// void MainCarduinoNode::pcfSwcSetup() {
+//     this->pcf8574Swc = new PCF8574(0x20, NODE_SDA, NODE_SCL);
 
-	this->pcf8574Swc->pinMode(P0, OUTPUT);
-    this->pcf8574Swc->pinMode(P1, OUTPUT);
-    this->pcf8574Swc->pinMode(P2, OUTPUT);
-    this->pcf8574Swc->pinMode(P3, OUTPUT);
-    this->pcf8574Swc->pinMode(P4, OUTPUT);
-    this->pcf8574Swc->pinMode(P5, OUTPUT);
-    this->pcf8574Swc->pinMode(P6, OUTPUT);
-    this->pcf8574Swc->pinMode(P7, OUTPUT);
+// 	this->pcf8574Swc->pinMode(P0, OUTPUT);
+//     this->pcf8574Swc->pinMode(P1, OUTPUT);
+//     this->pcf8574Swc->pinMode(P2, OUTPUT);
+//     this->pcf8574Swc->pinMode(P3, OUTPUT);
+//     this->pcf8574Swc->pinMode(P4, OUTPUT);
+//     this->pcf8574Swc->pinMode(P5, OUTPUT);
+//     this->pcf8574Swc->pinMode(P6, OUTPUT);
+//     this->pcf8574Swc->pinMode(P7, OUTPUT);
 
-    bool i2cValid = this->pcf8574Swc->begin();
+//     bool i2cValid = this->pcf8574Swc->begin();
 
-    if(i2cValid) {
-        this->pcf8574Swc->digitalWrite(P0, HIGH);
-        this->pcf8574Swc->digitalWrite(P1, HIGH);
-        this->pcf8574Swc->digitalWrite(P2, HIGH);
-        this->pcf8574Swc->digitalWrite(P3, HIGH);
-        this->pcf8574Swc->digitalWrite(P4, HIGH);
-        this->pcf8574Swc->digitalWrite(P5, HIGH);
-        this->pcf8574Swc->digitalWrite(P6, HIGH);
-        this->pcf8574Swc->digitalWrite(P7, HIGH);
-    }
-}
+//     if(i2cValid) {
+//         this->pcf8574Swc->digitalWrite(P0, HIGH);
+//         this->pcf8574Swc->digitalWrite(P1, HIGH);
+//         this->pcf8574Swc->digitalWrite(P2, HIGH);
+//         this->pcf8574Swc->digitalWrite(P3, HIGH);
+//         this->pcf8574Swc->digitalWrite(P4, HIGH);
+//         this->pcf8574Swc->digitalWrite(P5, HIGH);
+//         this->pcf8574Swc->digitalWrite(P6, HIGH);
+//         this->pcf8574Swc->digitalWrite(P7, HIGH);
+//     }
+// }
 
 void MainCarduinoNode::pcfDigitalPinsSetup() {
     this->pcf8574DigitalPins = new PCF8574(0x21, NODE_SDA, NODE_SCL);
