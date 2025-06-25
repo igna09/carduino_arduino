@@ -135,22 +135,22 @@ void MainCarduinoNode::turnOffSystem() {
     this->pcf8574DigitalPins->digitalWrite(RADIO_POWER_MOSFET_PIN, LOW);
 }
 
-void MainCarduinoNode::manageRadioPower() {
+/*void MainCarduinoNode::manageRadioPower() {
     PinInformation *pinInformation = this->getPinInformation(ACCESSORY_12_V_PIN);
     /**
      * read digital input +12v ACC line to manage events
-    */
+    *
     if(!pinInformation->isHigh && this->isKeyOn) {
         this->isKeyOn = false;
         // this->turnOffRadioTask-> // reset remaining timer
-        this->turnOffRadioTask->restartDelayed();
         this->sendEvent(&Event::DISABLE);
+        this->turnOffRadioTask->restartDelayed();
     } else if(!pinInformation->isHigh && this->turnOffRadioTask->isEnabled()) {
         this->turnOffRadioTask->disable();
         this->isKeyOn = true;
         this->sendEvent(&Event::DISABLE_INTERRUPT);
     }
-}
+}*/
 
 // void MainCarduinoNode::pcfSwcSetup() {
 //     this->pcf8574Swc = new PCF8574(0x20, NODE_SDA, NODE_SCL);
@@ -185,6 +185,8 @@ void MainCarduinoNode::pcfDigitalPinsSetup() {
     this->pcf8574DigitalPins->pinMode(ACCESSORY_12_V_PIN, INPUT);
 
     bool i2cValid = this->pcf8574DigitalPins->begin();
+
+    printlnWrapper("I2C " + String(i2cValid ? "" : "not") + " valid");
 
     if(i2cValid) {
         this->pcf8574DigitalPins->digitalWrite(RADIO_POWER_MOSFET_PIN, HIGH);
