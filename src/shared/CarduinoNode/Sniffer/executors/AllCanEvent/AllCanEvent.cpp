@@ -2,10 +2,10 @@
 
 AllCanEvent::AllCanEvent() : CarduinoNodeExecutorInterface() {};
 
-void MediaControlCanEvent::execute(CarduinoNode *node, CanbusMessage *message) {
+void AllCanEvent::execute(CarduinoNode *node, CanbusMessage *message) {
     node->printlnWrapper(message->toSerialHumanString());
 };
 
-bool MediaControlCanEvent::canExecute(CarduinoNode *node, CanbusMessage *message) {
+bool AllCanEvent::canExecute(CarduinoNode *node, CanbusMessage *message) {
     return true;
 }
