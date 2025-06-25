@@ -6,7 +6,9 @@
 #include "shared/enums/MediaControl.h"
 #include "shared/CanbusMessage/MediaControlMessage/MediaControlMessage.h"
 #include "shared/SharedDefinitions.h"
+#include "shared/enums/Event.h"
 #include "X9C103S.h"
+#include "shared/CarduinoNode/MediaControlCarduinoNode/executors/MediaControlCanEvent/MediaControlCanEvent.h"
 
 #define SWC_PRESS_INTERVAL  65
 #define SWC_PAIRING_INTERVAL  5000
@@ -23,14 +25,14 @@ class MediaControlCarduinoNode : public CarduinoNode {
         void loop();
         void sendMediaControlMessage(const MediaControl*);
         void pressButton(uint8_t resistance);//convert to MediaControl
-        void buzzer(int time);//convert to MediaControl
         void startSwcPairing();
+        void playTone(const Event*);
+        void startTone(int freq, int duration);
 
     private:
         Versatile_RotaryEncoder *versatileEncoder;
         X9C103S *x9c103s;
         Task *releaseButtonTask;
-        Task *stopBuzzerTask;
         unsigned long lastRead;
         uint8_t buzzerPin;
         bool canRead();

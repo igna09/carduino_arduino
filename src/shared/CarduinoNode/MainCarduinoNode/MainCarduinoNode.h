@@ -27,11 +27,11 @@
 
 #define RADIO_TURN_OFF_TIMER 5000
 
-#define SWC_PRESS_INTERVAL  65
-#define SWC_PAIRING_INTERVAL  5000
-#define SWC_WAITING_PAIRING_INTERVAL  1000
-#define SWC_FIRST_WAITING_PAIRING_INTERVAL  5000
-#define SWC_PIN_SIZE 8
+// #define SWC_PRESS_INTERVAL  65
+// #define SWC_PAIRING_INTERVAL  5000
+// #define SWC_WAITING_PAIRING_INTERVAL  1000
+// #define SWC_FIRST_WAITING_PAIRING_INTERVAL  5000
+// #define SWC_PIN_SIZE 8
 
 #define RADIO_POWER_MOSFET_PIN P0
 #define ACCESSORY_12_V_PIN P1
@@ -48,7 +48,7 @@ class MainCarduinoNode : public CarduinoNode {
         bool isRadioOn;
         bool isKeyOn;
         Task *turnOffRadioTask;
-        PCF8574 *pcf8574Swc;
+        // PCF8574 *pcf8574Swc;
         PCF8574 *pcf8574DigitalPins;
         bool isPressing;
         bool isPairing;
@@ -65,11 +65,11 @@ class MainCarduinoNode : public CarduinoNode {
         NodeInformation* getNodeInformation(uint8_t id);
         NodeInformation* createOrGetNodeInformation(uint8_t id);
         // void secondaryLoopCallback() override;
-        void pcfSwcSetup();
+        // void pcfSwcSetup();
         void pcfDigitalPinsSetup();
-        void executeSwcCommand(MediaControl *mediaControl);
-        void manageSwc();
-        void startSwcPairing();
+        // void executeSwcCommand(MediaControl *mediaControl);
+        // void manageSwc();
+        // void startSwcPairing();
         void sendLog(uint8_t id, bool value) override;
         void sendLog(uint8_t id, int value) override;
         void sendLog(uint8_t id, float value) override;
