@@ -13,6 +13,7 @@ class CarduinoNodeExecutorInterface {
         bool filterMessage;
         bool needNodeEnabled;
         
+        CarduinoNodeExecutorInterface();
         CarduinoNodeExecutorInterface(const Category *categoryFilter);
         CarduinoNodeExecutorInterface(const Category *categoryFilter, uint8_t messageId);
         virtual void execute(CarduinoNode *node, CanbusMessage *message) = 0;
