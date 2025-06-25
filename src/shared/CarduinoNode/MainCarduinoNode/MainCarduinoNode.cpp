@@ -1,6 +1,6 @@
 #include "MainCarduinoNode.h"
 
-MainCarduinoNode::MainCarduinoNode(uint8_t id, int cs, int interruptPin, char *ssid, char *password) : CarduinoNode(id, cs, interruptPin, ssid, password, true, true, false) {
+MainCarduinoNode::MainCarduinoNode(uint8_t id, int cs, int interruptPin, char *ssid, char *password) : CarduinoNode(id, cs, interruptPin, ssid, password, true, false, false) {
     this->enable();
 
 	this->addSetting(&Setting::SEND_ALL_MESSAGES_TO_RADIO, false, nullptr, true);
@@ -135,22 +135,22 @@ void MainCarduinoNode::turnOffSystem() {
     this->pcf8574DigitalPins->digitalWrite(RADIO_POWER_MOSFET_PIN, LOW);
 }
 
-// void MainCarduinoNode::manageRadioPower() {
-//     PinInformation *pinInformation = this->getPinInformation(ACCESSORY_12_V_PIN);
-//     /**
-//      * read digital input +12v ACC line to manage events
-//     */
-//     if(!pinInformation->isHigh && this->isKeyOn) {
-//         this->isKeyOn = false;
-//         // this->turnOffRadioTask-> // reset remaining timer
-//         this->turnOffRadioTask->restartDelayed();
-//         this->sendEvent(&Event::DISABLE);
-//     } else if(!pinInformation->isHigh && this->turnOffRadioTask->isEnabled()) {
-//         this->turnOffRadioTask->disable();
-//         this->isKeyOn = true;
-//         this->sendEvent(&Event::DISABLE_INTERRUPT);
-//     }
-// }
+void MainCarduinoNode::manageRadioPower() {
+    PinInformation *pinInformation = this->getPinInformation(ACCESSORY_12_V_PIN);
+    /**
+     * read digital input +12v ACC line to manage events
+    */
+    if(!pinInformation->isHigh && this->isKeyOn) {
+        this->isKeyOn = false;
+        // this->turnOffRadioTask-> // reset remaining timer
+        this->turnOffRadioTask->restartDelayed();
+        this->sendEvent(&Event::DISABLE);
+    } else if(!pinInformation->isHigh && this->turnOffRadioTask->isEnabled()) {
+        this->turnOffRadioTask->disable();
+        this->isKeyOn = true;
+        this->sendEvent(&Event::DISABLE_INTERRUPT);
+    }
+}
 
 // void MainCarduinoNode::pcfSwcSetup() {
 //     this->pcf8574Swc = new PCF8574(0x20, NODE_SDA, NODE_SCL);
