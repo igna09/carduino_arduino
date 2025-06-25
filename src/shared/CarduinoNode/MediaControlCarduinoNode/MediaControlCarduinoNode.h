@@ -22,7 +22,7 @@
 
 class MediaControlCarduinoNode : public CarduinoNode {
     public:
-        MediaControlCarduinoNode(uint8_t id, uint8_t clk, uint8_t dt, uint8_t sw, uint8_t cs, uint8_t interruptPin, uint8_t digiPotCs, uint8_t digiPotUd, uint8_t digiPotInc, uint8_t buzzer, const char *ssid, const char *password);
+        MediaControlCarduinoNode(uint8_t id, uint8_t cs, uint8_t interruptPin, uint8_t encoderClk, uint8_t encoderDt, uint8_t encoderSw, uint8_t digiPotCs, uint8_t digiPotUd, uint8_t digiPotInc, uint8_t buzzer, const char *ssid, const char *password);
         void loop();
         void sendMediaControlMessage(const MediaControl*);
         void pressButton(uint8_t resistance);//convert to MediaControl
@@ -40,4 +40,5 @@ class MediaControlCarduinoNode : public CarduinoNode {
         bool canRead();
         bool readyToStartSwcPairingFlag;
         Task *resetReadyToPairFlagTask;
+        PCF8574 *pcf8574;
 };

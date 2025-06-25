@@ -7,6 +7,16 @@
 #include "./shared/SharedDefinitions.h"
 #include "shared/CarduinoNode/MediaControlCarduinoNode/MediaControlCarduinoNode.h"
 
+#define DIGIPOT_CS 0
+#define DIGIPOT_UD 1
+#define DIGIPOT_INC 2
+
+#define ENCODER_CLK 3
+#define ENCODER_DT 4
+#define ENCODER_SW 5
+
+#define BUZZER D1
+
 MediaControlCarduinoNode *mediaControlCarduinoNode;
 
 /**
@@ -20,7 +30,20 @@ void setup(void) {
 //   randomSeed(analogRead(0));
 
 	// TODO: update encoder pins
-  	mediaControlCarduinoNode = new MediaControlCarduinoNode(0x02, D1, D3, RX, D8, D2, D0, D0, D0, D0, "SSID_MEDIA_CONTROL_CARDUINO_NODE", "pwd12345");
+  	mediaControlCarduinoNode = new MediaControlCarduinoNode(
+		0x02,
+		D8, 
+		D2, 
+		ENCODER_CLK, 
+		ENCODER_DT, 
+		ENCODER_SW, 
+		DIGIPOT_CS, 
+		DIGIPOT_UD, 
+		DIGIPOT_INC, 
+		BUZZER,
+		"SSID_MEDIA_CONTROL_CARDUINO_NODE",
+		"pwd12345"
+	);
 }
 
 // unsigned long lastSent = millis();

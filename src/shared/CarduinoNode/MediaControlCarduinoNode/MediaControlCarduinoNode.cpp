@@ -12,12 +12,15 @@
  * 	to send string messages to radio use ids: on adroid app store a json file mapping id to message
  */
 
-MediaControlCarduinoNode::MediaControlCarduinoNode(uint8_t id, uint8_t clk, uint8_t dt, uint8_t sw, uint8_t cs, uint8_t interruptPin, uint8_t digiPotCs, uint8_t digiPotUd, uint8_t digiPotInc, uint8_t buzzer, const char *ssid, const char *password) : CarduinoNode(id, cs, interruptPin, ssid,  password, false, true, true) {
+MediaControlCarduinoNode::MediaControlCarduinoNode(uint8_t id, uint8_t cs, uint8_t interruptPin, uint8_t encoderClk, uint8_t encoderDt, uint8_t encoderSw, uint8_t digiPotCs, uint8_t digiPotUd, uint8_t digiPotInc, uint8_t buzzer, const char *ssid, const char *password) : CarduinoNode(id, cs, interruptPin, ssid,  password, true, false, true) {
     this->restoreSettings();
 
 	this->canExecutor->addExecutor(new MediaControlCanEvent());
+
+	pcf8574 = new PCF8574(0x20, NODE_SDA, NODE_SCL);
+	bool i2cValid = pcf8574->begin();
 	
-	versatileEncoder = new Versatile_RotaryEncoder(clk, dt, sw);
+	versatileEncoder = new Versatile_RotaryEncoder(encoderClk, encoderDt, encoderSw, pcf8574);
 	this->lastRead = 0;
 	versatileEncoder->setHandleRotate([this](uint8_t rotation){
 		if(!this->canRead()) {
@@ -67,7 +70,7 @@ MediaControlCarduinoNode::MediaControlCarduinoNode(uint8_t id, uint8_t clk, uint
 		}
 	});
 
-	x9c103s = new X9C103S(digiPotInc, digiPotUd, digiPotInc);
+	x9c103s = new X9C103S(digiPotInc, digiPotUd, digiPotCs, pcf8574);
 	x9c103s->initializePot();
 
 	this->buzzerPin = buzzer;
