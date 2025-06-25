@@ -5,7 +5,7 @@ MainCarduinoNodeSerialEvent::MainCarduinoNodeSerialEvent() : CarduinoNodeExecuto
 void MainCarduinoNodeSerialEvent::execute(CarduinoNode *node, CanbusMessage *message) {
     MainCarduinoNode* mainCarduinoNode = (MainCarduinoNode*) node;
     if(message->messageId == Event::SWC_PAIR.id) {
-        mainCarduinoNode->startSwcPairing();
+        // mainCarduinoNode->startSwcPairing();
     }
 };
 
