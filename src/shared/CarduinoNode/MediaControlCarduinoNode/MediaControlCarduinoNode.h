@@ -15,6 +15,7 @@
 #define SWC_WAITING_PAIRING_INTERVAL  1000
 #define SWC_FIRST_WAITING_PAIRING_INTERVAL  5000
 #define SWC_PIN_SIZE 8
+#define SWC_FLAG_READY_TO_PAIR_RESET_INTERVAL 30000
 
 // #define ENCODER_READING_INTERVAL 75
 #define ENCODER_READING_INTERVAL 0
@@ -28,6 +29,7 @@ class MediaControlCarduinoNode : public CarduinoNode {
         void startSwcPairing();
         void playTone(const Event*);
         void startTone(int freq, int duration);
+        void readyToStartSwcPairing();
 
     private:
         Versatile_RotaryEncoder *versatileEncoder;
@@ -36,4 +38,6 @@ class MediaControlCarduinoNode : public CarduinoNode {
         unsigned long lastRead;
         uint8_t buzzerPin;
         bool canRead();
+        bool readyToStartSwcPairingFlag;
+        Task *resetReadyToPairFlagTask;
 };

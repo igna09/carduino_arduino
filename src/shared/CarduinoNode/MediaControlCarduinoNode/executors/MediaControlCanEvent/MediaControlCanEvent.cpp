@@ -13,6 +13,8 @@ void MediaControlCanEvent::execute(CarduinoNode *node, CanbusMessage *message) {
         mediaControlCarduinoNode->playTone(&Event::WARNING_SEVERITY_MEDIUM);
     } else if(eventMessage->event->id == Event::WARNING_SEVERITY_HIGH.id) {
         mediaControlCarduinoNode->playTone(&Event::WARNING_SEVERITY_HIGH);
+    } else if(eventMessage->event->id == Event::SWC_PAIR.id) {
+        mediaControlCarduinoNode->readyToStartSwcPairing();
     }
 
     delete eventMessage;

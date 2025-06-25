@@ -8,7 +8,8 @@
  * 	TEST aggiungere buzzer
  * 	TEST far suonare buzzer durante il cambio pulsanti registrazione
  * 	TEST aggiungere mapping MediaControl => resistance value
- * 	far partire registrazione dei pulsanti solo quando viene premuto il pulsante
+ * 	TEST far partire registrazione dei pulsanti solo quando viene premuto il pulsante
+ * 	to send string messages to radio use ids: on adroid app store a json file mapping id to message
  */
 
 MediaControlCarduinoNode::MediaControlCarduinoNode(uint8_t id, uint8_t clk, uint8_t dt, uint8_t sw, int cs, int interruptPin, uint8_t digiPotCs, uint8_t digiPotUd, uint8_t digiPotInc, uint8_t buzzer, const char *ssid, const char *password) : CarduinoNode(id, cs, interruptPin, ssid,  password, false, true, true) {
@@ -54,13 +55,23 @@ MediaControlCarduinoNode::MediaControlCarduinoNode(uint8_t id, uint8_t clk, uint
 			return;
 		}
 		this->lastRead = millis();
-		this->sendMediaControlMessage(&MediaControl::LONG_PRESS);
+		if(this->readyToStartSwcPairingFlag) {
+			this->readyToStartSwcPairingFlag = false;
+			if(this->resetReadyToPairFlagTask->isEnabled()) {
+				this->resetReadyToPairFlagTask->disable();
+			}
+			this->playTone(&Event::WARNING_SEVERITY_MEDIUM);
+			this->startSwcPairing();
+		} else {
+			this->sendMediaControlMessage(&MediaControl::LONG_PRESS);
+		}
 	});
 
 	x9c103s = new X9C103S(digiPotInc, digiPotUd, digiPotInc);
 	x9c103s->initializePot();
 
 	this->buzzerPin = buzzer;
+	this->readyToStartSwcPairingFlag = false;
 };
 
 void MediaControlCarduinoNode::startSwcPairing() {
@@ -86,6 +97,17 @@ void MediaControlCarduinoNode::startSwcPairing() {
 	this->delayTask(SWC_FIRST_WAITING_PAIRING_INTERVAL, [&](){
 		swcPairingCallback(0);
 	});
+}
+
+void MediaControlCarduinoNode::readyToStartSwcPairing() {
+	this->readyToStartSwcPairingFlag = true;
+	this->resetReadyToPairFlagTask = this->delayTask(SWC_FLAG_READY_TO_PAIR_RESET_INTERVAL, [&](){
+		if(this->readyToStartSwcPairingFlag) {
+			this->playTone(&Event::WARNING_SEVERITY_MEDIUM);
+			this->readyToStartSwcPairingFlag = false;
+		}
+	});
+	//TODO: send message to radio saying long press to start swc pairing
 }
 
 void MediaControlCarduinoNode::pressButton(uint8_t resistance) {
@@ -115,6 +137,7 @@ bool MediaControlCarduinoNode::canRead() {
 	return millis() > this->lastRead + ENCODER_READING_INTERVAL;
 };
 
+//TODO: create enum to be passed to playTone function (in place of Event)
 void MediaControlCarduinoNode::playTone(const Event *toneEvent) {
 	if(toneEvent->id == Event::WARNING_SEVERITY_LOW.id) {
 		this->startTone(440, 200); // A4 per 200ms
