@@ -271,8 +271,8 @@ void MainCarduinoNode::test() {
     sendSerialMessage(&m);
 }
 
-void MainCarduinoNode::onOnlineEvent(OnlineEnum event) {
-    CarduinoNode::onOnlineEvent(event);
+void MainCarduinoNode::onOnlineOfflineEvent(OnlineEnum event) {
+    CarduinoNode::onOnlineOfflineEvent(event);
 
     if(event == OnlineEnum::ONLINE) {
         

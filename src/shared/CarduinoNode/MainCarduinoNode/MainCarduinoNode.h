@@ -73,7 +73,7 @@ class MainCarduinoNode : public CarduinoNode {
         void sendLog(uint8_t id, bool value) override;
         void sendLog(uint8_t id, int value) override;
         void sendLog(uint8_t id, float value) override;
-        void onOnlineEvent(OnlineEnum event);
+        void onOnlineOfflineEvent(OnlineEnum event);
 
         /**
          * TODO: move to new node to relief main node

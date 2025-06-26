@@ -566,11 +566,11 @@ void CarduinoNode::sendHeartbeat() {
 void CarduinoNode::heartbeatWDT() {
     if(millis() - lastTimeReceivedHeartbeat > HEARTBEAT_INTERVAL + HEARTBEAT_INTERVAL_TOLERANCE) {
         this->lastTimeReceivedHeartbeat = millis();
-        onOnlineEvent(OnlineEnum::OFFLINE);
+        onOnlineOfflineEvent(OnlineEnum::OFFLINE);
     }
 }
 
-void CarduinoNode::onOnlineEvent(OnlineEnum event) {
+void CarduinoNode::onOnlineOfflineEvent(OnlineEnum event) {
     switch(event) {
         case OnlineEnum::ONLINE:
 
@@ -675,7 +675,7 @@ void CarduinoNode::readDigitalPins() {
 }
 
 Task* CarduinoNode::delayTask(int delay, std::function<void()> lambdaCallback) {
-	this->printlnWrapper("CarduinoNode::delayTask " + String(millis()));
+	this->printlnWrapper("CarduinoNode::delayTask start@" + String(millis()));
     Task *lambdaTask = new Task(delay, 1, lambdaCallback, this->scheduler);
     lambdaTask->setSelfDestruct(true);
     lambdaTask->restartDelayed();

@@ -136,7 +136,7 @@ class CarduinoNode : public Logger, public FSBase, public SettingBase {
         SplittedUsbMessage* splitReceivedUsbMessage(String message);
         void handleReceivedSerialMessage(String message);
         void resetWebapp();
-        void onOnlineEvent(OnlineEnum event);
+        void onOnlineOfflineEvent(OnlineEnum event);
 
         static uint16_t generateId(const Category category, const Enum messageEnum);
         static uint16_t generateId(const Category category, uint8_t messageId);
