@@ -22,53 +22,55 @@ MediaControlCarduinoNode::MediaControlCarduinoNode(uint8_t id, uint8_t cs, uint8
 	
 	versatileEncoder = new Versatile_RotaryEncoder(encoderClk, encoderDt, encoderSw, pcf8574);
 	this->lastRead = 0;
-	versatileEncoder->setHandleRotate([this](uint8_t rotation){
-		if(!this->canRead()) {
-			return;
-		}
-		this->lastRead = millis();
-		if(rotation == 255) { // clockwise
-			// this->sendMediaControlMessage(&MediaControl::VOLUME_UP);
-			// Serial.println("VOLUME_UP");
-			this->pressButton(MediaControl::VOLUME_UP.resistance);
-		} else if (rotation == 1) { //counter clockwise
-			// this->sendMediaControlMessage(&MediaControl::VOLUME_DOWN);
-			// Serial.println("VOLUME_DOWN");
-			this->pressButton(MediaControl::VOLUME_DOWN.resistance);
-		}
-	});
-	versatileEncoder->setHandlePressRelease([this](){
-		if(!this->canRead()) {
-			return;
-		}
-		this->lastRead = millis();
-		// this->sendMediaControlMessage(&MediaControl::PLAY_PAUSE);
-		this->pressButton(MediaControl::PLAY_PAUSE.resistance);
-	});
-	versatileEncoder->setHandleDoublePressRelease([this](){
-		if(!this->canRead()) {
-			return;
-		}
-		this->lastRead = millis();
-		// this->sendMediaControlMessage(&MediaControl::NEXT);
-		this->pressButton(MediaControl::NEXT.resistance);
-	});
-	versatileEncoder->setHandleLongPress([this](){
-		if(!this->canRead()) {
-			return;
-		}
-		this->lastRead = millis();
-		if(this->readyToStartSwcPairingFlag) {
-			this->readyToStartSwcPairingFlag = false;
-			if(this->resetReadyToPairFlagTask->isEnabled()) {
-				this->resetReadyToPairFlagTask->disable();
+	if(i2cValid) {
+		versatileEncoder->setHandleRotate([this](uint8_t rotation){
+			if(!this->canRead()) {
+				return;
 			}
-			this->playTone(&Event::WARNING_SEVERITY_MEDIUM);
-			this->startSwcPairing();
-		} else {
-			this->sendMediaControlMessage(&MediaControl::LONG_PRESS);
-		}
-	});
+			this->lastRead = millis();
+			if(rotation == 255) { // clockwise
+				// this->sendMediaControlMessage(&MediaControl::VOLUME_UP);
+				// Serial.println("VOLUME_UP");
+				this->pressButton(MediaControl::VOLUME_UP.resistance);
+			} else if (rotation == 1) { //counter clockwise
+				// this->sendMediaControlMessage(&MediaControl::VOLUME_DOWN);
+				// Serial.println("VOLUME_DOWN");
+				this->pressButton(MediaControl::VOLUME_DOWN.resistance);
+			}
+		});
+		versatileEncoder->setHandlePressRelease([this](){
+			if(!this->canRead()) {
+				return;
+			}
+			this->lastRead = millis();
+			// this->sendMediaControlMessage(&MediaControl::PLAY_PAUSE);
+			this->pressButton(MediaControl::PLAY_PAUSE.resistance);
+		});
+		versatileEncoder->setHandleDoublePressRelease([this](){
+			if(!this->canRead()) {
+				return;
+			}
+			this->lastRead = millis();
+			// this->sendMediaControlMessage(&MediaControl::NEXT);
+			this->pressButton(MediaControl::NEXT.resistance);
+		});
+		versatileEncoder->setHandleLongPress([this](){
+			if(!this->canRead()) {
+				return;
+			}
+			this->lastRead = millis();
+			if(this->readyToStartSwcPairingFlag) {
+				this->readyToStartSwcPairingFlag = false;
+				if(this->resetReadyToPairFlagTask->isEnabled()) {
+					this->resetReadyToPairFlagTask->disable();
+				}
+				this->playTone(&Event::WARNING_SEVERITY_MEDIUM);
+				this->startSwcPairing();
+			} else {
+				this->sendMediaControlMessage(&MediaControl::LONG_PRESS);
+			}
+		});
+	}
 
 	x9c103s = new X9C103S(digiPotInc, digiPotUd, digiPotCs, pcf8574);
 	x9c103s->initializePot();
