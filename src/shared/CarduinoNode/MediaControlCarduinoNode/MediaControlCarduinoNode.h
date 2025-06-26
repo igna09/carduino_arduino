@@ -41,4 +41,5 @@ class MediaControlCarduinoNode : public CarduinoNode {
         bool readyToStartSwcPairingFlag;
         Task *resetReadyToPairFlagTask;
         PCF8574 *pcf8574;
+        bool pairing;
 };

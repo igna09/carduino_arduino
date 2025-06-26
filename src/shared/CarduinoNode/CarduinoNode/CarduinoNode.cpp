@@ -675,8 +675,8 @@ void CarduinoNode::readDigitalPins() {
 }
 
 Task* CarduinoNode::delayTask(int delay, std::function<void()> lambdaCallback) {
-	this->printlnWrapper("CarduinoNode::delayTask start@" + String(millis()));
-    Task *lambdaTask = new Task(delay, 1, lambdaCallback, this->scheduler);
+	// this->printlnWrapper("CarduinoNode::delayTask start@" + String(millis()));
+    Task *lambdaTask = new Task(delay, TASK_ONCE, lambdaCallback, this->scheduler);
     lambdaTask->setSelfDestruct(true);
     lambdaTask->restartDelayed();
     return lambdaTask;

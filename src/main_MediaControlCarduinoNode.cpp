@@ -15,7 +15,7 @@
 #define ENCODER_DT 4
 #define ENCODER_SW 5
 
-#define BUZZER D1
+#define BUZZER D0
 
 MediaControlCarduinoNode *mediaControlCarduinoNode;
 

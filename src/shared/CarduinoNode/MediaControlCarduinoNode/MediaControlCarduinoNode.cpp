@@ -5,10 +5,7 @@
  * 	TEST taskscheduler che riporta la resistenza a 0 dopo tot di ms (da recuperare da main node)
  * 	TEST portare la registrazione dei pulsanti da main node a qui
  * 	durante la registrazione dei pulsanti mandare messaggio alla radio (non visibile perché siamo su app radio swc, BLE_PAIRING_CODE)
- * 	TEST aggiungere buzzer
- * 	TEST far suonare buzzer durante il cambio pulsanti registrazione
  * 	TEST aggiungere mapping MediaControl => resistance value
- * 	TEST far partire registrazione dei pulsanti solo quando viene premuto il pulsante
  * 	to send string messages to radio use ids: on adroid app store a json file mapping id to message
  */
 
@@ -18,7 +15,16 @@ MediaControlCarduinoNode::MediaControlCarduinoNode(uint8_t id, uint8_t cs, uint8
 	this->canExecutor->addExecutor(new MediaControlCanEvent());
 
 	pcf8574 = new PCF8574(0x20, NODE_SDA, NODE_SCL);
+
+	pcf8574->pinMode(encoderClk, INPUT);
+	pcf8574->pinMode(encoderDt, INPUT);
+	pcf8574->pinMode(encoderSw, INPUT);
+	pcf8574->pinMode(digiPotCs, OUTPUT);
+	pcf8574->pinMode(digiPotUd, OUTPUT);
+	pcf8574->pinMode(digiPotInc, OUTPUT);
+
 	bool i2cValid = pcf8574->begin();
+	printlnWrapper("MediaControlCarduinoNode::MediaControlCarduinoNode() i2cValid " + String(i2cValid ? "true" : "false") + " " + String(millis()));
 	
 	versatileEncoder = new Versatile_RotaryEncoder(encoderClk, encoderDt, encoderSw, pcf8574);
 	this->lastRead = 0;
@@ -61,8 +67,8 @@ MediaControlCarduinoNode::MediaControlCarduinoNode(uint8_t id, uint8_t cs, uint8
 			this->lastRead = millis();
 			if(this->readyToStartSwcPairingFlag) {
 				this->readyToStartSwcPairingFlag = false;
-				if(this->resetReadyToPairFlagTask->isEnabled()) {
-					this->resetReadyToPairFlagTask->disable();
+				if(this->resetReadyToPairFlagTask != nullptr && this->resetReadyToPairFlagTask->isEnabled()) {
+					this->scheduler->deleteTask(*this->resetReadyToPairFlagTask);
 				}
 				this->playTone(&Event::WARNING_SEVERITY_MEDIUM);
 				this->startSwcPairing();
@@ -75,39 +81,56 @@ MediaControlCarduinoNode::MediaControlCarduinoNode(uint8_t id, uint8_t cs, uint8
 	x9c103s = new X9C103S(digiPotInc, digiPotUd, digiPotCs, pcf8574);
 	x9c103s->initializePot();
 
+	x9c103s->setResistance(0); // Set initial resistance to 0
+
 	this->buzzerPin = buzzer;
 	this->readyToStartSwcPairingFlag = false;
 };
 
 void MediaControlCarduinoNode::startSwcPairing() {
-	std::function<void(uint8_t)> swcPairingCallback = [&](uint8_t mediaControlIndex){
+	printlnWrapper("MediaControlCarduinoNode::startSwcPairing");
+	auto swcPairingCallback = [&](auto&& self, uint8_t mediaControlIndex) -> void {
+		if(((MediaControl*) MediaControl::getValues()[mediaControlIndex])->id == MediaControl::LONG_PRESS.id) {
+			mediaControlIndex++; // Skip LONG_PRESS control
+		}
+
+		if (mediaControlIndex == MEDIA_CONTROL_SIZE) {
+			this->printlnWrapper("MediaControlCarduinoNode::startSwcPairing finished " + String(millis()));
+			this->playTone(&Event::WARNING_SEVERITY_MEDIUM);
+			this->pairing = false;
+			return; // Finished pairing all controls
+		}
+
 		this->playTone(&Event::WARNING_SEVERITY_LOW);
 
 		this->x9c103s->setResistance(((MediaControl*) MediaControl::getValues()[mediaControlIndex])->resistance);
-		this->printlnWrapper("start pressing PIN " + String(mediaControlIndex) + " " + String(millis()));
-		this->delayTask(SWC_PAIRING_INTERVAL, [&](){
+		this->printlnWrapper("MediaControlCarduinoNode::startSwcPairing start pressing " + String(((MediaControl*) MediaControl::getValues()[mediaControlIndex])->name) + " " + String(((MediaControl*) MediaControl::getValues()[mediaControlIndex])->resistance));
+
+		this->delayTask(SWC_PAIRING_INTERVAL, [&, mediaControlIndex, self]() mutable {
 			this->x9c103s->setResistance(0);
-            this->printlnWrapper("Stop pressing PIN " + String(mediaControlIndex) + " " + String(millis()));
-			if(mediaControlIndex < (MEDIA_CONTROL_SIZE - 1)) {
-                this->printlnWrapper("Start waiting PIN " + String(mediaControlIndex + 1) + " " + String(millis()));
-				this->delayTask(SWC_WAITING_PAIRING_INTERVAL, [&](){
-            		this->printlnWrapper("stop waiting PIN " + String(mediaControlIndex + 1) + " " + String(millis()));
-					swcPairingCallback(mediaControlIndex + 1);
-				});
-			} else {
-				this->playTone(&Event::WARNING_SEVERITY_MEDIUM);
-			}
+			this->printlnWrapper("MediaControlCarduinoNode::startSwcPairing Stop pressing " + String(((MediaControl*) MediaControl::getValues()[mediaControlIndex])->name) + " " + String(((MediaControl*) MediaControl::getValues()[mediaControlIndex])->resistance));
+
+			this->delayTask(SWC_WAITING_PAIRING_INTERVAL, [&, mediaControlIndex, self]() mutable {
+				// this->printlnWrapper("stop waiting PIN " + String(mediaControlIndex + 1) + " " + String(millis()));
+				self(self, mediaControlIndex + 1);
+			});
 		});
 	};
-	this->delayTask(SWC_FIRST_WAITING_PAIRING_INTERVAL, [&](){
-		swcPairingCallback(0);
+
+	// Avvio iniziale
+	this->delayTask(SWC_FIRST_WAITING_PAIRING_INTERVAL, [&, swcPairingCallback]() {
+		swcPairingCallback(swcPairingCallback, 0);
 	});
+
+	this->pairing = true;
 }
 
 void MediaControlCarduinoNode::readyToStartSwcPairing() {
+	printlnWrapper("MediaControlCarduinoNode::readyToStartSwcPairing");
 	this->readyToStartSwcPairingFlag = true;
 	this->resetReadyToPairFlagTask = this->delayTask(SWC_FLAG_READY_TO_PAIR_RESET_INTERVAL, [&](){
 		if(this->readyToStartSwcPairingFlag) {
+			printlnWrapper("MediaControlCarduinoNode::readyToStartSwcPairing reset readyToStartSwcPairingFlag");
 			this->playTone(&Event::WARNING_SEVERITY_MEDIUM);
 			this->readyToStartSwcPairingFlag = false;
 		}
@@ -116,10 +139,14 @@ void MediaControlCarduinoNode::readyToStartSwcPairing() {
 }
 
 void MediaControlCarduinoNode::pressButton(uint8_t resistance) {
+	if(this->pairing) {
+		return; // Do not press button if pairing is in progress
+	}
 	this->x9c103s->setResistance(resistance);
 
-	if(releaseButtonTask->isEnabled()) {
-		releaseButtonTask->cancel();
+	if(releaseButtonTask != nullptr && releaseButtonTask->isEnabled()) {
+		// releaseButtonTask->disable();
+		this->scheduler->deleteTask(*releaseButtonTask);
 	}
 
 	releaseButtonTask = this->delayTask(SWC_PRESS_INTERVAL, [&](){
@@ -145,34 +172,49 @@ bool MediaControlCarduinoNode::canRead() {
 //TODO: create enum to be passed to playTone function (in place of Event)
 void MediaControlCarduinoNode::playTone(const Event *toneEvent) {
 	if(toneEvent->id == Event::WARNING_SEVERITY_LOW.id) {
+		printlnWrapper("MediaControlCarduinoNode::playTone LOW severity tone");
 		this->startTone(440, 200); // A4 per 200ms
 	} else if(toneEvent->id == Event::WARNING_SEVERITY_MEDIUM.id) {
-		std::function<void(uint8_t)> playToneRecursive = [&](uint8_t toneIndex){
+		printlnWrapper("MediaControlCarduinoNode::playTone MEDIUM severity tone");
+		auto playToneRecursive = [&](auto&& self, uint8_t toneIndex) -> void {
+			if (toneIndex == 2) return; // Limit to 2 tones for medium severity
+
+			// printlnWrapper("MediaControlCarduinoNode::playTone play next tone MEDIUM " + String(toneIndex));
 			this->startTone(660, 150); // E5
-			if(toneIndex < 2) {
-				this->delayTask(150 + 200, [&](){ // 150 time to wait previous tone to end, 200 delay between tones
-					playToneRecursive(++toneIndex);
-				});
-			}
+
+			this->delayTask(150 + 200, [&, toneIndex, self]() mutable {
+				// printlnWrapper("MediaControlCarduinoNode::playTone CALL play next tone MEDIUM");
+				self(self, toneIndex + 1);
+			});
 		};
-		playToneRecursive(0);
+
+		// Avvio iniziale
+		playToneRecursive(playToneRecursive, 0);
 	} else if(toneEvent->id == Event::WARNING_SEVERITY_HIGH.id) {
-		std::function<void(uint8_t)> playToneRecursive = [&](uint8_t toneIndex){
+		printlnWrapper("MediaControlCarduinoNode::playTone HIGH severity tone");
+		auto playToneRecursive = [&](auto&& self, uint8_t toneIndex) -> void {
+			if (toneIndex == 6) return; // Limit to 6 tones for high severity
+
+			// printlnWrapper("MediaControlCarduinoNode::playTone play next tone HIGH " + String(toneIndex));
 			this->startTone(880, 100); // A5
-			if(toneIndex < 6) {
-				this->delayTask(100 + 150, [&](){ // 100 time to wait previous tone to end, 150 delay between tones
-					playToneRecursive(++toneIndex);
-				});
-			}
+
+			this->delayTask(100 + 75, [&, toneIndex, self]() mutable {
+				// printlnWrapper("MediaControlCarduinoNode::playTone CALL play next tone HIGH");
+				self(self, toneIndex + 1);
+			});
 		};
-		playToneRecursive(0);
+
+		// Avvio iniziale
+		playToneRecursive(playToneRecursive, 0);
 	}
 }
 
 void MediaControlCarduinoNode::startTone(int freq, int duration) {
-  analogWriteFreq(freq);
-  analogWrite(buzzerPin, 1024); // duty cycle 100%
-  this->delayTask(duration, [&](){
-  	analogWrite(buzzerPin, 0);   // stop tone
-  });
+	// printlnWrapper("MediaControlCarduinoNode::startTone " + String(freq) + " " + String(duration));
+	analogWriteFreq(freq);
+	analogWrite(buzzerPin, 512); // duty cycle 50%
+	this->delayTask(duration, [&](){
+		// printlnWrapper("MediaControlCarduinoNode::startTone turn off buzzer");
+		analogWrite(buzzerPin, 0);   // stop tone
+	});
 }
