@@ -65,7 +65,7 @@ void KlineCarduinoNode::readValues() {
 		// Serial.print("KlineCarduinoNode::readValues() this->otaMode ");
 		// Serial.println(this->otaMode ? "true" : "false");
 		if(!this->isEnabled) {
-			// return; // don't read values if node is not enabled
+			return; // don't read values if node is not enabled
 		}
 		uint8_t ecusToReadSize = ValueToReadEnum::getEcusToReadSize();
 		KlineEcuEnum **ecusToRead = ValueToReadEnum::getEcusToRead();
