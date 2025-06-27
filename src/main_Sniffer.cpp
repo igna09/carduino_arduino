@@ -5,7 +5,7 @@
 #include <TaskScheduler.h>
 
 #include "./shared/SharedDefinitions.h"
-#include "./shared/CarduinoNode/Sniffer/Sniffer.h"
+#include "./CarduinoNode/Sniffer/Sniffer.h"
 
 Sniffer *sniffer;
 

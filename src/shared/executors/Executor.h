@@ -3,7 +3,7 @@
 #include <Arduino.h>
 #include "../CanbusMessage/CanbusMessage.h"
 #include "CarduinoNodeExecutorInterface.h"
-#include "../CarduinoNode/CarduinoNode/CarduinoNode.h"
+#include "CarduinoNode/CarduinoNode/CarduinoNode.h"
 
 /**
  * TODO: change so that is not necessary size anymore
