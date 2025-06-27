@@ -43,6 +43,7 @@ KlineCarduinoNode::KlineCarduinoNode(uint8_t id, uint8_t pin_rx, uint8_t pin_tx,
 	// KlineCallback<void(void)>::func = std::bind(&KlineCarduinoNode::readValues, this);
     // readValuesTask = new Task(500, TASK_FOREVER, static_cast<TaskCallback>(KlineCallback<void(void)>::callback), scheduler, true);
     readValuesTask = new Task(500, TASK_FOREVER, std::bind(&KlineCarduinoNode::readValues, this), scheduler, true);
+    this->voltageReadingTask = new Task(VOLTAGE_READING_INTERVAL, TASK_FOREVER, std::bind(&KlineCarduinoNode::voltageCallback, this), this->scheduler, true);
 
 	this->afterReadExecutors = new AfterReadExecutors();
 	this->afterReadExecutors->addExecutor(new FuelConsumptionExecutor());
@@ -190,4 +191,15 @@ void KlineCarduinoNode::readValues() {
 
 void KlineCarduinoNode::loop () {
 	CarduinoNode::loop();
+}
+
+void KlineCarduinoNode::voltageCallback() {
+	int sensorValue = analogRead(VOLTAGE_READING_PIN); // Legge il valore del pin analogico A0
+	float voltageOut = sensorValue * (3.3 / 1023.0); // Convertilo in una tensione tra 0 e 3.3V
+	float voltageIn = voltageOut * (R1 + R2) / R2; // Calcola la tensione in ingresso utilizzando il partitore di tensione
+
+	printlnWrapper("KlineCarduinoNode::voltageCallback() A0: " + String(sensorValue) + ", voltage 0-3.3V: " + String(voltageOut) + ", input voltage: " + String(voltageIn));
+
+	CarstatusMessage m(&Carstatus::BATTERY_VOLTAGE, voltageIn);
+    this->sendCanbusMessage(&m);
 }
