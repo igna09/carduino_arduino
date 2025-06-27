@@ -64,7 +64,7 @@ class Event : public TypedEnum {
 
         
         
-        Event(uint8_t id, const char *name, const CanbusMessageType *type) : TypedEnum(id, name, type) {
+        Event(uint8_t id, const char *name) : TypedEnum(id, name, &CanbusMessageType::INT) {
             Event::values[Event::index] = this;
             Event::index++;
         };
@@ -72,23 +72,23 @@ class Event : public TypedEnum {
 
 inline const TypedEnum* Event::values [EVENT_SIZE] = { 0 };
 inline uint8_t Event::index = 0;
-inline const Event Event::ENABLE = Event(0x00, "ENABLE", &CanbusMessageType::INT);
-inline const Event Event::ENABLE_INTERRUPT = Event(0x01, "ENABLE_INTERRUPT", &CanbusMessageType::INT);
-inline const Event Event::ENABLE_FINISH = Event(0x02, "ENABLE_FINISH", &CanbusMessageType::INT);
-inline const Event Event::DISABLE = Event(0x03, "DISABLE", &CanbusMessageType::INT);
-inline const Event Event::DISABLE_INTERRUPT = Event(0x04, "DISABLE_INTERRUPT", &CanbusMessageType::INT);
-inline const Event Event::DISABLE_FINISH = Event(0x05, "DISABLE_FINISH", &CanbusMessageType::INT);
-inline const Event Event::HELLO = Event(0x06, "HELLO", &CanbusMessageType::INT); //contains id sending hello (heartbeat and events used to get a list of nodes)
-inline const Event Event::GET_HELLOS = Event(0x07, "GET_HELLOS", &CanbusMessageType::INT); //request all hellos messages
-inline const Event Event::HEARTBEAT = Event(0x08, "HEARTBEAT", &CanbusMessageType::INT);
-inline const Event Event::LOCK_CAR = Event(0x09, "LOCK_CAR", &CanbusMessageType::INT);
-inline const Event Event::UNLOCK_CAR = Event(0x0A, "UNLOCK_CAR", &CanbusMessageType::INT);
-inline const Event Event::TEST = Event(0x0B, "TEST", &CanbusMessageType::INT);
-inline const Event Event::RESET_WEBAPP = Event(0x0C, "RESET_WEBAPP", &CanbusMessageType::INT);
-inline const Event Event::BLE_PAIRING_CODE = Event(0x0D, "BLE_PAIRING_CODE", &CanbusMessageType::INT);
-inline const Event Event::RESTART = Event(0x0E, "RESTART", &CanbusMessageType::INT);
-inline const Event Event::SWC_PAIR = Event(0x0F, "SWC_PAIR", &CanbusMessageType::INT);
-inline const Event Event::GET_SETTINGS = Event(0x10, "GET_SETTINGS", &CanbusMessageType::INT);
-inline const Event Event::WARNING_SEVERITY_LOW = Event(0x11, "WARNING_SEVERITY_LOW", &CanbusMessageType::INT);
-inline const Event Event::WARNING_SEVERITY_MEDIUM = Event(0x12, "WARNING_SEVERITY_MEDIUM", &CanbusMessageType::INT);
-inline const Event Event::WARNING_SEVERITY_HIGH = Event(0x13, "WARNING_SEVERITY_HIGH", &CanbusMessageType::INT);
+inline const Event Event::ENABLE = Event(0x00, "ENABLE");
+inline const Event Event::ENABLE_INTERRUPT = Event(0x01, "ENABLE_INTERRUPT");
+inline const Event Event::ENABLE_FINISH = Event(0x02, "ENABLE_FINISH");
+inline const Event Event::DISABLE = Event(0x03, "DISABLE");
+inline const Event Event::DISABLE_INTERRUPT = Event(0x04, "DISABLE_INTERRUPT");
+inline const Event Event::DISABLE_FINISH = Event(0x05, "DISABLE_FINISH");
+inline const Event Event::HELLO = Event(0x06, "HELLO"); //contains id sending hello (heartbeat and events used to get a list of nodes)
+inline const Event Event::GET_HELLOS = Event(0x07, "GET_HELLOS"); //request all hellos messages
+inline const Event Event::HEARTBEAT = Event(0x08, "HEARTBEAT");
+inline const Event Event::LOCK_CAR = Event(0x09, "LOCK_CAR");
+inline const Event Event::UNLOCK_CAR = Event(0x0A, "UNLOCK_CAR");
+inline const Event Event::TEST = Event(0x0B, "TEST");
+inline const Event Event::RESET_WEBAPP = Event(0x0C, "RESET_WEBAPP");
+inline const Event Event::BLE_PAIRING_CODE = Event(0x0D, "BLE_PAIRING_CODE");
+inline const Event Event::RESTART = Event(0x0E, "RESTART");
+inline const Event Event::SWC_PAIR = Event(0x0F, "SWC_PAIR");
+inline const Event Event::GET_SETTINGS = Event(0x10, "GET_SETTINGS");
+inline const Event Event::WARNING_SEVERITY_LOW = Event(0x11, "WARNING_SEVERITY_LOW");
+inline const Event Event::WARNING_SEVERITY_MEDIUM = Event(0x12, "WARNING_SEVERITY_MEDIUM");
+inline const Event Event::WARNING_SEVERITY_HIGH = Event(0x13, "WARNING_SEVERITY_HIGH");
