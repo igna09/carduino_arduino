@@ -108,7 +108,7 @@ void MainCarduinoNode::powerManagementPinsSetup() {
 
     this->addPinToRead(ACCESSORY_12_V_PIN, [&](PinInformation *pinInformation){
         printlnWrapper("ACCESSORY_12_V_PIN changed from " + String(!pinInformation->isHigh) + " to " + String(pinInformation->isHigh));
-        this->isKeyOn = !pinInformation->isHigh;
+        this->isKeyOn = !pinInformation->isHigh; // PIN is low when key is on
         if(!this->isKeyOn) {
             delayTask(2500, [&](){
         // Serial.println("delayed");
