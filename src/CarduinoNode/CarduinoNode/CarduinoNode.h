@@ -118,6 +118,7 @@ class CarduinoNode : public Logger, public FSBase, public SettingBase {
         void sendEvent(const Event *event);
         void sendEvent(const Event *event, int receiverId);
         void addPinToRead(uint8_t pin, PCF8574 *pcf8574 = nullptr, std::function<void(PinInformation*)> onChange = nullptr);
+        void addPinToRead(uint8_t pin, std::function<void(PinInformation*)> onChange = nullptr);
         PinInformation* getPinInformation(uint8_t pin);
         void readDigitalPins();
         virtual void enable();

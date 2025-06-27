@@ -33,8 +33,8 @@
 // #define SWC_FIRST_WAITING_PAIRING_INTERVAL  5000
 // #define SWC_PIN_SIZE 8
 
-#define RADIO_POWER_MOSFET_PIN P0
-#define ACCESSORY_12_V_PIN P1
+#define RADIO_POWER_MOSFET_PIN D2
+#define ACCESSORY_12_V_PIN D1
 
 struct NodeInformation {
     uint8_t id;
@@ -65,11 +65,7 @@ class MainCarduinoNode : public CarduinoNode {
         NodeInformation* getNodeInformation(uint8_t id);
         NodeInformation* createOrGetNodeInformation(uint8_t id);
         // void secondaryLoopCallback() override;
-        // void pcfSwcSetup();
-        void pcfDigitalPinsSetup();
-        // void executeSwcCommand(MediaControl *mediaControl);
-        // void manageSwc();
-        // void startSwcPairing();
+        void powerManagementPinsSetup();
         void sendLog(uint8_t id, bool value) override;
         void sendLog(uint8_t id, int value) override;
         void sendLog(uint8_t id, float value) override;

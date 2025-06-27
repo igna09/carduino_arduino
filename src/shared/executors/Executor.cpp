@@ -32,19 +32,19 @@ void Executor::execute(CarduinoNode *node, CanbusMessage *message) {
                     && executor->canExecute(node, message)
                 )
             ) {
-                if(!logged) {
-                    logged = true;
-                    if(node->_logOnSerial || node->_logOnServer) {
-                        Category *category = (Category*)Category::getValueById(message->categoryId);
-                        if(category->createSpecializedCopyFunction != nullptr) {
-                            CanbusMessage *specialized = category->createSpecializedCopyFunction(message);
-                            node->printlnWrapper("Executor::execute executing " + specialized->toSerialHumanString());
-                            delete specialized;
-                        } else {
-                            node->printlnWrapper("Executor::execute executing " + message->toSerialHumanString());
-                        }
-                    }
-                }
+                // if(!logged) {
+                //     logged = true;
+                //     if(node->_logOnSerial || node->_logOnServer) {
+                //         Category *category = (Category*)Category::getValueById(message->categoryId);
+                //         if(category->createSpecializedCopyFunction != nullptr) {
+                //             CanbusMessage *specialized = category->createSpecializedCopyFunction(message);
+                //             node->printlnWrapper("Executor::execute executing " + specialized->toSerialHumanString());
+                //             delete specialized;
+                //         } else {
+                //             node->printlnWrapper("Executor::execute executing " + message->toSerialHumanString());
+                //         }
+                //     }
+                // }
                 executor->execute(node, message);
             }
         }

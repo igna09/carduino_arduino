@@ -634,6 +634,17 @@ void CarduinoNode::addPinToRead(uint8_t pin, PCF8574 *pcf8574, std::function<voi
     (*this->pinInformations)[pin] = pinInformation;
 }
 
+void CarduinoNode::addPinToRead(uint8_t pin, std::function<void(PinInformation*)> onChange) {
+    PinInformation *pinInformation = new PinInformation();
+    pinInformation->pin = pin;
+    pinInformation->pcf8574 = nullptr;
+    pinInformation->isHigh = false;
+    pinInformation->hasChanged = false;
+    pinInformation->onChange = onChange;
+
+    (*this->pinInformations)[pin] = pinInformation;
+}
+
 PinInformation* CarduinoNode::getPinInformation(uint8_t pin) {
     // std::map<uint8_t, PinInformation*>::iterator it = this->pinInformations->find(id);
     // if (it != this->pinInformations->end()) {
