@@ -19,6 +19,7 @@
 
 // #define ENCODER_READING_INTERVAL 75
 #define ENCODER_READING_INTERVAL 0
+// #define ENCODER_READING_INTERVAL SWC_PRESS_INTERVAL
 
 class MediaControlCarduinoNode : public CarduinoNode {
     public:
@@ -42,4 +43,5 @@ class MediaControlCarduinoNode : public CarduinoNode {
         Task *resetReadyToPairFlagTask;
         PCF8574 *pcf8574;
         bool pairing;
+        void writeResistance(uint8_t resistance);
 };

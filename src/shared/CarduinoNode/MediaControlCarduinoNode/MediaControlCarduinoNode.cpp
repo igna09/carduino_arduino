@@ -30,6 +30,7 @@ MediaControlCarduinoNode::MediaControlCarduinoNode(uint8_t id, uint8_t cs, uint8
 	this->lastRead = 0;
 	if(i2cValid) {
 		versatileEncoder->setHandleRotate([this](uint8_t rotation){
+			printlnWrapper("MediaControlCarduinoNode::MediaControlCarduinoNode() versatileEncoder->setHandleRotate rotation " + String(rotation) + " " + String(millis()));
 			if(!this->canRead()) {
 				return;
 			}
@@ -45,6 +46,7 @@ MediaControlCarduinoNode::MediaControlCarduinoNode(uint8_t id, uint8_t cs, uint8
 			}
 		});
 		versatileEncoder->setHandlePressRelease([this](){
+			printlnWrapper("MediaControlCarduinoNode::MediaControlCarduinoNode() versatileEncoder->setHandlePressRelease " + String(millis()));
 			if(!this->canRead()) {
 				return;
 			}
@@ -53,6 +55,7 @@ MediaControlCarduinoNode::MediaControlCarduinoNode(uint8_t id, uint8_t cs, uint8
 			this->pressButton(MediaControl::PLAY_PAUSE.resistance);
 		});
 		versatileEncoder->setHandleDoublePressRelease([this](){
+			printlnWrapper("MediaControlCarduinoNode::MediaControlCarduinoNode() versatileEncoder->setHandleDoublePressRelease " + String(millis()));
 			if(!this->canRead()) {
 				return;
 			}
@@ -61,6 +64,7 @@ MediaControlCarduinoNode::MediaControlCarduinoNode(uint8_t id, uint8_t cs, uint8
 			this->pressButton(MediaControl::NEXT.resistance);
 		});
 		versatileEncoder->setHandleLongPress([this](){
+			printlnWrapper("MediaControlCarduinoNode::MediaControlCarduinoNode() versatileEncoder->setHandleLongPress " + String(millis()));
 			if(!this->canRead()) {
 				return;
 			}
@@ -81,7 +85,7 @@ MediaControlCarduinoNode::MediaControlCarduinoNode(uint8_t id, uint8_t cs, uint8
 	x9c103s = new X9C103S(digiPotInc, digiPotUd, digiPotCs, pcf8574);
 	x9c103s->initializePot();
 
-	x9c103s->setResistance(0); // Set initial resistance to 0
+	writeResistance(0); // Set initial resistance to 0
 
 	this->buzzerPin = buzzer;
 	this->readyToStartSwcPairingFlag = false;
@@ -103,11 +107,11 @@ void MediaControlCarduinoNode::startSwcPairing() {
 
 		this->playTone(&Event::WARNING_SEVERITY_LOW);
 
-		this->x9c103s->setResistance(((MediaControl*) MediaControl::getValues()[mediaControlIndex])->resistance);
+		this->writeResistance(((MediaControl*) MediaControl::getValues()[mediaControlIndex])->resistance);
 		this->printlnWrapper("MediaControlCarduinoNode::startSwcPairing start pressing " + String(((MediaControl*) MediaControl::getValues()[mediaControlIndex])->name) + " " + String(((MediaControl*) MediaControl::getValues()[mediaControlIndex])->resistance));
 
 		this->delayTask(SWC_PAIRING_INTERVAL, [&, mediaControlIndex, self]() mutable {
-			this->x9c103s->setResistance(0);
+			this->writeResistance(0);
 			this->printlnWrapper("MediaControlCarduinoNode::startSwcPairing Stop pressing " + String(((MediaControl*) MediaControl::getValues()[mediaControlIndex])->name) + " " + String(((MediaControl*) MediaControl::getValues()[mediaControlIndex])->resistance));
 
 			this->delayTask(SWC_WAITING_PAIRING_INTERVAL, [&, mediaControlIndex, self]() mutable {
@@ -142,17 +146,23 @@ void MediaControlCarduinoNode::pressButton(uint8_t resistance) {
 	if(this->pairing) {
 		return; // Do not press button if pairing is in progress
 	}
-	this->x9c103s->setResistance(resistance);
+
+	this->writeResistance(resistance);
 
 	if(releaseButtonTask != nullptr && releaseButtonTask->isEnabled()) {
 		// releaseButtonTask->disable();
 		this->scheduler->deleteTask(*releaseButtonTask);
 	}
-
 	releaseButtonTask = this->delayTask(SWC_PRESS_INTERVAL, [&](){
-		this->x9c103s->setResistance(0);
+		this->writeResistance(0); // Release button
+		this->printlnWrapper("MediaControlCarduinoNode::pressButton released button " + String(millis()));
 	});
 }
+
+void MediaControlCarduinoNode::writeResistance(uint8_t resistance) {
+	this->printlnWrapper("MediaControlCarduinoNode::writeResistance " + String(resistance) + " " + String(millis()));
+	this->x9c103s->setResistance(resistance);
+};
 
 void MediaControlCarduinoNode::sendMediaControlMessage(const MediaControl *mediaControl) {
 	MediaControlMessage *m = new MediaControlMessage(mediaControl);
