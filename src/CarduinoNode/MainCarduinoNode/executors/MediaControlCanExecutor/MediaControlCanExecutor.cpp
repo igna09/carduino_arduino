@@ -1,8 +1,8 @@
-#include "MediaControlExecutor.h"
+#include "MediaControlCanExecutor.h"
 
-MediaControlExecutor::MediaControlExecutor() : CarduinoNodeExecutorInterface(&Category::MEDIA_CONTROL) {};
+MediaControlCanExecutor::MediaControlCanExecutor() : CarduinoNodeExecutorInterface(&Category::MEDIA_CONTROL) {};
 
-void MediaControlExecutor::execute(CarduinoNode *node, CanbusMessage *message){
+void MediaControlCanExecutor::execute(CarduinoNode *node, CanbusMessage *message){
     MediaControl *mediaControl = (MediaControl*)MediaControl::getValueById(message->messageId);
     if(mediaControl->id == MediaControl::LONG_PRESS.id) {
         MediaControlMessage *mediaControlMessage = new MediaControlMessage(mediaControl);
@@ -13,6 +13,6 @@ void MediaControlExecutor::execute(CarduinoNode *node, CanbusMessage *message){
     }*/
 };
 
-bool MediaControlExecutor::canExecute(CarduinoNode *node, CanbusMessage *message) {
+bool MediaControlCanExecutor::canExecute(CarduinoNode *node, CanbusMessage *message) {
     return node->isEnabled;
 }

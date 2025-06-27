@@ -24,7 +24,7 @@ MainCarduinoNode::MainCarduinoNode(uint8_t id, int cs, int interruptPin, char *s
     this->nodeInformations = new std::map<uint8_t, NodeInformation*>();
 
     this->canExecutor->addExecutor(new CarstatusExecutor());
-    this->canExecutor->addExecutor(new MediaControlExecutor());
+    this->canExecutor->addExecutor(new MediaControlCanExecutor());
     this->canExecutor->addExecutor(new HeartbeatExecutor());
     this->canExecutor->addExecutor(new MainNodeCanReadSettingExecutor());
     this->canExecutor->addExecutor(new MainNodeCanEvent());

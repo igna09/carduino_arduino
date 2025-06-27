@@ -7,9 +7,9 @@
 #include "shared/executors/CarduinoNodeExecutorInterface.h"
 #include "shared/enums/Category.h"
 
-class MediaControlExecutor : public CarduinoNodeExecutorInterface {
+class MediaControlCanExecutor : public CarduinoNodeExecutorInterface {
     public:
-        MediaControlExecutor();
+        MediaControlCanExecutor();
         void execute(CarduinoNode *node, CanbusMessage *message);
         bool canExecute(CarduinoNode *node, CanbusMessage *message);
 };
