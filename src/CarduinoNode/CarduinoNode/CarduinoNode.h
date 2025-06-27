@@ -99,6 +99,7 @@ class CarduinoNode : public Logger, public FSBase, public SettingBase {
         Scheduler *scheduler;
         Task *temperatureTask;
         Task* heartbeatWdtTask;
+        Task* heartbeatTask;
         std::map<uint8_t, PinInformation*> *pinInformations;
         bool isEnabled;
         Executor *usbExecutor;

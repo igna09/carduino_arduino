@@ -57,7 +57,7 @@ CarduinoNode::CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssi
     this->scheduler = new Scheduler();
     this->scheduler->startNow();
 
-    Task* heartbeatTask = new Task(HEARTBEAT_INTERVAL, TASK_FOREVER, std::bind(&CarduinoNode::sendHeartbeat, this), this->scheduler, false);
+    heartbeatTask = new Task(HEARTBEAT_INTERVAL, TASK_FOREVER, std::bind(&CarduinoNode::sendHeartbeat, this), this->scheduler, false);
     heartbeatTask->restartDelayed();
     heartbeatWdtTask = new Task(1000, TASK_FOREVER, std::bind(&CarduinoNode::heartbeatWDT, this), this->scheduler, false);
     heartbeatWdtTask->restartDelayed();
