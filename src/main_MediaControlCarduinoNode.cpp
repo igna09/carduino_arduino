@@ -5,7 +5,7 @@
 #include <TaskScheduler.h>
 
 #include "./shared/SharedDefinitions.h"
-#include "CarduinoNode/MediaControlCarduinoNode/MediaControlCarduinoNode.h"
+#include "nodes/MediaControlCarduinoNode/MediaControlCarduinoNode.h"
 
 #define DIGIPOT_CS 0
 #define DIGIPOT_UD 1

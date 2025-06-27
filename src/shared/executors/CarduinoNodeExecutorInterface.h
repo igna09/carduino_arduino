@@ -3,7 +3,7 @@
 #include <Arduino.h>
 #include "../CanbusMessage/CanbusMessage.h"
 #include "../enums/Category.h"
-// #include "CarduinoNode/CarduinoNode/CarduinoNode.h"
+// #include "nodes/CarduinoNode/CarduinoNode.h"
 
 class CarduinoNode; //forward declaration, needed to avoid circular dependency
 class CarduinoNodeExecutorInterface {

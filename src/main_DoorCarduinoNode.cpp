@@ -5,7 +5,7 @@
 #include <TaskScheduler.h>
 
 #include "./shared/SharedDefinitions.h"
-#include "CarduinoNode/DoorCarduinoNode/DoorCarduinoNode.h"
+#include "nodes/DoorCarduinoNode/DoorCarduinoNode.h"
 
 DoorCarduinoNode *doorCarduinoNode;
 

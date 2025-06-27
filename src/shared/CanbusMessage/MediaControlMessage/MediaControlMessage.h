@@ -5,7 +5,7 @@
 #include "../../enums/Setting.h"
 #include "../TypedCanbusMessage/TypedCanbusMessage.h"
 #include "shared/enums/MediaControl.h"
-#include "CarduinoNode/CarduinoNode/CarduinoNode.h"
+#include "nodes/CarduinoNode/CarduinoNode.h"
 
 class MediaControlMessage : public TypedCanbusMessage {
     public:

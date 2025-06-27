@@ -4,7 +4,7 @@
 #include "shared/CanbusMessage/CanbusMessage.h"
 #include "shared/enums/Carstatus.h"
 #include "shared/enums/Event.h"
-#include "CarduinoNode/CarduinoNode/CarduinoNode.h"
+#include "nodes/CarduinoNode/CarduinoNode.h"
 
 class LogMessage : public CanbusMessage, public ValueTypedBase {
     public:

@@ -5,7 +5,7 @@
 #include "shared/enums/Carstatus.h"
 #include "shared/CanbusMessage/TypedCanbusMessage/TypedCanbusMessage.h"
 #include "shared/enums/Event.h"
-#include "CarduinoNode/CarduinoNode/CarduinoNode.h"
+#include "nodes/CarduinoNode/CarduinoNode.h"
 
 class EventMessage : public TypedCanbusMessage {
     public:

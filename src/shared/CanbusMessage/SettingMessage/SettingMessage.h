@@ -4,7 +4,7 @@
 #include "../CanbusMessage.h"
 #include "../../enums/Setting.h"
 #include "shared/CanbusMessage/TypedCanbusMessage/TypedCanbusMessage.h"
-#include "CarduinoNode/CarduinoNode/CarduinoNode.h"
+#include "nodes/CarduinoNode/CarduinoNode.h"
 
 class SettingMessage : public TypedCanbusMessage {
     public:
