@@ -1,6 +1,6 @@
 #include "MainCarduinoNode.h"
 
-MainCarduinoNode::MainCarduinoNode(uint8_t id, int cs, int interruptPin, char *ssid, char *password) : CarduinoNode(id, cs, interruptPin, ssid, password, false, false, false) {
+MainCarduinoNode::MainCarduinoNode(uint8_t id, int cs, int interruptPin, char *ssid, char *password) : CarduinoNode(id, cs, interruptPin, ssid, password, true, false, false) {
     this->enable();
 
 	this->addSetting(&Setting::SEND_ALL_MESSAGES_TO_RADIO, false, nullptr, true);
@@ -70,7 +70,7 @@ void MainCarduinoNode::turnOffSystem() {
     printlnWrapper("MainCarduinoNode::turnOffSystem");
     //TODO: when all turn off events happened (i receive TURN_OFF_COMPLETE from important nodes like door one) turn off also the radio??
     this->isRadioOn = false;
-    this->pcf8574DigitalPins->digitalWrite(RADIO_POWER_MOSFET_PIN, LOW);
+    digitalWrite(RADIO_POWER_MOSFET_PIN, LOW);
 }
 
 /*void MainCarduinoNode::manageRadioPower() {

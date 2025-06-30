@@ -132,6 +132,7 @@ void MediaControlCarduinoNode::startSwcPairing() {
 void MediaControlCarduinoNode::readyToStartSwcPairing() {
 	printlnWrapper("MediaControlCarduinoNode::readyToStartSwcPairing");
 	this->readyToStartSwcPairingFlag = true;
+	playTone(&Event::WARNING_SEVERITY_LOW);
 	this->resetReadyToPairFlagTask = this->delayTask(SWC_FLAG_READY_TO_PAIR_RESET_INTERVAL, [&](){
 		if(this->readyToStartSwcPairingFlag) {
 			printlnWrapper("MediaControlCarduinoNode::readyToStartSwcPairing reset readyToStartSwcPairingFlag");
