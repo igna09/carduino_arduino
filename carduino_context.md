@@ -68,7 +68,6 @@ Il sistema gestisce lo scambio di dati attraverso due canali principali: il bus 
 
 2.  **Messaggi Seriali/USB (`handleReceivedSerialMessage`):**
     *   I messaggi ricevuti via Serial seguono un formato testuale separato da punti e virgola: `Categoria;Enum;Valore` (es. `HEARTBEAT;0;TRUE`).
-    *   La funzione gestisce comandi diretti di debug per il nodo (come `LOG_WS_ON` e `LOG_WS_OFF`).
     *   Il messaggio viene parsato: il sistema cerca la `Category` e il `TypedEnum` corrispondenti (tramite nome o ID numerico) per interpretare il payload (Bool, Int o Float).
     *   Viene creato un oggetto `CanbusMessage` che viene poi processato dall'`usbExecutor`, permettendo di simulare comandi CAN o interrogare il nodo direttamente via USB.
 
@@ -80,6 +79,30 @@ Il sistema gestisce lo scambio di dati attraverso due canali principali: il bus 
 
 2.  **Invio su Seriale (`sendSerialMessage`):**
     *   Utilizzato principalmente per riportare lo stato del nodo o rispondere a richieste provenienti dall'interfaccia USB. I messaggi vengono convertiti in stringhe leggibili prima dell'invio.
+
+### Architettura dei Messaggi
+
+Il sistema utilizza un'architettura a classi gerarchica per rappresentare i messaggi scambiati sul bus CAN, garantendo tipizzazione e facilità di parsing.
+
+#### Struttura dell'ID
+L'ID di un messaggio CAN (16 bit) è generato dinamicamente combinando due componenti:
+*   **Category ID (8 bit):** Definisce il gruppo funzionale (es. `HEARTBEAT`, `SETTING`, `EVENT`).
+*   **Enum ID (8 bit):** Identifica il comando o lo stato specifico all'interno di quella categoria.
+*   *Esempio:* `id = (category.id << 8) | messageEnum.id`.
+
+#### Gerarchia delle Classi
+*   **`CanbusMessage` (Base):** La classe base che contiene l'ID grezzo, il puntatore al payload (`uint8_t*`) e la lunghezza del payload.
+*   **Messaggi Specializzati:** Classi che estendono la base per aggiungere logica specifica di formattazione e visualizzazione:
+    *   `EventMessage`: Per eventi di sistema (es. `HELLO`, `WARNING`).
+    *   `LogMessage`: Per messaggi di log diagnostici tra nodi.
+    *   `CarstatusMessage`: Per i dati telemetrici dell'auto (es. giri motore, voltaggio batteria).
+    *   `MediaControlMessage`: Specifico per i comandi multimediali.
+
+#### Gestione dei Tipi di Dato (Payload)
+Il sistema supporta tre tipi principali di dati nel payload, gestiti tramite `CanbusMessageType`:
+*   **BOOL:** Payload di 1 byte (0 o 1).
+*   **INT:** Payload di 4 byte (conversione da `int`).
+*   **FLOAT:** Payload di 5 byte (un byte di identificazione tipo + 4 byte di dati float).
 
 ### Key Libraries and Technologies
 
