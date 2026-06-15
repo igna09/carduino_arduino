@@ -55,6 +55,31 @@ Both `MediaControlCarduinoNode` and `KlineCarduinoNode` inherit from a `Carduino
     *   **Event Handling:** Includes mechanisms to `sendEvent` and manage `EventMessage`s over the CAN bus, allowing nodes to communicate significant occurrences.
     *   **Executors:** Utilizes an `Executor` pattern for handling specific CAN events or serial commands, allowing for extensible processing logic. Examples include `CarduinoNodeCanEvent`, `CarduinoNodeCanGetSettings`, etc.
 
+### Flusso di Comunicazione e Gestione Messaggi
+
+Il sistema gestisce lo scambio di dati attraverso due canali principali: il bus CAN e l'interfaccia Serial (USB).
+
+#### Gestione Messaggi in Ingresso
+
+1.  **Messaggi CAN (`manageReceivedCanbusMessage`):**
+    *   I messaggi provenienti dal bus fisico vengono letti dal controller MCP2515 e inseriti in un buffer circolare (`messageBuffer`).
+    *   Il metodo `handleRxBuffer` processa periodicamente questo buffer estraendo i messaggi.
+    *   Ogni messaggio viene passato a `manageReceivedCanbusMessage`, che delega l'esecuzione al `canExecutor`. Questo componente identifica la logica corretta da applicare in base all'ID e alla Categoria del messaggio (es. aggiornamento impostazioni o gestione eventi di stato).
+
+2.  **Messaggi Seriali/USB (`handleReceivedSerialMessage`):**
+    *   I messaggi ricevuti via Serial seguono un formato testuale separato da punti e virgola: `Categoria;Enum;Valore` (es. `HEARTBEAT;0;TRUE`).
+    *   La funzione gestisce comandi diretti di debug per il nodo (come `LOG_WS_ON` e `LOG_WS_OFF`).
+    *   Il messaggio viene parsato: il sistema cerca la `Category` e il `TypedEnum` corrispondenti (tramite nome o ID numerico) per interpretare il payload (Bool, Int o Float).
+    *   Viene creato un oggetto `CanbusMessage` che viene poi processato dall'`usbExecutor`, permettendo di simulare comandi CAN o interrogare il nodo direttamente via USB.
+
+#### Gestione Messaggi in Uscita
+
+1.  **Invio su CAN Bus (`sendCanbusMessage`):**
+    *   Metodi di alto livello come `sendLog`, `sendEvent` o quelli specifici dei nodi (es. `sendMediaControlMessage`) creano oggetti messaggio specializzati (es. `LogMessage`, `EventMessage`).
+    *   `sendCanbusMessage` riceve questi oggetti, ne logga il contenuto per il debug e utilizza la libreria `MCP_CAN` per trasmettere i byte grezzi sul bus.
+
+2.  **Invio su Seriale (`sendSerialMessage`):**
+    *   Utilizzato principalmente per riportare lo stato del nodo o rispondere a richieste provenienti dall'interfaccia USB. I messaggi vengono convertiti in stringhe leggibili prima dell'invio.
 
 ### Key Libraries and Technologies
 
