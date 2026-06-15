@@ -15,27 +15,45 @@ KlineCarduinoNode::KlineCarduinoNode(uint8_t id, uint8_t pin_rx, uint8_t pin_tx,
 	
 	this->pin_rx = pin_rx;
     this->pin_tx = pin_tx;
+
+	#if !defined(ARDUINO_ARCH_ESP32)
 	this->softwareSerial = new SoftwareSerial(pin_rx, pin_tx);
+	#endif
 
 	std::function<void(unsigned long)> beginFunction = [&](unsigned long baud){
-		softwareSerial->begin(baud);
+		#if defined(ARDUINO_ARCH_ESP32)
+		Serial1.begin(baud, SERIAL_8N1, this->pin_rx, this->pin_tx);
+		#else
+		this->softwareSerial->begin(baud);
+		#endif
 	};
 	std::function<void()> endFunction = [&](){
-		softwareSerial->end();
+		#if defined(ARDUINO_ARCH_ESP32)
+		Serial1.end();
+		#else
+		this->softwareSerial->end();
+		#endif
 	};
 	std::function<void(uint8_t)> sendFunction = [&](uint8_t data){
 		#ifdef DEBUG_KLINE_NODE
-		Serial.print("K-OUT > 0x");
-		Serial.println(data, HEX);
+		this->printlnWrapper("K-OUT > 0x" + String(data, HEX));
 		#endif
-		softwareSerial->write(data);
+		#if defined(ARDUINO_ARCH_ESP32)
+		Serial1.write(data);
+		#else
+		this->softwareSerial->write(data);
+		#endif
 	};
 	std::function<bool(uint8_t&)> receiveFunction = [&](uint8_t &data){
-		if (softwareSerial->available()) {
-			data = softwareSerial->read();
+		#if defined(ARDUINO_ARCH_ESP32)
+		if (Serial1.available()) {
+			data = Serial1.read();
+		#else
+		if (this->softwareSerial->available()) {
+			data = this->softwareSerial->read();
+		#endif
 			#ifdef DEBUG_KLINE_NODE
-			Serial.print("K-IN  < 0x");
-			Serial.println(data, HEX);
+			this->printlnWrapper("K-IN  < 0x" + String(data, HEX));
 			#endif
 			return true;
 		}
