@@ -3,7 +3,7 @@
 #include "TypedEnum.h"
 #include "CanbusMessageType.h"
 
-#define EVENT_SIZE 22
+#define EVENT_SIZE 20
 
 /**
  * these events send as payload sender id
@@ -31,8 +31,6 @@ class Event : public TypedEnum {
         static const Event WARNING_SEVERITY_LOW;
         static const Event WARNING_SEVERITY_MEDIUM;
         static const Event WARNING_SEVERITY_HIGH;
-        static const Event SOCKET_DEBUG_ENABLE;
-        static const Event SOCKET_DEBUG_DISABLE;
 
         static const TypedEnum* getValueById(uint8_t id) {
             for(uint8_t i = 0; i < getSize(); i++) {
@@ -94,5 +92,3 @@ inline const Event Event::GET_SETTINGS = Event(0x10, "GET_SETTINGS");
 inline const Event Event::WARNING_SEVERITY_LOW = Event(0x11, "WARNING_SEVERITY_LOW");
 inline const Event Event::WARNING_SEVERITY_MEDIUM = Event(0x12, "WARNING_SEVERITY_MEDIUM");
 inline const Event Event::WARNING_SEVERITY_HIGH = Event(0x13, "WARNING_SEVERITY_HIGH");
-inline const Event Event::SOCKET_DEBUG_ENABLE = Event(0x14, "SOCKET_DEBUG_ENABLE");
-inline const Event Event::SOCKET_DEBUG_DISABLE = Event(0x15, "SOCKET_DEBUG_DISABLE");
