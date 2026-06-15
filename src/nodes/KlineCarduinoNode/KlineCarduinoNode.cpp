@@ -166,7 +166,9 @@ void KlineCarduinoNode::readValues() {
 											// Serial.print(" ");
 											// Serial.println(value);
 											#ifdef DEBUG_KLINE_NODE
-											printlnWrapper("KlineCarduinoNode: Read " + String(valueToReadEnum->name) + " = " + String(value));
+											char logBuf[64];
+											snprintf(logBuf, sizeof(logBuf), "Kline: Read %s = %.2f", valueToReadEnum->name, value);
+											printlnWrapper(logBuf);
 											#endif
 
 											if(valueToReadEnum->send) {
