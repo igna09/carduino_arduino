@@ -24,11 +24,19 @@ KlineCarduinoNode::KlineCarduinoNode(uint8_t id, uint8_t pin_rx, uint8_t pin_tx,
 		softwareSerial->end();
 	};
 	std::function<void(uint8_t)> sendFunction = [&](uint8_t data){
+		#ifdef DEBUG_KLINE_NODE
+		Serial.print("K-OUT > 0x");
+		Serial.println(data, HEX);
+		#endif
 		softwareSerial->write(data);
 	};
 	std::function<bool(uint8_t&)> receiveFunction = [&](uint8_t &data){
 		if (softwareSerial->available()) {
 			data = softwareSerial->read();
+			#ifdef DEBUG_KLINE_NODE
+			Serial.print("K-IN  < 0x");
+			Serial.println(data, HEX);
+			#endif
 			return true;
 		}
 		return false;
@@ -79,12 +87,18 @@ void KlineCarduinoNode::readValues() {
 
 				if(lastConnectedEcu == nullptr || (lastConnectedEcu != nullptr && lastConnectedEcu->id != klineEcuEnum->id)) {
 					// Serial.println("KlineCarduinoNode::readValues() trying to connect ");
+					#ifdef DEBUG_KLINE_NODE
+					printlnWrapper("KlineCarduinoNode: Attempting connection to ECU " + String(klineEcuEnum->address, HEX));
+					#endif
 					this->klineConnected = kLine->attemptConnect(klineEcuEnum->address, klineEcuEnum->baud) == KLineKWP1281Lib::SUCCESS; // connect here to avoid connection to ecus that won't read any value
 					// Serial.print("KlineCarduinoNode::readValues() this->klineConnected ");
 					// Serial.println(this->klineConnected ? "true" : "false");
 					// if(this->klineConnected) {
 					// 	lastConnectedEcu = klineEcuEnum;
 					// }
+					#ifdef DEBUG_KLINE_NODE
+					printlnWrapper("KlineCarduinoNode: Connection " + String(this->klineConnected ? "SUCCESS" : "FAILED"));
+					#endif
 				}
 				if(this->klineConnected) {
 					// if(this->getSettingValue(&Setting::OTA_MODE)->value->boolValue) {
@@ -125,11 +139,14 @@ void KlineCarduinoNode::readValues() {
 										case KLineKWP1281Lib::VALUE: {
 											float value = KLineKWP1281Lib::getMeasurementValue(valueToReadEnum->groupIndex, amount_of_measurements, measurements, sizeof(measurements));
 											
-											Serial.print("KlineCarduinoNode::readValues() read value ");
-											Serial.print(" ");
-											Serial.print(valueToReadEnum->name);
-											Serial.print(" ");
-											Serial.println(value);
+											// Serial.print("KlineCarduinoNode::readValues() read value ");
+											// Serial.print(" ");
+											// Serial.print(valueToReadEnum->name);
+											// Serial.print(" ");
+											// Serial.println(value);
+											#ifdef DEBUG_KLINE_NODE
+											printlnWrapper("KlineCarduinoNode: Read " + String(valueToReadEnum->name) + " = " + String(value));
+											#endif
 
 											if(valueToReadEnum->send) {
 												CarstatusMessage *c = nullptr;
@@ -140,6 +157,9 @@ void KlineCarduinoNode::readValues() {
 												} else if(valueToReadEnum->carstatus.type->id == CanbusMessageType::BOOL.id) {
 													c = new CarstatusMessage(&valueToReadEnum->carstatus, value == 1);
 												}
+												#ifdef DEBUG_KLINE_NODE
+												printlnWrapper("KlineCarduinoNode: Sending CAN Message ID " + String(valueToReadEnum->carstatus.id));
+												#endif
 												sendCanbusMessage(c);
 												delete c;
 											}
