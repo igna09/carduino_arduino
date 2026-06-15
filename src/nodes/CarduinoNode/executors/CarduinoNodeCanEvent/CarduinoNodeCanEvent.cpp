@@ -30,6 +30,10 @@ void CarduinoNodeCanEvent::execute(CarduinoNode *node, CanbusMessage *message) {
             EventMessage *helloMessage = new EventMessage(&Event::HELLO, node->id);
             node->sendCanbusMessage(helloMessage);
             delete helloMessage;
+        } else if(eventMessage->event->id == Event::SOCKET_DEBUG_ENABLE.id) {
+            node->setLogOnServer(true);
+        } else if(eventMessage->event->id == Event::SOCKET_DEBUG_DISABLE.id) {
+            node->setLogOnServer(false);
         }
     }
 
@@ -46,5 +50,7 @@ bool CarduinoNodeCanEvent::canExecute(CarduinoNode *node, CanbusMessage *message
         || message->messageId == Event::ENABLE.id
         || message->messageId == Event::DISABLE.id
         || message->messageId == Event::HEARTBEAT.id
+        || message->messageId == Event::SOCKET_DEBUG_ENABLE.id
+        || message->messageId == Event::SOCKET_DEBUG_DISABLE.id
     );
 }

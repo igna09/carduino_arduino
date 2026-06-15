@@ -18,8 +18,13 @@ KlineCarduinoNode *klineCarduinoNode;
 void setup(void) {
   Serial.begin(BAUD_RATE);
 
-  //klineCarduinoNode = new KlineCarduinoNode(0x01, D1, RX, D8, D2, "SSID_KLINE_CARDUINO_NODE", "pwd12345");
+  #ifdef ARDUINO_ARCH_ESP32
+  // Pin specifici per ESP32-C3 SuperMini: 
+  // K-Line (Serial1): RX=0, TX=1 | CAN: CS=7, INT=2 | SPI: SCK=4, MISO=5, MOSI=6
+  klineCarduinoNode = new KlineCarduinoNode(0x01, 0, 1, 7, 2, "SSID_KLINE_C3", "pwd12345");
+  #else
   klineCarduinoNode = new KlineCarduinoNode(0x01, RX, D1, D8, D2, "SSID_KLINE_CARDUINO_NODE", "pwd12345");
+  #endif
 }
 
 // unsigned long lastSent = millis();

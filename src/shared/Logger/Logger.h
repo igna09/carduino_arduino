@@ -5,11 +5,9 @@
 
 #include "shared/FSBase/FSBase.h"
 
-// class FSBase;
-class Logger {
-    private:
-        static const char PROGMEM INDEX_HTML[];
+#define LOGGER_HISTORY_SIZE 20
 
+class Logger {
     public:
         AsyncWebSocket *_webSocket;
         bool _logOnServer;
@@ -18,9 +16,15 @@ class Logger {
         bool _originalLogOnSerial;
         FSBase* _fsBase;
 
+        String _history[LOGGER_HISTORY_SIZE];
+        uint8_t _historyIdx = 0;
+        bool _historyFull = false;
+
         Logger(FSBase* fsBase, bool logOnSerial);
         void setupLogger(AsyncWebServer *server, bool logOnServer, bool logOnSerial);
 
+        void setLogOnServer(bool logOnServer);
+        void _addLogToHistory(const String &s);
         void onWebSocketEvent(AsyncWebSocketClient * client, AwsEventType type, void * arg, uint8_t *data, size_t len);
 
         void logOnServer(String message);

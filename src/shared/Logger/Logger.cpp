@@ -26,11 +26,21 @@ void Logger::setupLogger(AsyncWebServer *webServer, bool logOnServer, bool logOn
 void Logger::onWebSocketEvent(AsyncWebSocketClient * client, AwsEventType type, void * arg, uint8_t *data, size_t len)
 {
   switch(type) {
-    case WS_EVT_DISCONNECT:
-        // Serial.printf("ws[%s][%u] disconnect: %u\n", this->_webSocket->url(), client->id());
-        break;
     case WS_EVT_CONNECT:
-        // Serial.printf("ws[%s][%u] connect\n", this->_webSocket->url(), client->id());
+        // Quando un client si connette, inviamo lo storico dei log per non perdere info pregresse
+        if (_historyIdx > 0 || _historyFull) {
+            uint8_t start = _historyFull ? _historyIdx : 0;
+            uint8_t count = _historyFull ? LOGGER_HISTORY_SIZE : _historyIdx;
+            for (uint8_t i = 0; i < count; i++) {
+                uint8_t current = (start + i) % LOGGER_HISTORY_SIZE;
+                if (!_history[current].isEmpty()) {
+                    client->text(_history[current]);
+                }
+            }
+        }
+        break;
+    case WS_EVT_DISCONNECT:
+        // Serial.printf("ws[%s][%u] disconnect\n", this->_webSocket->url(), client->id());
         break;
     case WS_EVT_PONG:
         // Serial.printf("ws[%s][%u] pong[%u]: %s\n", this->_webSocket->url(), client->id(), len, (len)?(char*)data:"");
@@ -88,8 +98,17 @@ void Logger::onWebSocketEvent(AsyncWebSocketClient * client, AwsEventType type, 
   }
 }
 
+void Logger::_addLogToHistory(const String &s) {
+    _history[_historyIdx] = s;
+    _historyIdx = (_historyIdx + 1) % LOGGER_HISTORY_SIZE;
+    if (_historyIdx == 0) _historyFull = true;
+}
+
 void Logger::logOnServer(String message) {
-    this->_webSocket->textAll(message);
+    // Ottimizzazione: invia solo se ci sono client effettivamente connessi
+    if (this->_webSocket != nullptr && this->_webSocket->count() > 0) {
+        this->_webSocket->textAll(message);
+    }
 }
 
 void Logger::logOnFile(String message) {
@@ -102,12 +121,23 @@ void Logger::logOnFile(String message) {
 
 void Logger::printlnWrapper(const String &s, bool logToFile) {
     if(_logOnSerial) Serial.println(s);
-    if(_logOnServer) logOnServer(s + "\n");
+    if(_logOnServer) {
+        _addLogToHistory(s);
+        logOnServer(s);
+    }
     if(logToFile) logOnFile(s);
 }
 
 void Logger::printlnWrapper(const char c[], bool logToFile) {
     if(_logOnSerial) Serial.println(c);
-    if(_logOnServer) logOnServer(String(c) + "\n");
+    if(_logOnServer) {
+        String s = String(c);
+        _addLogToHistory(s);
+        logOnServer(s);
+    }
     if(logToFile) logOnFile(String(c));
+}
+
+void Logger::setLogOnServer(bool logOnServer) {
+    this->_logOnServer = logOnServer;
 }
