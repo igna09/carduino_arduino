@@ -44,4 +44,4 @@ typedef enum {
 #define SECONDS_TO_MICROSECONDS(seconds) ((seconds) * 1000000)
 #define MILLISECONDS_TO_MICROSECONDS(milliseconds) ((milliseconds) * 1000)
 
-#define __VERSION__ 20
+#define __VERSION__ 21
