@@ -5,9 +5,6 @@ CarduinoNodeSerialWriteSetting::CarduinoNodeSerialWriteSetting() : CarduinoNodeE
 void CarduinoNodeSerialWriteSetting::execute(CarduinoNode *node, CanbusMessage *message) {
     node->sendCanbusMessage(message);
 
-    /**
-     * THIS LOGIC HAS TO BE REPLICATED HERE BECAUSE CarduinoNodeWriteSetting WILL BE CALLED ONLY ON CANBUS MESSAGES (HERE WE ARE ON SERIAL)
-    */
     SettingMessage *settingMessage = new SettingMessage(message);
 
     if(settingMessage->setting->type->id == CanbusMessageType::INT.id) {

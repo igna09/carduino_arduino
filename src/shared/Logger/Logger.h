@@ -3,7 +3,8 @@
 #include <Arduino.h>
 #include <ESPAsyncWebServer.h>
 
-#include "shared/FSBase/FSBase.h"
+// #include "shared/FSBase/FSBase.h"
+#include "nodes/CarduinoNode/CarduinoNode.h"
 
 #define LOGGER_HISTORY_SIZE 20
 
@@ -14,13 +15,15 @@ class Logger {
         bool _logOnSerial;
         bool _originalLogOnWebserver;
         bool _originalLogOnSerial;
-        FSBase* _fsBase;
+        // FSBase* _fsBase;
+        CarduinoNode* _carduinoNode;
 
         String _history[LOGGER_HISTORY_SIZE];
         uint8_t _historyIdx = 0;
         bool _historyFull = false;
 
-        Logger(FSBase* fsBase, bool logOnSerial);
+        // Logger(FSBase* fsBase, bool logOnSerial);
+        Logger(CarduinoNode* carduinoNode, bool logOnSerial);
         void setupLogger(AsyncWebServer *server, bool logOnServer, bool logOnSerial);
 
         void setLogOnServer(bool logOnServer);
@@ -32,4 +35,6 @@ class Logger {
 
         void printlnWrapper(const String &s, bool logOnFile = false);
         void printlnWrapper(const char c[], bool logOnFile = false);
+
+        String getFormattedTimestamp();
 };

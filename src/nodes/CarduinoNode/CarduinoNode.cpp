@@ -12,6 +12,8 @@ CarduinoNode::CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssi
     this->_originalLogOnSerial = logOnSerial;
     this->_originalLogOnWebserver = logOnServer;
     this->isEnabled = false;
+    this->_timeOffsetMillis = 0; // Initialize to 0
+    this->_lastTimeSyncRequestMillis = 0; // Initialize to 0
 
     this->setupLogger(this->server, false, this->_originalLogOnSerial);
 
@@ -601,6 +603,11 @@ void CarduinoNode::enable() {
 	// sendLog(0, true);
 
     this->isEnabled = true;
+
+    CanbusMessage *timeSyncMessage = new CanbusMessage(generateId(Category::TIME_SYNC, TimeSync::REQUEST), 0, 0);
+    this->recordTimeSyncRequestSendTime();
+    this->sendCanbusMessage(timeSyncMessage);
+    delete timeSyncMessage;
 }
 
 void CarduinoNode::disable() {
@@ -715,6 +722,32 @@ void CarduinoNode::sendSerialMessage(CanbusMessage *message) {
     printlnWrapper("CarduinoNode::sendSerialMessage " + message->toSerialHumanString());
     Serial.println(message->toSerialString());
     // Serial.flush();
+}
+
+void CarduinoNode::recordTimeSyncRequestSendTime() {
+    this->_lastTimeSyncRequestMillis = millis();
+}
+
+unsigned long CarduinoNode::getLastTimeSyncRequestMillis() {
+    return _lastTimeSyncRequestMillis;
+}
+
+void CarduinoNode::handleTimeSyncResponse(unsigned long masterMillisInResponse, unsigned long slaveRequestMillis) {
+    unsigned long slaveReceiveMillis = millis();
+    unsigned long rtt = slaveReceiveMillis - slaveRequestMillis;
+    unsigned long latency = rtt / 2;
+
+    // Tempo stimato del Master nel momento in cui lo slave ha ricevuto la risposta
+    unsigned long estimatedMasterMillisAtSlaveReceive = masterMillisInResponse + latency;
+
+    // Calcola il nuovo offset in millisecondi
+    this->_timeOffsetMillis = estimatedMasterMillisAtSlaveReceive - slaveReceiveMillis;
+
+    printlnWrapper("Time synchronized. RTT: " + String(rtt) + "ms, Latency: " + String(latency) + "ms. New offset: " + String(this->_timeOffsetMillis) + "ms.");
+}
+
+unsigned long CarduinoNode::getSynchronizedMillis() {
+    return _timeOffsetMillis + millis();
 }
 
 void CarduinoNode::test() {}
