@@ -2,7 +2,7 @@
 
 #include "Enum.h"
 
-#define CANBUS_MESSAGE_TYPE_SIZE 4
+#define CANBUS_MESSAGE_TYPE_SIZE 5
 
 class CanbusMessageType : public Enum {
     public:

@@ -63,4 +63,3 @@ inline const Setting Setting::BLE_UNLOCKING = Setting(0x06, "BLE_UNLOCKING", &Ca
 inline const Setting Setting::BLE_RSSI_THRESHOLD = Setting(0x07, "BLE_RSSI_THRESHOLD", &CanbusMessageType::INT);
 inline const Setting Setting::SEND_ALL_MESSAGES_TO_RADIO = Setting(0x08, "SEND_ALL_MESSAGES_TO_RADIO", &CanbusMessageType::BOOL);
 inline const Setting Setting::LOG_ON_SERVER = Setting(0x09, "LOG_ON_SERVER", &CanbusMessageType::BOOL);
-// inline const Setting* Setting::ON_REVERSE_LOWER_MIRRORS = new Setting(0x04, "ON_REVERSE_LOWER_MIRRORS", &CanbusMessageType::BOOL);
