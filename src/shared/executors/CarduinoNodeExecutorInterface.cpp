@@ -1,24 +1,11 @@
 #include "CarduinoNodeExecutorInterface.h"
 
 CarduinoNodeExecutorInterface::CarduinoNodeExecutorInterface() {
-    // CarduinoNodeExecutorInterface(const Category *categoryFilter, nullptr);
-    this->categoryFilter = nullptr;
-    
-    this->filterMessage = false;
-    this->messageId = 0;
+    this->filterEvent = false;
+    this->eventEnum = nullptr;
 }
 
-CarduinoNodeExecutorInterface::CarduinoNodeExecutorInterface(const Category *categoryFilter) {
-    // CarduinoNodeExecutorInterface(const Category *categoryFilter, nullptr);
-    this->categoryFilter = categoryFilter;
-    
-    this->filterMessage = false;
-    this->messageId = 0;
-}
-
-CarduinoNodeExecutorInterface::CarduinoNodeExecutorInterface(const Category *categoryFilter, uint8_t messageId) {
-    this->categoryFilter = categoryFilter;
-
-    this->messageId = messageId;
-    this->filterMessage = true;
+CarduinoNodeExecutorInterface::CarduinoNodeExecutorInterface(const EventEnum* eventEnum) {
+    this->eventEnum = eventEnum;
+    this->filterEvent = true;
 }

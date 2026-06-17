@@ -3,8 +3,9 @@
 #include <Arduino.h>
 #include "AfterReadExecutorInterface.h"
 #include "../ValueToReadEnum.h"
-#include "../../../CanbusMessage/CarstatusMessage/CarstatusMessage.h"
+// #include "../../../CanbusMessage/CarstatusMessage/CarstatusMessage.h"
 #include "../../CarduinoNode/CarduinoNode.h"
+#include "../../../shared/enums/EventEnum/EventEnum.h"
 
 class FuelConsumptionExecutor : public AfterReadExecutorInterface {
     public:
@@ -15,8 +16,9 @@ class FuelConsumptionExecutor : public AfterReadExecutorInterface {
             } else {
                 v = 0;
             }
-            CarstatusMessage *c = new CarstatusMessage(&Carstatus::FUEL_CONSUMPTION, v);
+            CanbusMessage *c = new CanbusMessage();
+            c->eventId = EventEnum::FUEL_CONSUMPTION.id;
+            c->packValue(v);
             carduinoNode->sendCanbusMessage(c);
-            delete c;
         };
 };

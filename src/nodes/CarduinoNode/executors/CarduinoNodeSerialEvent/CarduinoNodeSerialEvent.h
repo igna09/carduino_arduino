@@ -4,8 +4,7 @@
 #include "shared/CanbusMessage/CanbusMessage.h"
 #include "nodes/CarduinoNode/CarduinoNode.h"
 #include "shared/executors/CarduinoNodeExecutorInterface.h"
-#include "shared/enums/Category.h"
-#include "shared/CanbusMessage/EventMessage/EventMessage.h"
+#include "shared/enums/EventEnum/EventEnum.h"
 
 class CarduinoNodeSerialEvent : public CarduinoNodeExecutorInterface {
     public:

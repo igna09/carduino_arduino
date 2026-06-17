@@ -19,7 +19,7 @@ void setup(void) {
   Serial.begin(BAUD_RATE);
   randomSeed(analogRead(0));
 
-  sniffer = new Sniffer(0xFF, D8, D2, "SSID_SNIFFER_CARDUINO_NODE", "pwd12345");
+  sniffer = new Sniffer(0xFF, 8, 2, "SSID_SNIFFER_CARDUINO_NODE", "pwd12345");
 }
 
 unsigned long lastSent = 0;

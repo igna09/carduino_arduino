@@ -1,21 +1,18 @@
 #pragma once
 
 #include <Arduino.h>
-#include "../CanbusMessage/CanbusMessage.h"
-#include "../enums/Category.h"
-// #include "nodes/CarduinoNode/CarduinoNode.h"
+
+#include "shared/enums/EventEnum/EventEnum.h"
+#include "shared/CanbusMessage/CanbusMessage.h"
 
 class CarduinoNode; //forward declaration, needed to avoid circular dependency
 class CarduinoNodeExecutorInterface {
     public:
-        const Category *categoryFilter;
-        uint8_t messageId;
-        bool filterMessage;
-        bool needNodeEnabled;
+        const EventEnum* eventEnum;
+        bool filterEvent;
         
         CarduinoNodeExecutorInterface();
-        CarduinoNodeExecutorInterface(const Category *categoryFilter);
-        CarduinoNodeExecutorInterface(const Category *categoryFilter, uint8_t messageId);
+        CarduinoNodeExecutorInterface(const EventEnum* eventEnum);
         virtual void execute(CarduinoNode *node, CanbusMessage *message) = 0;
         virtual bool canExecute(CarduinoNode *node, CanbusMessage *message) = 0;
 };

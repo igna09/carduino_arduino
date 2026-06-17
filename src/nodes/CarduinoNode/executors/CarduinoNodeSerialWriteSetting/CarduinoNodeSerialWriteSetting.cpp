@@ -1,24 +1,40 @@
 #include "CarduinoNodeSerialWriteSetting.h"
 
-CarduinoNodeSerialWriteSetting::CarduinoNodeSerialWriteSetting() : CarduinoNodeExecutorInterface(&Category::WRITE_SETTING) {};
+CarduinoNodeSerialWriteSetting::CarduinoNodeSerialWriteSetting() : CarduinoNodeExecutorInterface(&EventEnum::WRITE_SETTING) {};
 
 void CarduinoNodeSerialWriteSetting::execute(CarduinoNode *node, CanbusMessage *message) {
+    node->printlnWrapper("CarduinoNodeSerialWriteSetting::execute");
     node->sendCanbusMessage(message);
 
     /**
      * THIS LOGIC HAS TO BE REPLICATED HERE BECAUSE CarduinoNodeWriteSetting WILL BE CALLED ONLY ON CANBUS MESSAGES (HERE WE ARE ON SERIAL)
     */
-    SettingMessage *settingMessage = new SettingMessage(message);
+    // Iteriamo su tutti i possibili valori trasportati dall'evento
+    EventEnum *eventEnum = (EventEnum*)EventEnum::getValueById(message->eventId);
+    
+    // 1. Estraiamo l'ID del setting (Indice 0 del payload)
+    uint8_t settingIdOffset = 0;
+    uint8_t settingId = message->unpackValue<uint8_t>(settingIdOffset);
 
-    if(settingMessage->setting->type->id == CanbusMessageType::INT.id) {
-        node->putSettingValue(settingMessage->setting, settingMessage->getIntValue());
-    } else if (settingMessage->setting->type->id == CanbusMessageType::FLOAT.id) {
-        node->putSettingValue(settingMessage->setting, settingMessage->getFloatValue());
-    } else if (settingMessage->setting->type->id == CanbusMessageType::BOOL.id) {
-        node->putSettingValue(settingMessage->setting, settingMessage->getBoolValue());
+    // 2. Calcoliamo l'offset di partenza del valore (Indice 1 del payload)
+    uint8_t valueOffset = settingIdOffset + eventEnum->types[0].size;
+    
+    Setting *setting = (Setting*)Setting::getValueById(settingId);
+
+    node->printlnWrapper("setting type id " + String(setting->type->id));
+    node->printlnWrapper("valueOffset " + String(valueOffset));
+
+    // 3. Smistiamo il valore in base al tipo reale dichiarato nel payload stesso
+    if(setting->type->id == CanbusMessageType::BOOL.id) {
+        bool val = message->unpackValue<bool>(valueOffset);
+        node->putSettingValue(setting, val); 
+    } else if(setting->type->id == CanbusMessageType::INT.id) {
+        int val = message->unpackValue<int32_t>(valueOffset);
+        node->putSettingValue(setting, val);
+    } else if(setting->type->id == CanbusMessageType::FLOAT.id) {
+        float val = message->unpackValue<float>(valueOffset);
+        node->putSettingValue(setting, val);
     }
-
-    delete settingMessage;
 };
 
 bool CarduinoNodeSerialWriteSetting::canExecute(CarduinoNode *node, CanbusMessage *message) {

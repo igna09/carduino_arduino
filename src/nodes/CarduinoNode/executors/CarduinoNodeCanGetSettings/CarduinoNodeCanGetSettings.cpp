@@ -1,6 +1,6 @@
 #include "CarduinoNodeCanGetSettings.h"
 
-CarduinoNodeCanGetSettings::CarduinoNodeCanGetSettings() : CarduinoNodeExecutorInterface(&Category::EVENT, Event::GET_SETTINGS.id) {};
+CarduinoNodeCanGetSettings::CarduinoNodeCanGetSettings() : CarduinoNodeExecutorInterface(&EventEnum::GET_SETTINGS) {};
 
 void CarduinoNodeCanGetSettings::execute(CarduinoNode *node, CanbusMessage *message) {
     std::map<uint8_t, SettingInformation*>::iterator it;
@@ -13,13 +13,13 @@ void CarduinoNodeCanGetSettings::execute(CarduinoNode *node, CanbusMessage *mess
             SettingInformation *settingInformation = it->second;
             Setting *setting = (Setting*) Setting::getValueById(it->first);
 
-            SettingMessage *settingMessage = nullptr;
+            CanbusMessage *settingMessage = new CanbusMessage();
             if(setting->type->id == CanbusMessageType::INT.id) {
-                settingMessage = new SettingMessage(setting, true, settingInformation->value->intValue);
+                settingMessage->packValue(settingInformation->value->intValue);
             } else if (setting->type->id == CanbusMessageType::FLOAT.id) {
-                settingMessage = new SettingMessage(setting, true, settingInformation->value->floatValue);
+                settingMessage->packValue(settingInformation->value->floatValue);
             } else if (setting->type->id == CanbusMessageType::BOOL.id) {
-                settingMessage = new SettingMessage(setting, true, settingInformation->value->boolValue);
+                settingMessage->packValue(settingInformation->value->boolValue);
             }
             
             node->sendCanbusMessage(settingMessage);

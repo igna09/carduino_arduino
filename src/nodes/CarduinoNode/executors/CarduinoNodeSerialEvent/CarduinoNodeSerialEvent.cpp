@@ -1,34 +1,33 @@
 #include "CarduinoNodeSerialEvent.h"
 
-CarduinoNodeSerialEvent::CarduinoNodeSerialEvent() : CarduinoNodeExecutorInterface(&Category::EVENT) {};
+CarduinoNodeSerialEvent::CarduinoNodeSerialEvent() : CarduinoNodeExecutorInterface() {};
 
 void CarduinoNodeSerialEvent::execute(CarduinoNode *node, CanbusMessage *message) {
     /**
      * testing purpose, to be removed in production
      */
-    if(message->messageId == Event::TEST.id) {
+    if(message->eventId == EventEnum::TEST.id) {
         node->test();
     }
     
-    if(message->messageId == Event::ENABLE.id) {
+    if(message->eventId == EventEnum::ENABLE.id) {
         node->enable();
-    } else if(message->messageId == Event::DISABLE.id) {
+    } else if(message->eventId == EventEnum::DISABLE.id) {
         node->disable();
     }
 
-    EventMessage *eventMessage = new EventMessage(message);
-    if(eventMessage->getIntValue() != node->id || eventMessage->getIntValue() == ALL_NODES) {
-        node->sendCanbusMessage(eventMessage);
+    if(message->targetNode != node->id || message->targetNode == NODE_BROADCAST) {
+        node->sendCanbusMessage(message);
     }
+
     if(
-        message->messageId == Event::RESTART.id
-        && (eventMessage->getIntValue() == node->id || eventMessage->getIntValue() == ALL_NODES)
+        message->eventId == EventEnum::RESTART.id
+        && (message->targetNode == node->id || message->targetNode == NODE_BROADCAST)
     ) {
         node->delayTask(1000, [&](){
             node->restart();
         });
     }
-    delete eventMessage;
 };
 
 bool CarduinoNodeSerialEvent::canExecute(CarduinoNode *node, CanbusMessage *message) {

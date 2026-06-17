@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../enums/Enum.h"
+#include "../../shared/enums/Enum.h"
 
 #define KLINE_ECU_ENUM_SIZE 2
 

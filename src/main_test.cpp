@@ -5,9 +5,9 @@
 #include <TaskScheduler.h>
 
 #include "./shared/SharedDefinitions.h"
-#include "./nodes/MainCarduinoNode/MainCarduinoNode.h"
+#include "./nodes/Test/Test.h"
 
-MainCarduinoNode *carduinoNode;
+Test *testNode;
 
 /**
  * convenzione:
@@ -19,21 +19,22 @@ void setup(void) {
   Serial.begin(BAUD_RATE);
   randomSeed(analogRead(0));
 
-  carduinoNode = new MainCarduinoNode(0x00, 32, 33, "SSID_TEST_CARDUINO_NODE", "pwd12345");
+  testNode = new Test(0x00, 32, 33, "SSID_TEST_CARDUINO_NODE", "pwd12345");
 }
 
 unsigned long lastSent = 0;
 
 void loop(void) {
-  carduinoNode->loop();
-  // if(millis() > lastSent + 10000 && lastSent == 0) {
+  testNode->loop();
+  if(millis() > lastSent + 10000 && lastSent == 0) {
       // Serial.println(micros() - lastSent);
-			// lastSent = micros();
+			lastSent = micros();
       // uint8_t a[] = {0x01};
 			// CanbusMessage *message = new CanbusMessage(0b10000000010, a, 1);
-			// carduinoNode->manageReceivedCanbusMessage(message);
-  //     carduinoNode->printlnWrapper("test");
-  // carduinoNode->handleReceivedSerialMessage("GET_SETTINGS;;;");
-  //   carduinoNode->sendEvent(&Event::DISABLE, ALL_NODES);
-	// }
+			// testNode->manageReceivedCanbusMessage(message);
+  //     testNode->printlnWrapper("test");
+  // testNode->handleReceivedSerialMessage("GET_SETTINGS;;;");
+  //   testNode->sendEvent(&Event::DISABLE, ALL_NODES);
+    testNode->handleReceivedSerialMessage("1;0;WRITE_SETTING;1;1;");
+	}
 }

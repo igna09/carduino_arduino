@@ -172,19 +172,19 @@ void KlineCarduinoNode::readValues() {
 											#endif
 
 											if(valueToReadEnum->send) {
-												CarstatusMessage *c = nullptr;
+												CanbusMessage *m = new CanbusMessage();
 												if(valueToReadEnum->carstatus.type->id == CanbusMessageType::INT.id) {
-													c = new CarstatusMessage(&valueToReadEnum->carstatus, int(value));
+													m->packValue(int(value));
 												} else if(valueToReadEnum->carstatus.type->id == CanbusMessageType::FLOAT.id) {
-													c = new CarstatusMessage(&valueToReadEnum->carstatus, value);
+													m->packValue(float(value));
 												} else if(valueToReadEnum->carstatus.type->id == CanbusMessageType::BOOL.id) {
-													c = new CarstatusMessage(&valueToReadEnum->carstatus, value == 1);
+													m->packValue(bool(value == 1));
 												}
 												#ifdef DEBUG_KLINE_NODE
 												printlnWrapper("KlineCarduinoNode: Sending CAN Message ID " + String(valueToReadEnum->carstatus.id));
 												#endif
-												sendCanbusMessage(c);
-												delete c;
+												sendCanbusMessage(m);
+												delete m;
 											}
 
 											if(valueToReadEnum->carstatus.type->id == CanbusMessageType::INT.id) {
@@ -243,6 +243,8 @@ void KlineCarduinoNode::voltageCallback() {
 
 	printlnWrapper("KlineCarduinoNode::voltageCallback() A0: " + String(sensorValue) + ", voltage 0-3.3V: " + String(voltageOut) + ", input voltage: " + String(voltageIn));
 
-	CarstatusMessage m(&Carstatus::BATTERY_VOLTAGE, voltageIn);
+	CanbusMessage m;
+	m.eventId = EventEnum::BATTERY_VOLTAGE.id;
+	m.packValue(voltageIn);
     this->sendCanbusMessage(&m);
 }

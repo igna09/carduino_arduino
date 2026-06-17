@@ -1,11 +1,15 @@
 #include "CarduinoNodeSerialGetSettings.h"
 
-CarduinoNodeSerialGetSettings::CarduinoNodeSerialGetSettings() : CarduinoNodeExecutorInterface(&Category::EVENT, Event::GET_SETTINGS.id) {};
+CarduinoNodeSerialGetSettings::CarduinoNodeSerialGetSettings() : CarduinoNodeExecutorInterface(&EventEnum::GET_SETTINGS) {};
 
 void CarduinoNodeSerialGetSettings::execute(CarduinoNode *node, CanbusMessage *message) {
     node->sendCanbusMessage(message);
 
-    SettingMessage *otaModeSettingMessage = new SettingMessage(&Setting::OTA_MODE, true, node->getSettingValue(&Setting::OTA_MODE)->value->boolValue);
+    CanbusMessage *otaModeSettingMessage = new CanbusMessage();
+    otaModeSettingMessage->eventId = EventEnum::READ_SETTING.id;
+    otaModeSettingMessage->packValue(Setting::OTA_MODE.id);
+    otaModeSettingMessage->packValue(DataTypeEnum::BOOL.id);
+    otaModeSettingMessage->packValue(node->getSettingValue(&Setting::OTA_MODE)->value->boolValue);
     node->sendSerialMessage(otaModeSettingMessage);
     delete otaModeSettingMessage;
 
@@ -23,13 +27,13 @@ void CarduinoNodeSerialGetSettings::execute(CarduinoNode *node, CanbusMessage *m
             SettingInformation *settingInformation = it->second;
             Setting *setting = (Setting*) Setting::getValueById(it->first);
 
-            SettingMessage *settingMessage = nullptr;
+            CanbusMessage *settingMessage = new CanbusMessage();
             if(setting->type->id == CanbusMessageType::INT.id) {
-                settingMessage = new SettingMessage(setting, true, settingInformation->value->intValue);
+                settingMessage->packValue(settingInformation->value->intValue);
             } else if (setting->type->id == CanbusMessageType::FLOAT.id) {
-                settingMessage = new SettingMessage(setting, true, settingInformation->value->floatValue);
+                settingMessage->packValue(settingInformation->value->floatValue);
             } else if (setting->type->id == CanbusMessageType::BOOL.id) {
-                settingMessage = new SettingMessage(setting, true, settingInformation->value->boolValue);
+                settingMessage->packValue(settingInformation->value->boolValue);
             }
             
             node->sendSerialMessage(settingMessage);

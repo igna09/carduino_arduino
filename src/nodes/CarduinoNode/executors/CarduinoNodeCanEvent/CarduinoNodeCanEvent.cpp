@@ -1,50 +1,43 @@
 #include "CarduinoNodeCanEvent.h"
 
-CarduinoNodeCanEvent::CarduinoNodeCanEvent() : CarduinoNodeExecutorInterface(&Category::EVENT) {};
+CarduinoNodeCanEvent::CarduinoNodeCanEvent() : CarduinoNodeExecutorInterface() {};
 
 void CarduinoNodeCanEvent::execute(CarduinoNode *node, CanbusMessage *message) {
-    EventMessage *eventMessage = new EventMessage(message);
-    // node->printlnWrapper("CarduinoNodeCanEvent::execute");
-    // node->sendLog(3, eventMessage->getIntValue());
-    // node->sendLog(3, eventMessage->nodeId);
-    // node->sendLog(3, node->id);
-    // node->sendLog(3, eventMessage->event->id);
-    // node->sendLog(30, true);
 
-    if(eventMessage->getIntValue() == node->id || eventMessage->getIntValue() == ALL_NODES) {
-        if(eventMessage->event->id == Event::ENABLE.id) {
+    if(message->targetNode == node->id || message->targetNode == NODE_BROADCAST) {
+        if(message->eventId == EventEnum::ENABLE.id) {
             node->enable();
-        } else if(eventMessage->event->id == Event::DISABLE.id) {
+        } else if(message->eventId == EventEnum::DISABLE.id) {
             node->disable();
-        } else if(eventMessage->event->id == Event::ENABLE_INTERRUPT.id) {
+        } else if(message->eventId == EventEnum::ENABLE_INTERRUPT.id) {
             node->enableInterrupt();
-        } else if(eventMessage->event->id == Event::DISABLE_INTERRUPT.id) {
+        } else if(message->eventId == EventEnum::DISABLE_INTERRUPT.id) {
             node->disableInterrupt();
-        } else if(eventMessage->event->id == Event::RESET_WEBAPP.id) {
+        } else if(message->eventId == EventEnum::RESET_WEBAPP.id) {
             node->resetWebapp();
-        } else if(eventMessage->event->id == Event::RESTART.id) {
+        } else if(message->eventId == EventEnum::RESTART.id) {
             node->delayTask(1000, [&](){
                 node->restart();
             });
-        } else if(eventMessage->event->id == Event::GET_HELLOS.id) {
-            EventMessage *helloMessage = new EventMessage(&Event::HELLO, node->id);
+        } else if(message->eventId == EventEnum::GET_HELLOS.id) {
+            CanbusMessage *helloMessage = new CanbusMessage();
+            helloMessage->eventId = EventEnum::HELLO.id;
+            helloMessage->targetNode = node->id;
             node->sendCanbusMessage(helloMessage);
             delete helloMessage;
         }
     }
 
-    if(eventMessage->event->id == Event::HEARTBEAT.id) {
+    if(message->eventId == EventEnum::HEARTBEAT.id) {
         node->lastTimeReceivedHeartbeat = millis();
     }
-
-    delete eventMessage;
 };
 
 bool CarduinoNodeCanEvent::canExecute(CarduinoNode *node, CanbusMessage *message) {
     return node->isEnabled || (
-        message->messageId == Event::GET_HELLOS.id
-        || message->messageId == Event::ENABLE.id
-        || message->messageId == Event::DISABLE.id
-        || message->messageId == Event::HEARTBEAT.id
+        message->eventId == EventEnum::GET_HELLOS.id
+        || message->eventId == EventEnum::ENABLE.id
+        || message->eventId == EventEnum::DISABLE.id
+        || message->eventId == EventEnum::HEARTBEAT.id
     );
 }
