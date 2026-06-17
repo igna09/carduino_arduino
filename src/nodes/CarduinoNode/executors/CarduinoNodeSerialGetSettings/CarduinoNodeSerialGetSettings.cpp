@@ -3,7 +3,8 @@
 CarduinoNodeSerialGetSettings::CarduinoNodeSerialGetSettings() : CarduinoNodeExecutorInterface(EV_GET_SETTINGS) {};
 
 void CarduinoNodeSerialGetSettings::execute(CarduinoNode *node, CanbusMessage *message) {
-    node->sendCanbusMessage(message);
+    // all messages received over serial are sent to canbus from CarduinoNodeSerialEvent
+    // node->sendCanbusMessage(message);
 
     auto* ev = static_cast<EventMulti<uint8_t, int32_t>*>(EventRegistry::createById(EV_READ_SETTING));
     std::get<0>(ev->values) = Setting::OTA_MODE.id;

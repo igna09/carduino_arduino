@@ -58,4 +58,4 @@ typedef enum {
 #define NODE_BROADCAST 0x00
 #define MAIN_NODE_ADDRESS 0x01
 #define KLINE_NODE_ADDRESS 0x02
-#define TEST_NODE_ADDRESS 0x10
+#define TEST_NODE_ADDRESS 0x0F
