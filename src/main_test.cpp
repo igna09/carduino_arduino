@@ -19,7 +19,7 @@ void setup(void) {
   Serial.begin(BAUD_RATE);
   randomSeed(analogRead(0));
 
-  testNode = new Test(0x00, 32, 33, "SSID_TEST_CARDUINO_NODE", "pwd12345");
+  testNode = new Test(TEST_NODE_ADDRESS, 32, 33, "SSID_TEST_CARDUINO_NODE", "pwd12345");
 }
 
 unsigned long lastSent = 0;
@@ -35,6 +35,6 @@ void loop(void) {
   //     testNode->printlnWrapper("test");
   // testNode->handleReceivedSerialMessage("GET_SETTINGS;;;");
   //   testNode->sendEvent(&Event::DISABLE, ALL_NODES);
-    testNode->handleReceivedSerialMessage("1;0;WRITE_SETTING;1;1;");
+    // testNode->handleReceivedSerialMessage("1;0;WRITE_SETTING;1;1;");
 	}
 }

@@ -2,17 +2,16 @@
 
 #include <Arduino.h>
 
-#include "shared/enums/EventEnum/EventEnum.h"
 #include "shared/CanbusMessage/CanbusMessage.h"
 
 class CarduinoNode; //forward declaration, needed to avoid circular dependency
 class CarduinoNodeExecutorInterface {
     public:
-        const EventEnum* eventEnum;
+        uint8_t eventId;
         bool filterEvent;
         
         CarduinoNodeExecutorInterface();
-        CarduinoNodeExecutorInterface(const EventEnum* eventEnum);
+        CarduinoNodeExecutorInterface(uint8_t eventId);
         virtual void execute(CarduinoNode *node, CanbusMessage *message) = 0;
         virtual bool canExecute(CarduinoNode *node, CanbusMessage *message) = 0;
 };

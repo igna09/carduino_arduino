@@ -11,7 +11,7 @@ void AllCanEvent::execute(CarduinoNode *node, CanbusMessage *message) {
     // } else {
     //     node->printlnWrapper("Received " + message->toSerialHumanString());
     // }
-    node->printlnWrapper("Received " + message->toSerialHumanString());
+    node->printlnWrapper("Received " + message->toArduinoString());
 };
 
 bool AllCanEvent::canExecute(CarduinoNode *node, CanbusMessage *message) {

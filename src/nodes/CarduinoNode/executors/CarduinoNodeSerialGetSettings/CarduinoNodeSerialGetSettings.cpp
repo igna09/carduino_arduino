@@ -1,22 +1,18 @@
 #include "CarduinoNodeSerialGetSettings.h"
 
-CarduinoNodeSerialGetSettings::CarduinoNodeSerialGetSettings() : CarduinoNodeExecutorInterface(&EventEnum::GET_SETTINGS) {};
+CarduinoNodeSerialGetSettings::CarduinoNodeSerialGetSettings() : CarduinoNodeExecutorInterface(EV_GET_SETTINGS) {};
 
 void CarduinoNodeSerialGetSettings::execute(CarduinoNode *node, CanbusMessage *message) {
     node->sendCanbusMessage(message);
 
-    CanbusMessage *otaModeSettingMessage = new CanbusMessage();
-    otaModeSettingMessage->eventId = EventEnum::READ_SETTING.id;
-    otaModeSettingMessage->packValue(Setting::OTA_MODE.id);
-    otaModeSettingMessage->packValue(DataTypeEnum::BOOL.id);
-    otaModeSettingMessage->packValue(node->getSettingValue(&Setting::OTA_MODE)->value->boolValue);
+    auto* ev = static_cast<EventMulti<uint8_t, int32_t>*>(EventRegistry::createById(EV_READ_SETTING));
+    std::get<0>(ev->values) = Setting::OTA_MODE.id;
+    std::get<1>(ev->values) = node->getSettingValue(&Setting::OTA_MODE)->value->boolValue;
+
+    CanbusMessage *otaModeSettingMessage = new CanbusMessage(LOW_PRIORITY, MAIN_NODE_ADDRESS, ev);
+
     node->sendSerialMessage(otaModeSettingMessage);
     delete otaModeSettingMessage;
-
-
-    // SettingMessage *restartSettingMessage = new SettingMessage(&Setting::RESTART, true, node->getSettingValue(&Setting::RESTART)->value->boolValue);
-    // node->sendSerialMessage(restartSettingMessage);
-    // delete restartSettingMessage;
     
     /**
      * THIS LOGIC HAS TO BE REPLICATED HERE BECAUSE CarduinoNodeCanGetSettings WILL BE CALLED ONLY ON CANBUS MESSAGES (HERE WE ARE ON SERIAL)
@@ -27,13 +23,22 @@ void CarduinoNodeSerialGetSettings::execute(CarduinoNode *node, CanbusMessage *m
             SettingInformation *settingInformation = it->second;
             Setting *setting = (Setting*) Setting::getValueById(it->first);
 
-            CanbusMessage *settingMessage = new CanbusMessage();
+            CanbusMessage *settingMessage;
             if(setting->type->id == CanbusMessageType::INT.id) {
-                settingMessage->packValue(settingInformation->value->intValue);
+                auto* ev = static_cast<EventMulti<uint8_t, int32_t>*>(EventRegistry::createById(setting->id));
+                std::get<0>(ev->values) = it->first;
+                std::get<1>(ev->values) = settingInformation->value->intValue;
+                settingMessage = new CanbusMessage(LOW_PRIORITY, MAIN_NODE_ADDRESS, ev);
             } else if (setting->type->id == CanbusMessageType::FLOAT.id) {
-                settingMessage->packValue(settingInformation->value->floatValue);
+                auto* ev = static_cast<EventMulti<uint8_t, float>*>(EventRegistry::createById(setting->id));
+                std::get<0>(ev->values) = it->first;
+                std::get<1>(ev->values) = settingInformation->value->floatValue;
+                settingMessage = new CanbusMessage(LOW_PRIORITY, MAIN_NODE_ADDRESS, ev);
             } else if (setting->type->id == CanbusMessageType::BOOL.id) {
-                settingMessage->packValue(settingInformation->value->boolValue);
+                auto* ev = static_cast<EventMulti<uint8_t, bool>*>(EventRegistry::createById(setting->id));
+                std::get<0>(ev->values) = it->first;
+                std::get<1>(ev->values) = settingInformation->value->boolValue;
+                settingMessage = new CanbusMessage(LOW_PRIORITY, MAIN_NODE_ADDRESS, ev);
             }
             
             node->sendSerialMessage(settingMessage);

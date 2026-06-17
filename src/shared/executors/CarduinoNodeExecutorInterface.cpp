@@ -2,10 +2,10 @@
 
 CarduinoNodeExecutorInterface::CarduinoNodeExecutorInterface() {
     this->filterEvent = false;
-    this->eventEnum = nullptr;
+    this->eventId = 0;
 }
 
-CarduinoNodeExecutorInterface::CarduinoNodeExecutorInterface(const EventEnum* eventEnum) {
-    this->eventEnum = eventEnum;
+CarduinoNodeExecutorInterface::CarduinoNodeExecutorInterface(uint8_t eventId) {
+    this->eventId = eventId;
     this->filterEvent = true;
 }

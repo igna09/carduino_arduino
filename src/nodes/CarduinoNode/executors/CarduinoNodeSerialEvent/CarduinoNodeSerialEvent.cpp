@@ -6,23 +6,23 @@ void CarduinoNodeSerialEvent::execute(CarduinoNode *node, CanbusMessage *message
     /**
      * testing purpose, to be removed in production
      */
-    if(message->eventId == EventEnum::TEST.id) {
+    if(message->event->id == EV_TEST) {
         node->test();
     }
     
-    if(message->eventId == EventEnum::ENABLE.id) {
+    if(message->event->id == EV_ENABLE) {
         node->enable();
-    } else if(message->eventId == EventEnum::DISABLE.id) {
+    } else if(message->event->id == EV_DISABLE) {
         node->disable();
     }
 
-    if(message->targetNode != node->id || message->targetNode == NODE_BROADCAST) {
+    if(message->destination != node->id || message->destination == NODE_BROADCAST) {
         node->sendCanbusMessage(message);
     }
 
     if(
-        message->eventId == EventEnum::RESTART.id
-        && (message->targetNode == node->id || message->targetNode == NODE_BROADCAST)
+        message->event->id == EV_RESTART
+        && (message->destination == node->id || message->destination == NODE_BROADCAST)
     ) {
         node->delayTask(1000, [&](){
             node->restart();

@@ -66,7 +66,7 @@ CarduinoNode::CarduinoNode(uint8_t id, int cs, int interruptPin, const char *ssi
     new Task(DIGITAL_PINS_UPDATE_INTERVAL, TASK_FOREVER, std::bind(&CarduinoNode::readDigitalPins, this), this->scheduler, true);
 
     delayTask(200, [&](){
-        this->sendEvent(&EventEnum::HELLO);
+        this->sendEvent(EventRegistry::createById(EV_HELLO));
     });
 
     // if(!this->settingsLoaded) {
@@ -354,49 +354,15 @@ void CarduinoNode::handleReceivedSerialMessage(String receivedMessage) {
     receivedMessage.trim();
 
     this->printlnWrapper("CarduinoNode::handleReceivedSerialMessage " + receivedMessage);
-    SplittedUsbMessage *splittedUsbMessage = splitReceivedUsbMessage(receivedMessage);
 
-    if(splittedUsbMessage->isValid) {
-        bool isNumericMode = isNumeric(splittedUsbMessage->messages[SERIAL_EVENT_INDEX]);
+    CanbusMessage* canbusMessage = CanbusMessage::fromString(receivedMessage.c_str());
 
-        CanbusMessage *canbusMessage = nullptr;
-        const EventEnum *eventEnum;
-
-        if(isNumericMode) {
-            eventEnum = (EventEnum*) EventEnum::getValueById(splittedUsbMessage->messages[SERIAL_EVENT_INDEX].toInt());
-        } else {
-            eventEnum = (EventEnum*) EventEnum::getValueByName((char*) splittedUsbMessage->messages[SERIAL_EVENT_INDEX].c_str());
-        }
-
-        if(eventEnum != nullptr) {
-            canbusMessage = new CanbusMessage();
-            canbusMessage->eventId = eventEnum->id;
-            canbusMessage->targetNode = splittedUsbMessage->messages[SERIAL_TARGET_NODE_INDEX].toInt();
-            canbusMessage->priority = splittedUsbMessage->messages[SERIAL_PRIORITY_INDEX].toInt();
-            for(int i = 0; i < eventEnum->valueTypesSize; i++) {
-                std::any anyValue = eventEnum->types[i].stringToType(splittedUsbMessage->messages[i + SERIAL_EVENT_INDEX + 1]);
-                if(eventEnum->types[i].id == DataTypeEnum::BOOL.id) {
-                    bool val = std::any_cast<bool>(anyValue);
-                    canbusMessage->packValue<bool>(val);
-                } else if (eventEnum->types[i].id == DataTypeEnum::FLOAT.id) {
-                    float val = std::any_cast<float>(anyValue);
-                    canbusMessage->packValue<float>(val);
-                } else if (eventEnum->types[i].id == DataTypeEnum::UINT8.id) {
-                    uint8_t val = std::any_cast<uint8_t>(anyValue);
-                    canbusMessage->packValue<uint8_t>(val);
-                } else if (eventEnum->types[i].id == DataTypeEnum::UINT32.id) {
-                    uint32_t val = std::any_cast<uint32_t>(anyValue);
-                    canbusMessage->packValue<uint32_t>(val);
-                }
-            }
-            usbExecutor->execute(this, canbusMessage);
-            delete canbusMessage;
-        }
-    } else {
+    if(canbusMessage == nullptr) {
         this->printlnWrapper("CarduinoNode::handleReceivedSerialMessage malformed message " + receivedMessage);
     }
 
-    delete splittedUsbMessage;
+    usbExecutor->execute(this, canbusMessage);
+    delete canbusMessage;
 }
 
 SplittedUsbMessage* CarduinoNode::splitReceivedUsbMessage(String message) {
@@ -460,10 +426,7 @@ void CarduinoNode::handleRxBuffer() {
         if(canMessageValues->len > 0) {
             // printUint8Array("CarduinoNode::loop", canMessageValues->buf, canMessageValues->len);
 
-            CanbusMessage *m = new CanbusMessage();
-            m->eventId = canMessageValues->id;
-            m->payloadLength = canMessageValues->len;
-            memcpy(m->payload, canMessageValues->buf, canMessageValues->len);
+            CanbusMessage *m = CanbusMessage::fromCanFrame(canMessageValues->id, canMessageValues->buf, canMessageValues->len);
             manageReceivedCanbusMessage(m);
             delete m;
         }
@@ -546,10 +509,13 @@ bool CarduinoNode::availableCanbusMessages() {
 
 void CarduinoNode::sendCanbusMessage(CanbusMessage *message) {
     if(initializedCan) {
-        this->printlnWrapper("CarduinoNode::sendCanbusMessage " + message->toSerialHumanString());
-        sendByteCanbus(message->getCanId(), message->payloadLength, message->payload);
+        this->printlnWrapper("CarduinoNode::sendCanbusMessage " + message->toArduinoString());
+        uint16_t id = 0;
+        uint8_t payload[8];
+        uint8_t dlc = message->toCanFrame(id, payload, sizeof(payload));
+        sendByteCanbus(message->canId(), dlc, payload);
     } else {
-        this->printlnWrapper("CarduinoNode::sendCanbusMessage CAN not initialized, cannot send message " + message->toSerialHumanString());
+        this->printlnWrapper("CarduinoNode::sendCanbusMessage CAN not initialized, cannot send message " + message->toArduinoString());
     }
 }
 
@@ -559,8 +525,7 @@ void CarduinoNode::restart() {
 }
 
 void CarduinoNode::sendHeartbeat() {
-    CanbusMessage *eventMessage = new CanbusMessage();
-    eventMessage->eventId = EventEnum::HEARTBEAT.id;
+    CanbusMessage *eventMessage = new CanbusMessage(LOW_PRIORITY, NODE_BROADCAST, EventRegistry::createById(EV_HEARTBEAT));
     sendCanbusMessage(eventMessage);
     delete eventMessage;
 
@@ -591,13 +556,12 @@ void CarduinoNode::onOnlineOfflineEvent(OnlineEnum event) {
     }
 }
 
-void CarduinoNode::sendEvent(const EventEnum *event) {
+void CarduinoNode::sendEvent(EventBase *event) {
     this->sendEvent(event, this->id);
 }
 
-void CarduinoNode::sendEvent(const EventEnum *event, int nodeId) {
-    CanbusMessage *eventMessage = new CanbusMessage();
-    eventMessage->eventId = event->id;
+void CarduinoNode::sendEvent(EventBase *event, int nodeId) {
+    CanbusMessage *eventMessage = new CanbusMessage(LOW_PRIORITY, NODE_BROADCAST, event);
     this->sendCanbusMessage(eventMessage);
     delete eventMessage;
 }
@@ -700,33 +664,9 @@ Task* CarduinoNode::delayTask(int delay, std::function<void()> lambdaCallback) {
     return lambdaTask;
 }
 
-void CarduinoNode::sendLog(uint8_t id, bool value) {
-    CanbusMessage *logMessage = new CanbusMessage();
-    logMessage->eventId = id;
-    logMessage->packValue(value);
-	this->sendCanbusMessage(logMessage);
-    delete logMessage;
-}
-
-void CarduinoNode::sendLog(uint8_t id, float value) {
-    CanbusMessage *logMessage = new CanbusMessage();
-    logMessage->eventId = id;
-    logMessage->packValue(value);
-	this->sendCanbusMessage(logMessage);
-    delete logMessage;
-}
-
-void CarduinoNode::sendLog(uint8_t id, int value) {
-    CanbusMessage *logMessage = new CanbusMessage();
-    logMessage->eventId = id;
-    logMessage->packValue(value);
-	this->sendCanbusMessage(logMessage);
-    delete logMessage;
-}
-
 void CarduinoNode::sendSerialMessage(CanbusMessage *message) {
-    printlnWrapper("CarduinoNode::sendSerialMessage " + message->toSerialHumanString());
-    Serial.println(message->toSerialString());
+    printlnWrapper("CarduinoNode::sendSerialMessage " + message->toArduinoString());
+    Serial.println(message->toArduinoString(true));
     // Serial.flush();
 }
 

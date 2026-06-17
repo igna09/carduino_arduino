@@ -4,7 +4,6 @@
 #include "shared/CanbusMessage/CanbusMessage.h"
 #include "nodes/CarduinoNode/CarduinoNode.h"
 #include "shared/executors/CarduinoNodeExecutorInterface.h"
-#include "shared/enums/EventEnum/EventEnum.h"
 
 class AllCanEvent : public CarduinoNodeExecutorInterface {
     public:

@@ -5,7 +5,6 @@
 #include "../ValueToReadEnum.h"
 // #include "../../../CanbusMessage/CarstatusMessage/CarstatusMessage.h"
 #include "../../CarduinoNode/CarduinoNode.h"
-#include "../../../shared/enums/EventEnum/EventEnum.h"
 
 class FuelConsumptionExecutor : public AfterReadExecutorInterface {
     public:
@@ -16,9 +15,11 @@ class FuelConsumptionExecutor : public AfterReadExecutorInterface {
             } else {
                 v = 0;
             }
-            CanbusMessage *c = new CanbusMessage();
-            c->eventId = EventEnum::FUEL_CONSUMPTION.id;
-            c->packValue(v);
+
+            auto* ev = static_cast<EventMulti<bool>*>(EventRegistry::createById(EV_FUEL_CONSUMPTION));
+            std::get<0>(ev->values) = v;
+            CanbusMessage *c = new CanbusMessage(LOW_PRIORITY, NODE_BROADCAST, ev);
             carduinoNode->sendCanbusMessage(c);
+            delete c;
         };
 };

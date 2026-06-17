@@ -4,7 +4,6 @@
 #include "nodes/CarduinoNode/CarduinoNode.h"
 #include "executors/AllCanEvent/AllCanEvent.h"
 #include "shared/SharedDefinitions.h"
-#include "shared/enums/EventEnum/EventEnum.h"
 
 class Sniffer : public CarduinoNode {
     public:

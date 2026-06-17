@@ -16,7 +16,7 @@ void Executor::execute(CarduinoNode *node, CanbusMessage *message) {
                     executor->filterEvent == false
                     || (
                         executor->filterEvent == true
-                        && executor->eventEnum->id == message->eventId
+                        && executor->eventId == message->event->id
                     )
                 )
                 && executor->canExecute(node, message)

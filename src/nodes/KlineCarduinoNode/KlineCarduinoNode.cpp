@@ -172,17 +172,26 @@ void KlineCarduinoNode::readValues() {
 											#endif
 
 											if(valueToReadEnum->send) {
-												CanbusMessage *m = new CanbusMessage();
+												CanbusMessage *m = nullptr;
+												
 												if(valueToReadEnum->carstatus.type->id == CanbusMessageType::INT.id) {
-													m->packValue(int(value));
-												} else if(valueToReadEnum->carstatus.type->id == CanbusMessageType::FLOAT.id) {
-													m->packValue(float(value));
-												} else if(valueToReadEnum->carstatus.type->id == CanbusMessageType::BOOL.id) {
-													m->packValue(bool(value == 1));
+													auto* ev = static_cast<EventMulti<int32_t>*>(EventRegistry::createByName(valueToReadEnum->carstatus.name));
+													std::get<0>(ev->values) = int(value);
+													m = new CanbusMessage(LOW_PRIORITY, MAIN_NODE_ADDRESS, ev);
+												} else if (valueToReadEnum->carstatus.type->id == CanbusMessageType::FLOAT.id) {
+													auto* ev = static_cast<EventMulti<float>*>(EventRegistry::createByName(valueToReadEnum->carstatus.name));
+													std::get<0>(ev->values) = float(value);
+													m = new CanbusMessage(LOW_PRIORITY, MAIN_NODE_ADDRESS, ev);
+												} else if (valueToReadEnum->carstatus.type->id == CanbusMessageType::BOOL.id) {
+													auto* ev = static_cast<EventMulti<bool>*>(EventRegistry::createByName(valueToReadEnum->carstatus.name));
+													std::get<0>(ev->values) = bool(value == 1);
+													m = new CanbusMessage(LOW_PRIORITY, MAIN_NODE_ADDRESS, ev);
 												}
+
 												#ifdef DEBUG_KLINE_NODE
 												printlnWrapper("KlineCarduinoNode: Sending CAN Message ID " + String(valueToReadEnum->carstatus.id));
 												#endif
+
 												sendCanbusMessage(m);
 												delete m;
 											}
@@ -243,8 +252,11 @@ void KlineCarduinoNode::voltageCallback() {
 
 	printlnWrapper("KlineCarduinoNode::voltageCallback() A0: " + String(sensorValue) + ", voltage 0-3.3V: " + String(voltageOut) + ", input voltage: " + String(voltageIn));
 
-	CanbusMessage m;
-	m.eventId = EventEnum::BATTERY_VOLTAGE.id;
-	m.packValue(voltageIn);
-    this->sendCanbusMessage(&m);
+	auto* ev = static_cast<EventMulti<float>*>(EventRegistry::createById(EV_BATTERY_VOLTAGE));
+	std::get<0>(ev->values) = voltageIn;
+	CanbusMessage* m = new CanbusMessage(LOW_PRIORITY, MAIN_NODE_ADDRESS, ev);
+
+    this->sendCanbusMessage(m);
+
+	delete m;
 }
