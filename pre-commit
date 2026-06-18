@@ -1,0 +1,55 @@
+#!/usr/bin/env python3
+
+import re
+import subprocess
+from git import Repo
+import os
+
+def increase_version(filename, define_name):
+    """
+    Updates a define in a C/C++ header file.
+
+    Args:
+        filename: The path to the header file.
+        define_name: The name of the define to update.
+    """
+
+    if not os.path.exists(filename):
+        os.makedirs(os.path.dirname(filename), exist_ok=True)
+        with open(filename, 'w') as f:
+            f.write('#define ' + define_name + ' 0\n')
+
+    # Find the existing define line
+    match = re.search(r'^#define\s+' + define_name + r'\s+(.+)$', content, re.MULTILINE)
+    if match:
+        # Extract the current value
+        current_value = int(match.group(1))
+        # Increment the value
+        new_value = current_value + 1
+        # Replace the existing value
+        content = re.sub(r'^#define\s+' + define_name + r'\s+(.+)$', '#define ' + define_name + ' ' + str(new_value), content, 1, re.MULTILINE)
+    else:
+        # Add the define if it doesn't exist
+        content += '\n#define ' + define_name + ' 1'
+
+    with open(filename, 'w') as f:
+        f.write(content)
+
+    repo = Repo('c:\\Users\\I.Abbate\\Documents\\PlatformioProjects\\carduino_arduino')
+    repo.index.add(['_VERSION.h'])
+
+def main():
+    """
+    Main function for the pre-commit hook.
+    """
+
+    filename = 'c:\\Users\\I.Abbate\\Documents\\PlatformioProjects\\carduino_arduino\\_VERSION.h'
+    define_name = '__VERSION__'
+
+    increase_version(filename, define_name)
+
+    # Print a success message
+    print(f'Updated define {define_name} in _VERSION.h')
+
+if __name__ == '__main__':
+    main()
