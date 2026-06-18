@@ -28,16 +28,16 @@
 #include "shared/CanbusMessage/CanbusMessage.h"
 #include "shared/SharedDefinitions.h"
 #include "shared/Logger/Logger.h"
-#include "shared/enums/Event.h"
-#include "shared/CanbusMessage/EventMessage/EventMessage.h"
-#include "shared/CanbusMessage/LogMessage/LogMessage.h"
 #include "executors/CarduinoNodeWriteSetting/CarduinoNodeWriteSetting.h"
 #include "nodes/CarduinoNode/executors/CarduinoNodeCanEvent/CarduinoNodeCanEvent.h"
 #include "nodes/CarduinoNode/executors/CarduinoNodeCanGetSettings/CarduinoNodeCanGetSettings.h"
 #include "nodes/CarduinoNode/executors/CarduinoNodeSerialGetSettings/CarduinoNodeSerialGetSettings.h"
 #include "nodes/CarduinoNode/executors/CarduinoNodeSerialWriteSetting/CarduinoNodeSerialWriteSetting.h"
 #include "nodes/CarduinoNode/executors/CarduinoNodeSerialEvent/CarduinoNodeSerialEvent.h"
-// #include "shared/executors/Executor.h"
+#include "shared/executors/Executor.h"
+
+#include "shared/EventSystem/EventSystem.h"
+#include "shared/CanbusMessage/CanbusMessage.h"
 
 /**
  * This node has got a canbus interface and a wifi AP to update software
@@ -54,7 +54,7 @@ const char FALLBACK_PAGE[] PROGMEM = R"rawliteral(
 
 struct SplittedUsbMessage {
     bool isValid;
-    String messages[3];
+    String messages[SERIAL_MESSAGE_SPLIT_SIZE]; // convention: priorita;destinatario;evento;payload.....
 };
 
 struct PinInformation {
@@ -122,8 +122,8 @@ class CarduinoNode : public Logger, public FSBase, public SettingBase {
         void otaShutdown();
         void restart();
         void sendHeartbeat();
-        void sendEvent(const Event *event);
-        void sendEvent(const Event *event, int receiverId);
+        void sendEvent(EventBase *event);
+        void sendEvent(EventBase *event, int receiverId);
         void addPinToRead(uint8_t pin, PCF8574 *pcf8574 = nullptr, std::function<void(PinInformation*)> onChange = nullptr);
         void addPinToRead(uint8_t pin, std::function<void(PinInformation*)> onChange = nullptr);
         PinInformation* getPinInformation(uint8_t pin);
@@ -133,9 +133,6 @@ class CarduinoNode : public Logger, public FSBase, public SettingBase {
         virtual void enableInterrupt();
         virtual void disableInterrupt();
         Task* delayTask(int delay, std::function<void()> lambdaCallback);
-        virtual void sendLog(uint8_t id, int value);
-        virtual void sendLog(uint8_t id, bool value);
-        virtual void sendLog(uint8_t id, float value);
         void handleRxBuffer();
         void addCanMessageValuesToBuffer(CanMessageValues *canMessageValues);
         uint8_t getBufferSize();
@@ -146,8 +143,8 @@ class CarduinoNode : public Logger, public FSBase, public SettingBase {
         void resetWebapp();
         void onOnlineOfflineEvent(OnlineEnum event);
 
-        static uint16_t generateId(const Category category, const Enum messageEnum);
-        static uint16_t generateId(const Category category, uint8_t messageId);
+        // static uint16_t generateId(const Category category, const Enum messageEnum);
+        // static uint16_t generateId(const Category category, uint8_t messageId);
 
         virtual void test();
 };

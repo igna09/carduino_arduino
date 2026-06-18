@@ -3,7 +3,7 @@
 #include <Arduino.h>
 #include "AfterReadExecutorInterface.h"
 #include "../ValueToReadEnum.h"
-#include "../../../CanbusMessage/CarstatusMessage/CarstatusMessage.h"
+// #include "../../../CanbusMessage/CarstatusMessage/CarstatusMessage.h"
 #include "../../CarduinoNode/CarduinoNode.h"
 
 class FuelConsumptionExecutor : public AfterReadExecutorInterface {
@@ -15,7 +15,10 @@ class FuelConsumptionExecutor : public AfterReadExecutorInterface {
             } else {
                 v = 0;
             }
-            CarstatusMessage *c = new CarstatusMessage(&Carstatus::FUEL_CONSUMPTION, v);
+
+            auto* ev = static_cast<EventMulti<bool>*>(EventRegistry::createById(EV_FUEL_CONSUMPTION));
+            std::get<0>(ev->values) = v;
+            CanbusMessage *c = new CanbusMessage(LOW_PRIORITY, NODE_BROADCAST, ev);
             carduinoNode->sendCanbusMessage(c);
             delete c;
         };

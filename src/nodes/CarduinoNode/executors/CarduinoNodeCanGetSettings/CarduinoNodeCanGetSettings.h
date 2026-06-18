@@ -4,9 +4,7 @@
 #include "shared/CanbusMessage/CanbusMessage.h"
 #include "nodes/CarduinoNode/CarduinoNode.h"
 #include "shared/executors/CarduinoNodeExecutorInterface.h"
-#include "shared/enums/Category.h"
-#include "shared/CanbusMessage/SettingMessage/SettingMessage.h"
-#include "shared/enums/Event.h"
+#include "shared/enums/Setting.h"
 
 class CarduinoNodeCanGetSettings : public CarduinoNodeExecutorInterface {
     public:

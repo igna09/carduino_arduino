@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Arduino.h>
-#include "../CanbusMessage/CanbusMessage.h"
+#include "shared/CanbusMessage/CanbusMessage.h"
 #include "CarduinoNodeExecutorInterface.h"
 #include "nodes/CarduinoNode/CarduinoNode.h"
 

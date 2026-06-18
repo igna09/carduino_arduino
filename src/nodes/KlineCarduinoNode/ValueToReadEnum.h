@@ -1,10 +1,10 @@
 #pragma once
 
 #include <Arduino.h>
-#include "../../enums/Enum.h"
-#include "../../enums/Carstatus.h"
+#include "../../shared/enums/Enum.h"
+#include "../../shared/enums/Carstatus.h"
 #include "KlineEcuEnum.h"
-#include "../../SharedDefinitions.h"
+#include "../../shared/SharedDefinitions.h"
 
 #define VALUE_TO_READ_ENUM_SIZE 5
 

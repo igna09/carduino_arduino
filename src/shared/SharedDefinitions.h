@@ -21,12 +21,11 @@ typedef enum {
 #define WEMOS_D1_MINI_VOLTAGE_DIVIDER_R1 (220000 * 1.0) //220K OHM multiplyed by 1.0 to keep float precision
 #define WEMOS_D1_MINI_VOLTAGE_DIVIDER_R2 (100000 * 1.0) //100K OHM multiplyed by 1.0 to keep float precision
 
-#define ALL_NODES -1
+// #define ALL_NODES -1
 
 #define BOOL_BYTES_SIZE 1
 #define INT_BYTES_SIZE 4
 #define FLOAT_BYTES_SIZE 5
-
 
 #define WEMOS_D1_MINI_SDA D3
 #define WEMOS_D1_MINI_SCL SCL
@@ -44,4 +43,19 @@ typedef enum {
 #define SECONDS_TO_MICROSECONDS(seconds) ((seconds) * 1000000)
 #define MILLISECONDS_TO_MICROSECONDS(milliseconds) ((milliseconds) * 1000)
 
-#define __VERSION__ 27
+#define __VERSION__ 28
+
+#define LOW_PRIORITY 1
+#define HIGH_PRIORITY 0
+
+#define SERIAL_SEPARATOR ";"
+#define SERIAL_MESSAGE_SPLIT_SIZE 11
+#define SERIAL_PRIORITY_INDEX 0
+#define SERIAL_TARGET_NODE_INDEX 1
+#define SERIAL_EVENT_INDEX 2
+
+// NODE ADDRESSES
+#define NODE_BROADCAST 0x00
+#define MAIN_NODE_ADDRESS 0x01
+#define KLINE_NODE_ADDRESS 0x02
+#define TEST_NODE_ADDRESS 0x0F

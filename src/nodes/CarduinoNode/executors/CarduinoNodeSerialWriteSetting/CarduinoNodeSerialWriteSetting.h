@@ -5,8 +5,6 @@
 #include "nodes/CarduinoNode/CarduinoNode.h"
 #include "shared/executors/CarduinoNodeExecutorInterface.h"
 #include "shared/enums/Setting.h"
-#include "shared/CanbusMessage/SettingMessage/SettingMessage.h"
-#include "shared/enums/Category.h"
 
 class CarduinoNodeSerialWriteSetting : public CarduinoNodeExecutorInterface {
     public:

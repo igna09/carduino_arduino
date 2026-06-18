@@ -1,4 +1,5 @@
 #include "utils.h"
+#include "SharedDefinitions.h"
 
 union IntegerByteConverter {
   uint8_t array[4];
@@ -122,7 +123,7 @@ int separate (String str, char **p, int size, char *separator) {
 
 void convertSerialMessagetoArduino(String msg) {
   char   *sPtr [SPTR_SIZE];
-  separate(msg, sPtr, SPTR_SIZE, ";");
+  separate(msg, sPtr, SPTR_SIZE, SERIAL_SEPARATOR);
 }
 
 String convertByteArrayToString(uint8_t bytes[], uint8_t len)

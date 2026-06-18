@@ -5,9 +5,9 @@
 #include "executors/AllCanEvent/AllCanEvent.h"
 #include "shared/SharedDefinitions.h"
 
-class Sniffer : public CarduinoNode {
+class Test : public CarduinoNode {
     public:
-        Sniffer(uint8_t id, uint8_t cs, uint8_t interruptPin, const char *ssid, const char *password);
+        Test(uint8_t id, uint8_t cs, uint8_t interruptPin, const char *ssid, const char *password);
         void loop();
 
     private:

@@ -4,14 +4,13 @@
 #define _TASK_SELF_DESTRUCT      // Enable tasks to "self-destruct" after disable
 
 #include <Arduino.h>
-#include <SoftwareSerial.h>
 #include <TaskSchedulerDeclarations.h>
 #include "../CarduinoNode/CarduinoNode.h"
 #include "KLineKWP1281Lib.h"
 #include "KlineEcuEnum.h"
 #include "ValueToReadEnum.h"
-#include "../../enums/CanbusMessageType.h"
-#include "../../CanbusMessage/CarstatusMessage/CarstatusMessage.h"
+// #include "../../enums/CanbusMessageType.h"
+// #include "../../CanbusMessage/CarstatusMessage/CarstatusMessage.h"
 #include "AfterReadExecutor/AfterReadExecutor.h"
 #include "AfterReadExecutor/FuelConsumptionExecutor.h"
 // #include "KlineCallback.h"
@@ -28,7 +27,9 @@ class KlineCarduinoNode : public CarduinoNode {
 
     private:
         KLineKWP1281Lib *kLine;
-		SoftwareSerial *softwareSerial;
+        #if !defined(ARDUINO_ARCH_ESP32)
+        SoftwareSerial *softwareSerial; 
+        #endif
 		uint8_t pin_rx;
     	uint8_t pin_tx;
         Task *readValuesTask;
