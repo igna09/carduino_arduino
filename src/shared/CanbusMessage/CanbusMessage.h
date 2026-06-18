@@ -4,6 +4,10 @@
 #include <string.h>
 
 #include "shared/EventSystem/EventSystem.h"
+#include "shared/enums/Setting.h"
+#include "shared/enums/CanbusMessageType.h"
+#include "shared/enums/Node.h"
+#include "shared/enums/Priority.h"
 
 #define CANBUSM_MAX_TOKENS 16
 #define CANBUSM_BUF_SIZE   128
@@ -47,6 +51,111 @@ namespace CanId {
     inline uint8_t  decodeDestination(uint16_t canId) { return (canId >> DST_SHIFT)  & DST_MASK;  }
     inline uint8_t  decodeEventId    (uint16_t canId) { return  canId                & EVENT_MASK; }
 }
+
+// ---------------------------------------------------------------------------
+// CanSymbol — risoluzione simbolica per priority, destination e value token
+//
+//   priority / destination
+//     resolve(str, table) → uint8_t
+//     Token numerico → atoi(); token simbolico → lookup nella tabella.
+//     Nessuna ambiguità: un token che inizia con cifra non viene mai cercato
+//     nella tabella.
+//
+//   value token (payload)
+//     resolveValueToken(str, outBuf, outLen) → const char*
+//     Lascia i token numerici invariati (nessuna sostituzione).
+//     Per i token non numerici prova in cascata:
+//       1. TRUE / FALSE          → "1" / "0"
+//       2. Setting::getValueByName   → id come stringa decimale
+//       3. CanbusMessageType::getValueByName → id come stringa decimale
+//       4. Node::getValueByName → id come stringa decimale
+//       5. fallback              → stringa originale invariata
+//     Il risultato è scritto in outBuf se è stata fatta una sostituzione,
+//     altrimenti viene restituito direttamente il puntatore originale.
+// ---------------------------------------------------------------------------
+namespace CanSymbol {
+
+    // struct Entry { const char* name; uint8_t value; };
+
+    // Priorità
+    // static const Entry PRIORITIES[] = {
+    //     { "LOW_PRIORITY",  0 },
+    //     { "HIGH_PRIORITY", 1 },
+    //     { nullptr,         0 }  // sentinel
+    // };
+
+    // -----------------------------------------------------------------------
+    // resolve — per priority e destination
+    //   Token numerico (inizia con cifra o '-') → atoi(), nessuna lookup.
+    //   Token simbolico → cerca nella tabella, fallback atoi().
+    // -----------------------------------------------------------------------
+    // inline uint8_t resolve(const char* str, const Entry* table) {
+    //     if ((*str >= '0' && *str <= '9') || *str == '-') return (uint8_t)atoi(str);
+    //     for (const Entry* e = table; e->name != nullptr; ++e)
+    //         if (strcmp(str, e->name) == 0) return e->value;
+    //     return (uint8_t)atoi(str);
+    // }
+
+    // -----------------------------------------------------------------------
+    // u8toa — helper interno: scrive v in decimale in buf, ritorna buf.
+    // -----------------------------------------------------------------------
+    inline const char* u8toa(uint8_t v, char* buf, uint8_t len) {
+        uint8_t n = 0;
+        if (v == 0) { buf[n++] = '0'; }
+        else {
+            uint8_t start = 0;
+            while (v > 0 && n < len - 1) { buf[n++] = '0' + (v % 10); v /= 10; }
+            for (uint8_t a = start, b = n - 1; a < b; a++, b--) {
+                char tmp = buf[a]; buf[a] = buf[b]; buf[b] = tmp;
+            }
+        }
+        buf[n] = '\0';
+        return buf;
+    }
+
+    // -----------------------------------------------------------------------
+    // resolveValueToken — per i token del payload
+    //   Token numerico → ritorna str invariato (nessuna sostituzione).
+    //   Token simbolico → prova in cascata i registry esistenti.
+    //   outBuf/outLen: buffer temporaneo dove scrivere l'id come stringa
+    //                  se viene fatta una sostituzione.
+    // -----------------------------------------------------------------------
+    inline const char* resolveValueToken(const char* str,
+                                         char* outBuf, uint8_t outLen) {
+        // Token numerico (o negativo): passa as-is, zero ambiguità
+        if ((*str >= '0' && *str <= '9') || *str == '-') return str;
+
+        // TRUE / FALSE: costanti universali, non passano per nessun registry
+        if (strcmp(str, "TRUE")  == 0) return "1";
+        if (strcmp(str, "FALSE") == 0) return "0";
+
+        // Setting (TypedEnum con name → id)
+        {
+            const Setting* s = (Setting*) Setting::getValueByName(const_cast<char*>(str));
+            if (s) return u8toa(s->id, outBuf, outLen);
+        }
+
+        // CanbusMessageType (Enum con name → id)
+        {
+            const CanbusMessageType* t = (CanbusMessageType*) CanbusMessageType::getValueByName(const_cast<char*>(str));
+            if (t) return u8toa(t->id, outBuf, outLen);
+        }
+
+        {
+            const Node* n = (Node*) Node::getValueByName(const_cast<char*>(str));
+            if (n) return u8toa(n->id, outBuf, outLen);
+        }
+
+        {
+            const Priority* p = (Priority*) Priority::getValueByName(const_cast<char*>(str));
+            if (p) return u8toa(p->id, outBuf, outLen);
+        }
+
+        // Simbolo non riconosciuto: passa as-is (l'evento deciderà)
+        return str;
+    }
+
+} // namespace CanSymbol
 
 // ---------------------------------------------------------------------------
 // CanbusMessage
@@ -146,22 +255,38 @@ public:
 
         if (tokenCount < 3) return nullptr;
 
-        uint8_t     priority    = (uint8_t)atoi(tokens[0]);
-        uint8_t     destination = (uint8_t)atoi(tokens[1]);
+        // Accetta sia il valore numerico ("0", "1") sia il token simbolico
+        // ("L"/"H" per la priorità;
+        //  "BROADCAST", "MAIN", … per la destinazione).
+        const char* priority    = tokens[0];
+        const char* destination = tokens[1];
         const char* eventName   = tokens[2];
 
         EventBase* ev = EventRegistry::createByName(eventName);
         if (!ev) return nullptr;
 
-        const char** valueTokens = tokens + 3;
-        uint8_t      valueCount  = tokenCount - 3;
+        // const char** valueTokens = tokens + 3;
+        // uint8_t      valueCount  = tokenCount - 3;
+        const char** valueTokens = tokens;
+        uint8_t      valueCount  = tokenCount;
 
-        if (!ev->deserializeFromTokens(valueTokens, valueCount)) {
+        // Pre-processa i value token: sostituisce simboli noti con la loro
+        // rappresentazione numerica. I token già numerici passano invariati.
+        // outBufs fornisce lo spazio temporaneo per le sostituzioni: ogni
+        // slot è grande abbastanza per un uint8_t in decimale (max "255\0").
+        char        outBufs[CANBUSM_MAX_TOKENS][4];
+        const char* resolved[CANBUSM_MAX_TOKENS];
+        for (uint8_t i = 0; i < valueCount; i++) {
+            resolved[i] = CanSymbol::resolveValueToken(
+                valueTokens[i], outBufs[i], sizeof(outBufs[i]));
+        }
+
+        if (!ev->deserializeFromTokens(resolved, valueCount)) {
             delete ev;
             return nullptr;
         }
 
-        return new CanbusMessage(priority, destination, ev);
+        return new CanbusMessage((uint8_t)atoi(resolved[0]), (uint8_t)atoi(resolved[1]), ev);
     }
 
     // -----------------------------------------------------------------------
