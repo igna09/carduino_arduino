@@ -574,11 +574,9 @@ void CarduinoNode::enable() {
 	// sendLog(0, true);
 
     this->isEnabled = true;
-
-    CanbusMessage *timeSyncMessage = new CanbusMessage(generateId(Category::TIME_SYNC, TimeSync::REQUEST), 0, 0);
+    
+    this->sendEvent(EventRegistry::createById(EV_TIME_SYNC_REQUEST));
     this->recordTimeSyncRequestSendTime();
-    this->sendCanbusMessage(timeSyncMessage);
-    delete timeSyncMessage;
 }
 
 void CarduinoNode::disable() {

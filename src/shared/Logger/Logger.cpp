@@ -1,16 +1,8 @@
 #include "Logger.h"
 
-// Logger::Logger(FSBase* fsBase, bool logOnSerial) {
-//     this->_webSocket = nullptr;
-//     this->_fsBase = fsBase;
-    
-//     this->_logOnSerial = logOnSerial;
-//     this->_logOnServer = false;
-// };
-
-Logger::Logger(CarduinoNode* carduinoNode, bool logOnSerial) {
+Logger::Logger(FSBase* fsBase, bool logOnSerial) {
     this->_webSocket = nullptr;
-    this->_carduinoNode = carduinoNode;
+    this->_fsBase = fsBase;
     
     this->_logOnSerial = logOnSerial;
     this->_logOnServer = false;
@@ -124,7 +116,7 @@ void Logger::logOnFile(String message) {
     // getLocalTime(&timeInfo);
     // String localTime = String(timeInfo.tm_year) + "-" + String(timeInfo.tm_mon) + "-" + String(timeInfo.tm_yday) + " " + String(timeInfo.tm_hour) + ":" + String(timeInfo.tm_min) + ":" + String(timeInfo.tm_sec);
     // message = localTime + " " + message;
-    _carduinoNode->appendToFile("/logs.txt", message);
+    _fsBase->appendToFile("/logs.txt", message);
 }
 
 void Logger::printlnWrapper(const String &s, bool logToFile) {
@@ -150,10 +142,9 @@ void Logger::setLogOnServer(bool logOnServer) {
     this->_logOnServer = logOnServer;
 }
 
-String Logger::getFormattedTimestamp() {
-    if (_carduinoNode->getSynchronizedMillis() == 0) return "[" + String(millis()) + "]";
-
-    unsigned long nowMillis = _carduinoNode->getSynchronizedMillis();
+String Logger::getFormattedTimestamp(unsigned long nowMillis) {
+    if (nowMillis == 0) return "[" + String(millis()) + "]";
+    
     unsigned long nowSeconds = nowMillis / 1000;
 
     // Formattazione semplice: HH:MM:SS
