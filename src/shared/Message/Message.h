@@ -6,7 +6,6 @@
 #include <string>
 
 #include "EventSystem.h"
-// #include "../EventSystem/EventSystem.h"
 #include "Setting.h"
 #include "MessageType.h"
 #include "Node.h"

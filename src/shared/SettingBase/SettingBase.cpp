@@ -2,6 +2,7 @@
 
 // SettingBase::SettingBase(Logger* logger, FSBase* fsBase) {
 SettingBase::SettingBase() {
+    ESP_LOGI("SettingBase", "SettingBase::SettingBase start");
     this->settings = new std::map<uint8_t, SettingInformation*>();
     this->settingsSetupDone = false;
     this->settingsLoaded = false;
@@ -18,6 +19,7 @@ SettingBase::SettingBase() {
         err = nvs_flash_init();
     }
     ESP_ERROR_CHECK(err);
+    ESP_LOGI("SettingBase", "SettingBase::SettingBase end");
 };
 
 void SettingBase::addSetting(const Setting *setting, bool value, std::function<void(SettingInformation*)> onChange, bool doBackup) {

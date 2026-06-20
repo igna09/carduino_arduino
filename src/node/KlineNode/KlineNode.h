@@ -89,6 +89,7 @@ private:
     EcuRuntimeState _currentEcu;
     AfterReadExecutors _afterReadExecutors;
     QueueHandle_t _uart_queue;
+    TaskHandle_t _uart_task_handle;
 
     void uart_event_loop();
     void klineBegin(unsigned long baud);

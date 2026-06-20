@@ -9,11 +9,12 @@
 #include "Message.h"
 #include "Node.h"
 #include "Definitions.h"
+#include "UdpLogSender.h"
 
 #define TWAI_QUEUE_DEPTH        10
 #define TWAI_BITRATE            1000000
 
-class CarduinoNode: public SettingBase {
+class CarduinoNode: public SettingBase, public UdpLogSender {
 public:
     bool isEnabled;
 
@@ -21,6 +22,7 @@ public:
     std::string name();
     void sendMessage(const Message& m);
     void sendByte(uint16_t messageId, int len, uint8_t *buf);
+    void delayTask(unsigned long millisec, std::function<void()> lambda);
 
 private:
     uint8_t _id;

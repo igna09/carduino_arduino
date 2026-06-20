@@ -3,10 +3,10 @@
 static const char *TAG_KLINE_NODE = "KLINE_NODE";
 
 /** Pin TX collegato alla K-line (tramite driver LIN/ISO9141) */
-static constexpr gpio_num_t TX_PIN        = GPIO_NUM_17;
+static constexpr gpio_num_t TX_PIN        = GPIO_NUM_4;
 
 /** Pin RX collegato alla K-line */
-static constexpr gpio_num_t RX_PIN        = GPIO_NUM_16;
+static constexpr gpio_num_t RX_PIN        = GPIO_NUM_5;
 
 // Entry point principale con linkage C
 extern "C" void app_main(void)
@@ -14,6 +14,11 @@ extern "C" void app_main(void)
     ESP_LOGI(TAG_KLINE_NODE, "Nodo Kline avviato");
 
     KlineNode klineNode(TX_PIN, RX_PIN);
+
+    klineNode.delayTask(15000, [&](){
+        klineNode.udp_log_sender_init();
+        klineNode.enableUdpLog();
+    });
 
     /* A questo punto app_main può continuare a fare altro, 
        come inizializzare i driver I2C o TWAI (CAN bus),

@@ -25,12 +25,16 @@ endfunction()
 set(include_dirs ".")
 set(app_sources "") # Inizializziamo la lista dei sorgenti vuota
 
-# 1. Sorgenti e Include base di Carduino
-add_subdirectories_to_sources(app_sources "${CMAKE_SOURCE_DIR}/src/node/CarduinoNode")
-add_subdirectories_to_include(include_dirs "${CMAKE_SOURCE_DIR}/src/node/CarduinoNode")
+if(NOT CARDUINO_NODE STREQUAL "UDP_AP")
+    add_subdirectories_to_sources(app_sources "${CMAKE_SOURCE_DIR}/src/node/CarduinoNode")
+    add_subdirectories_to_include(include_dirs "${CMAKE_SOURCE_DIR}/src/node/CarduinoNode")
 
-add_subdirectories_to_sources(app_sources "${CMAKE_SOURCE_DIR}/src/shared")
-add_subdirectories_to_include(include_dirs "${CMAKE_SOURCE_DIR}/src/shared")
+    add_subdirectories_to_sources(app_sources "${CMAKE_SOURCE_DIR}/src/shared")
+    add_subdirectories_to_include(include_dirs "${CMAKE_SOURCE_DIR}/src/shared")
+else()
+    list(APPEND include_dirs "${CMAKE_SOURCE_DIR}/src/shared")
+    list(APPEND app_sources "${CMAKE_SOURCE_DIR}/src/main/UdpServer.cpp")
+endif()
 
 
 # 2. Controllo se il flag è impostato su KLINE
@@ -50,4 +54,5 @@ endif()
 idf_component_register(
     SRCS ${app_sources}
     INCLUDE_DIRS ${include_dirs}
+    # REQUIRES esp_wifi esp_event esp_netif lwip
 )

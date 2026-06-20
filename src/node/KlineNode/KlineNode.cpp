@@ -1,8 +1,12 @@
 #include "KlineNode.h"
 
-KlineNode::KlineNode(gpio_num_t tx_pin, gpio_num_t rx_pin): CarduinoNode(0x01) {
+KlineNode::KlineNode(gpio_num_t tx_pin, gpio_num_t rx_pin): CarduinoNode(Node::KLINE.id) {
+    ESP_LOGI("KlineNode", "KlineNode::KlineNode start");
+
     _tx_pin = tx_pin;
     _rx_pin = rx_pin;
+
+    _uart_task_handle = nullptr;
 
     _kline = KLineKWP1281Lib{
         [this](unsigned long baud)                          { klineBegin(baud); },
@@ -12,8 +16,12 @@ KlineNode::KlineNode(gpio_num_t tx_pin, gpio_num_t rx_pin): CarduinoNode(0x01) {
         static_cast<uint8_t>(tx_pin)   // pin TX per il bit-bang 5-baud
     };
 
+    ESP_LOGI("KlineNode", "created _kline");
+
     _rx_sem = xSemaphoreCreateBinary();
     configASSERT(_rx_sem);
+
+    ESP_LOGI("KlineNode", "created _rx_sem");
 
     // Task interno dedicato al polling periodico delle ECU configurate.
     // Priorità più bassa del task evento UART (KWP_TASK_PRI + 1) così la
@@ -23,26 +31,40 @@ KlineNode::KlineNode(gpio_num_t tx_pin, gpio_num_t rx_pin): CarduinoNode(0x01) {
         "kline_poll", KWP_TASK_STACK, this, KWP_TASK_PRI, nullptr
     );
 
+    ESP_LOGI("KlineNode", "created task");
+
     this->_afterReadExecutors.addExecutor(std::make_shared<FuelConsumptionExecutor>());
+
+    ESP_LOGI("KlineNode", "KlineNode::KlineNode end");
 }
 
 
 void KlineNode::uart_event_loop() {
+    ESP_LOGI("KlineNode", "KlineNode::uart_event_loop start");
     uart_event_t event;
     while (true) {
-        if (xQueueReceive(_uart_queue, &event, portMAX_DELAY)) {
-            if (event.type == UART_DATA || event.type == UART_BUFFER_FULL) {
-                xSemaphoreGive(_rx_sem);
+        if(_uart_queue != NULL) {
+            ESP_LOGI("KlineNode", "KlineNode::uart_event_loop _uart_queue not null");
+            if (xQueueReceive(_uart_queue, &event, portMAX_DELAY)) {
+                if (event.type == UART_DATA || event.type == UART_BUFFER_FULL) {
+                    xSemaphoreGive(_rx_sem);
+                }
             }
+        } else {
+            ESP_LOGI("KlineNode", "KlineNode::uart_event_loop _uart_queue null");
+            vTaskDelay(pdMS_TO_TICKS(10));
         }
     }
+    ESP_LOGI("KlineNode", "KlineNode::uart_event_loop end");
 }
 // ─────────────────────────────────────────────
 //  Task di polling interno
 // ─────────────────────────────────────────────
 
 void KlineNode::kline_poll_task_trampoline(void *arg) {
+    ESP_LOGI("KlineNode", "KlineNode::kline_poll_task_trampoline start");
     static_cast<KlineNode *>(arg)->kline_poll_loop();
+    ESP_LOGI("KlineNode", "KlineNode::kline_poll_task_trampoline end");
 }
 
 void KlineNode::kline_poll_loop() {
@@ -240,15 +262,15 @@ bool KlineNode::readBlock(KlineEcu *ecu, uint8_t block) {
 // ─────────────────────────────────────────────
 
 void KlineNode::readValues() {
-    if (this->getSettingValue(&Setting::OTA_MODE)->value->boolValue) {
-        // In modalità OTA la K-line va lasciata libera: se eravamo connessi, disconnettiamo
-        // e resettiamo lo stato per ripartire da zero quando l'OTA terminerà.
-        if (_currentEcu.connState == ConnState::CONNECTED) {
-            _kline.disconnect();
-        }
-        _currentEcu = EcuRuntimeState{};
-        return;
-    }
+    // if (this->getSettingValue(&Setting::OTA_MODE)->value->boolValue) {
+    //     // In modalità OTA la K-line va lasciata libera: se eravamo connessi, disconnettiamo
+    //     // e resettiamo lo stato per ripartire da zero quando l'OTA terminerà.
+    //     if (_currentEcu.connState == ConnState::CONNECTED) {
+    //         _kline.disconnect();
+    //     }
+    //     _currentEcu = EcuRuntimeState{};
+    //     return;
+    // }
 
     if (!this->isEnabled) {
         return; // non leggere se il nodo non è abilitato
@@ -305,6 +327,13 @@ void KlineNode::readValues() {
 }
 
 void KlineNode::klineBegin(unsigned long baud) {
+    ESP_LOGI("KlineNode", "KlineNode::klineBegin start");
+
+    if (_uart_task_handle != nullptr) {
+        vTaskDelete(_uart_task_handle);
+        _uart_task_handle = nullptr;
+    }
+
     uart_driver_delete(_uart);
 
     const uart_config_t uart_cfg = {
@@ -318,12 +347,11 @@ void KlineNode::klineBegin(unsigned long baud) {
         .flags      = {}
     };
 
-    QueueHandle_t uart_queue;
     ESP_ERROR_CHECK(uart_param_config(_uart, &uart_cfg));
     ESP_ERROR_CHECK(uart_set_pin(_uart, _tx_pin, _rx_pin,
                                     UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE));
     ESP_ERROR_CHECK(uart_driver_install(_uart, UART_BUF_SIZE, 0,
-                                            10, &uart_queue, 0));
+                                            10, &_uart_queue, 0));
 
     // Soglia FIFO a 1 byte: l'interrupt scatta appena arriva il primo byte.
     ESP_ERROR_CHECK(uart_set_rx_full_threshold(_uart, 1));
@@ -336,12 +364,28 @@ void KlineNode::klineBegin(unsigned long baud) {
             auto *self = static_cast<KlineNode *>(arg);
             self->uart_event_loop(); // Userà internamente self->_uart_queue
         },
-        "uart_evt", 2048, this, KWP_TASK_PRI + 1, nullptr
+        "uart_evt",
+        2048,
+        this,
+        KWP_TASK_PRI + 1,
+        &_uart_task_handle
     );
+    
+    ESP_LOGI("KlineNode", "KlineNode::klineBegin end");
 };
 
 void KlineNode::klineEnd() {
+    ESP_LOGI("KlineNode", "KlineNode::klineEnd start");
+
+    if (_uart_task_handle != nullptr) {
+        vTaskDelete(_uart_task_handle); // Ferma il task "uart_evt" istantaneamente
+        _uart_task_handle = nullptr;    // Ripristina il puntatore a null
+        ESP_LOGI("KlineNode", "Vecchio uart_task eliminato con successo");
+    }
+
     uart_driver_delete(_uart);
+    _uart_queue = nullptr;
+    ESP_LOGI("KlineNode", "KlineNode::klineEnd end");
 };
 
 void KlineNode::klineSend(uint8_t data) {

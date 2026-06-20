@@ -1,7 +1,9 @@
 #include "CarduinoNode.h"
 
-CarduinoNode::CarduinoNode(uint8_t id): SettingBase() {
+CarduinoNode::CarduinoNode(uint8_t id): SettingBase(), UdpLogSender() {
     _id = id;
+
+    ESP_LOGI("CarduinoNode", "CarduinoNode::CarduinoNode start");
 
     // Configure TWAI node
     twai_onchip_node_config_t node_config = {
@@ -31,6 +33,8 @@ CarduinoNode::CarduinoNode(uint8_t id): SettingBase() {
     // Enable TWAI node
     ESP_ERROR_CHECK(twai_node_enable(_twai_node));
     ESP_LOGI(name().c_str(), "TWAI node started successfully");
+
+    ESP_LOGI("CarduinoNode", "CarduinoNode::CarduinoNode end");
 }
 
 std::string CarduinoNode::name() {
@@ -56,3 +60,34 @@ void CarduinoNode::sendByte(uint16_t messageId, int len, uint8_t *buf) {
 
     ESP_ERROR_CHECK(twai_node_transmit(_twai_node, &tx_frame, 500));
 };
+
+void CarduinoNode::delayTask(unsigned long millisec, std::function<void()> lambda) {
+    // Passiamo i ms e la lambda al task FreeRTOS
+    struct TaskArgs {
+        unsigned long millisec;
+        std::function<void()> lambda;
+    };
+    
+    auto *args = new TaskArgs{millisec, lambda};
+
+    xTaskCreate(
+        [](void *param) {
+            auto *p = static_cast<TaskArgs *>(param);
+            
+            // Attende il tempo richiesto senza bloccare l'ESP32
+            vTaskDelay(pdMS_TO_TICKS(p->millisec));
+            
+            // Esegue la lambda
+            p->lambda();
+            
+            // Pulisce la memoria ed elimina il task autonomamente
+            delete p;
+            vTaskDelete(NULL); 
+        },
+        "delayed_lambda",
+        3072, // Stack size
+        args,
+        1,    // Priorità bassa
+        nullptr
+    );
+}

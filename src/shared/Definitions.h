@@ -3,3 +3,7 @@
 
 #define DEFAULT_I2C_SCL_PIN GPIO_NUM_7
 #define DEFAULT_I2C_SDA_PIN GPIO_NUM_6
+
+#define UDP_LOG_PORT            3333
+#define UDP_LOG_WIFI_SSID       "CARDUINO_DEBUG_NET"
+#define UDP_LOG_WIFI_PASSWORD   "AutomotiveSec2026"
