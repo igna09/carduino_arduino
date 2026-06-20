@@ -4,6 +4,8 @@
 #include "ValueToRead.h"
 #include "CarduinoNode.h"
 #include "Message.h"
+#include "Priority.h"
+#include "Node.h"
 
 class FuelConsumptionExecutor : public AfterReadExecutorInterface {
     public:
@@ -17,8 +19,7 @@ class FuelConsumptionExecutor : public AfterReadExecutorInterface {
 
             auto* ev = static_cast<EventMulti<bool>*>(EventRegistry::createById(EV_FUEL_CONSUMPTION));
             std::get<0>(ev->values) = v;
-            CanbusMessage *c = new CanbusMessage(LOW_PRIORITY, NODE_BROADCAST, ev);
-            carduinoNode->sendCanbusMessage(c);
-            delete c;
+            Message c(Priority::L.id, Node::BROADCAST.id, ev);
+            carduinoNode->sendMessage(c);
         };
 };

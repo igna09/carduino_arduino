@@ -3,6 +3,7 @@
 #include <cstring>
 
 #include "Enum.h"
+#include "Definitions.h"
 
 // Modifica questo numero in base a quanti nodi hai
 #define NODE_SIZE 4
@@ -14,6 +15,9 @@ class Node : public Enum {
         static const Node MAIN;
         static const Node KLINE;
         static const Node TEST;
+
+        gpio_num_t can_rx_pin;
+        gpio_num_t can_tx_pin;
 
         Node() : Enum() {};
 
@@ -42,6 +46,16 @@ class Node : public Enum {
         Node(uint8_t id, const char *name) : Enum(id, name) {
             Node::values[Node::index] = this;
             Node::index++;
+
+            this->can_rx_pin = DEFAULT_CAN_RX_PIN;
+            this->can_tx_pin = DEFAULT_CAN_TX_PIN;
+        };
+        Node(uint8_t id, const char *name, gpio_num_t rx, gpio_num_t tx) : Enum(id, name) {
+            Node::values[Node::index] = this;
+            Node::index++;
+
+            this->can_rx_pin = rx;
+            this->can_tx_pin = tx;
         };
 
         static const Enum* values[];

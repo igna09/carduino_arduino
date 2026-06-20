@@ -4,11 +4,9 @@
 #include <string.h>
 #include <stdint.h>
 #include <math.h>
-
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/semphr.h"
-
 #include "driver/uart.h"
 #include "driver/gpio.h"
 #include "esp_log.h"
@@ -18,6 +16,10 @@
 #include "CarduinoNode.h"
 #include "KlineEcu.h"
 #include "ValueToRead.h"
+#include "AfterReadExecutors.h"
+#include "FuelConsumptionExecutor.h"
+#include "MessageType.h"
+#include "Message.h"
 
 // ─────────────────────────────────────────────
 //  Configurazione — modifica questi valori
@@ -50,19 +52,52 @@ static constexpr UBaseType_t KWP_TASK_PRI = 5;
 /** Buffer UART HW (deve essere almeno UART_FIFO_LEN = 128) */
 static constexpr int UART_BUF_SIZE = 256;
 
+/** Intervallo (ms) tra due cicli di polling readValues() */
+static constexpr uint32_t KLINE_POLL_INTERVAL_MS = 200;
+
+/** Numero di tentativi di connessione falliti consecutivi prima di applicare il backoff */
+static constexpr uint8_t  KLINE_MAX_CONSEC_FAILURES = 3;
+
+/** Durata (ms) del backoff applicato a un'ECU che continua a non rispondere */
+static constexpr uint32_t KLINE_BACKOFF_MS = 5000;
+
 class KlineNode : public CarduinoNode {
 public:
     KlineNode(gpio_num_t tx_pin, gpio_num_t rx_pin);
 private:
+    /** Stato della connessione verso l'ECU corrente */
+    enum class ConnState : uint8_t {
+        DISCONNECTED,   // nessuna connessione attiva, va tentata
+        CONNECTED,      // connessione attiva e valida
+        ERROR_BACKOFF   // troppi errori consecutivi: attendere prima di ritentare
+    };
+
+    /** Stato di runtime per l'ECU correntemente connessa (o ultima tentata) */
+    struct EcuRuntimeState {
+        KlineEcu  *ecu               = nullptr;
+        ConnState  connState         = ConnState::DISCONNECTED;
+        uint8_t    consecFails       = 0;
+        TickType_t backoffUntilTicks = 0;
+    };
+
     KLineKWP1281Lib _kline;
     uart_port_t _uart;
     gpio_num_t  _tx_pin;
     gpio_num_t  _rx_pin;
     SemaphoreHandle_t _rx_sem = nullptr;
+    EcuRuntimeState _currentEcu;
+    AfterReadExecutors _afterReadExecutors;
+    QueueHandle_t _uart_queue;
 
-    void uart_event_loop(QueueHandle_t uart_queue);
+    void uart_event_loop();
     void klineBegin(unsigned long baud);
     void klineEnd();
     void klineSend(uint8_t data);
     bool klineReceive(uint8_t *data, unsigned long timeout_ticks);
+    static void kline_poll_task_trampoline(void *arg);
+    void kline_poll_loop();
+    bool ensureConnected(KlineEcu *ecu);
+    void readValues();
+    void dispatchMeasurement(ValueToRead *valueToRead, float value);
+    bool readBlock(KlineEcu *ecu, uint8_t block);
 };

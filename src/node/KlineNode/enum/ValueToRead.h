@@ -86,8 +86,10 @@ class ValueToRead : public Enum {
         }
 
         static uint8_t getEcusToReadSize() {
-            KlineEcu **values = new KlineEcu*[VALUE_TO_READ_SIZE];
+            // Allocated on the stack; automatically cleaned up when the function returns
+            const KlineEcu* values[VALUE_TO_READ_SIZE]; 
             uint8_t valuesIndex = 0;
+
             for(uint8_t i = 0; i < VALUE_TO_READ_SIZE; i++) {
                 bool present = false;
                 for(uint8_t j = 0; j < valuesIndex && !present; j++) {
@@ -98,8 +100,6 @@ class ValueToRead : public Enum {
                     valuesIndex++;
                 }
             }
-
-            delete values;
 
             return valuesIndex;
         }
