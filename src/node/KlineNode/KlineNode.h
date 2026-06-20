@@ -4,9 +4,12 @@
 #include <string.h>
 #include <stdint.h>
 #include <math.h>
+#include <tuple>
+
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/semphr.h"
+
 #include "driver/uart.h"
 #include "driver/gpio.h"
 #include "esp_log.h"
@@ -18,8 +21,6 @@
 #include "ValueToRead.h"
 #include "AfterReadExecutors.h"
 #include "FuelConsumptionExecutor.h"
-#include "MessageType.h"
-#include "Message.h"
 
 // ─────────────────────────────────────────────
 //  Configurazione — modifica questi valori
@@ -31,7 +32,7 @@ static constexpr uint8_t  TARGET_MODULE   = 0x01;
 /** Velocità di comunicazione K-line */
 static constexpr uint32_t MODULE_BAUD     = 10400;
 
-/** Numero di porta UART da usare (UART_NUM_1 o UART_NUM_2, non UART_NUM_0 che è il monitor seriale) */
+/** Numero di porta UART da usare (UART_NUM_1 o UART_NUM_2, non UART_NUM_0 che è il mnitor seriale) */
 static constexpr uart_port_t KLINE_UART   = UART_NUM_1;
 
 /** Abilitare il debug del traffico KWP1281 su console */
@@ -81,7 +82,7 @@ private:
     };
 
     KLineKWP1281Lib _kline;
-    uart_port_t _uart;
+    uart_port_t _uart = KLINE_UART;
     gpio_num_t  _tx_pin;
     gpio_num_t  _rx_pin;
     SemaphoreHandle_t _rx_sem = nullptr;
@@ -94,10 +95,21 @@ private:
     void klineEnd();
     void klineSend(uint8_t data);
     bool klineReceive(uint8_t *data, unsigned long timeout_ticks);
-    static void kline_poll_task_trampoline(void *arg);
+
+    // Task FreeRTOS interno dedicato al polling periodico delle ECU
     void kline_poll_loop();
-    bool ensureConnected(KlineEcu *ecu);
+    static void kline_poll_task_trampoline(void *arg);
+
+    // Algoritmo principale di lettura: itera le ECU configurate e ne legge i blocchi richiesti
     void readValues();
-    void dispatchMeasurement(ValueToRead *valueToRead, float value);
+
+    // Tenta la connessione a un'ECU se necessario, gestendo backoff/retry; ritorna true se pronti a leggere
+    bool ensureConnected(KlineEcu *ecu);
+
+    // Legge un singolo blocco (group) per l'ECU corrente e instrada i valori letti sul CAN bus.
+    // Ritorna false in caso di errore di comunicazione (connessione da considerare persa).
     bool readBlock(KlineEcu *ecu, uint8_t block);
+
+    // Instrada una misura già calcolata sul CAN bus e aggiorna lastReadValue
+    void dispatchMeasurement(ValueToRead *valueToRead, float value);
 };

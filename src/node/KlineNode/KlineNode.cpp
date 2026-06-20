@@ -30,7 +30,7 @@ KlineNode::KlineNode(gpio_num_t tx_pin, gpio_num_t rx_pin): CarduinoNode(0x01) {
 void KlineNode::uart_event_loop() {
     uart_event_t event;
     while (true) {
-        if (xQueueReceive(this->_uart_queue, &event, portMAX_DELAY)) {
+        if (xQueueReceive(_uart_queue, &event, portMAX_DELAY)) {
             if (event.type == UART_DATA || event.type == UART_BUFFER_FULL) {
                 xSemaphoreGive(_rx_sem);
             }
@@ -297,7 +297,7 @@ void KlineNode::readValues() {
             printlnWrapper("KlineNode: connessione persa con ECU " + String(ecu->address, HEX));
             #endif
         } else {
-            this->_afterReadExecutors.execute(this);
+            _afterReadExecutors.execute(this);
         }
     }
 
@@ -318,13 +318,16 @@ void KlineNode::klineBegin(unsigned long baud) {
         .flags      = {}
     };
 
+    QueueHandle_t uart_queue;
     ESP_ERROR_CHECK(uart_param_config(_uart, &uart_cfg));
-    ESP_ERROR_CHECK(uart_set_pin(_uart, _tx_pin, _rx_pin, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE));
-    
-    // Passi direttamente il riferimento al membro della classe _uart_queue
-    ESP_ERROR_CHECK(uart_driver_install(_uart, UART_BUF_SIZE, 0, 10, &_uart_queue, 0));
+    ESP_ERROR_CHECK(uart_set_pin(_uart, _tx_pin, _rx_pin,
+                                    UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE));
+    ESP_ERROR_CHECK(uart_driver_install(_uart, UART_BUF_SIZE, 0,
+                                            10, &uart_queue, 0));
 
+    // Soglia FIFO a 1 byte: l'interrupt scatta appena arriva il primo byte.
     ESP_ERROR_CHECK(uart_set_rx_full_threshold(_uart, 1));
+
     xSemaphoreTake(_rx_sem, 0);
 
     // Passo direttamente 'this' senza allocare strutture intermedie
@@ -335,7 +338,7 @@ void KlineNode::klineBegin(unsigned long baud) {
         },
         "uart_evt", 2048, this, KWP_TASK_PRI + 1, nullptr
     );
-}
+};
 
 void KlineNode::klineEnd() {
     uart_driver_delete(_uart);
