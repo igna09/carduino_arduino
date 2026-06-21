@@ -238,11 +238,31 @@ void UdpLogSender::sendUdpLine(const char* data, int len) {
     destAddr.sin_family = AF_INET;
     destAddr.sin_port = htons(UDP_LOG_PORT);
 
+    // Prefisso col nome del nodo, cosi' il server UDP puo' identificare
+    // la fonte del log senza doversi basare sull'IP del mittente.
+    // Formato del pacchetto: "<NODE_NAME>|<riga di log>"
+    char packetBuf[UDP_LOG_BUF_SIZE + 32];
+    int prefixLen = snprintf(packetBuf, sizeof(packetBuf), "%s|", NODE_NAME);
+    if (prefixLen < 0) {
+        prefixLen = 0;
+    }
+    if (prefixLen >= static_cast<int>(sizeof(packetBuf))) {
+        prefixLen = sizeof(packetBuf) - 1;
+    }
+
+    int remaining = sizeof(packetBuf) - prefixLen;
+    int copyLen = (len < remaining) ? len : (remaining - 1);
+    if (copyLen < 0) {
+        copyLen = 0;
+    }
+    memcpy(packetBuf + prefixLen, data, copyLen);
+    int totalLen = prefixLen + copyLen;
+
     // sendto su una socket UDP non bloccante per design (datagram, nessun
     // buffer di invio da attendere); in caso di errore (rete non pronta,
     // nessuna route, ecc.) ritorna -1 e qui lo ignoriamo deliberatamente:
     // il logging su console è già avvenuto, quindi nessuna informazione
     // viene persa per l'operatore locale.
-    sendto(s_sockfd, data, len, 0,
+    sendto(s_sockfd, packetBuf, totalLen, 0,
            reinterpret_cast<struct sockaddr*>(&destAddr), sizeof(destAddr));
 }
