@@ -16,11 +16,8 @@ UdpLogSender::UdpLogSender() {
     s_sockfd = -1;
     s_originalVprintf = nullptr;
 
-    // Il costruttore NON avvia nulla automaticamente: l'avvio del servizio
-    // è esplicito tramite udp_log_sender_init(), chiamato dalla classe
-    // derivata (es. CarduinoNode). Questo evita ordini di inizializzazione
-    // impliciti/sorprendenti se la classe viene usata in più punti.
-    // this->udp_log_sender_init();
+    this->udp_log_sender_init();
+    
     NLOGI("UdpLogSender::UdpLogSender end");
 }
 

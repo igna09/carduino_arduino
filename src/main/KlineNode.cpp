@@ -15,8 +15,7 @@ extern "C" void app_main(void)
 
     KlineNode klineNode(TX_PIN, RX_PIN);
 
-    klineNode.delayTask(15000, [&](){
-        klineNode.udp_log_sender_init();
+    klineNode.delayTask(10000, [&](){
         klineNode.enableUdpLog();
     });
 
