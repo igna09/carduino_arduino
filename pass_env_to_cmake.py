@@ -16,7 +16,7 @@ with open("cmake_config.cmake", "w") as f:
 # aggiungile a CPPDEFINES. PlatformIO gestisce le stringhe racchiudendole tra macro.
 env.Append(
     CPPDEFINES=[
-        ("NODE_NAME", f'\"{current_env}\"'), # Diventa #define NOME_NODO "KlineNode"
+        ("NODE_NAME", f'\\"{current_env}\\"'), # Diventa #define NOME_NODO "KlineNode"
         # ("DEBUG_MODE", 1),                     # Diventa #define DEBUG_MODE 1
         # "KLINE_ENABLE"                        # Diventa #define ABILITA_KLINE
     ]
