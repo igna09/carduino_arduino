@@ -1,7 +1,7 @@
 #include "KlineNode.h"
 
 KlineNode::KlineNode(gpio_num_t tx_pin, gpio_num_t rx_pin): CarduinoNode(Node::KLINE.id) {
-    ESP_LOGI("KlineNode", "KlineNode::KlineNode start");
+    NLOGI("KlineNode::KlineNode start");
 
     _tx_pin = tx_pin;
     _rx_pin = rx_pin;
@@ -16,12 +16,12 @@ KlineNode::KlineNode(gpio_num_t tx_pin, gpio_num_t rx_pin): CarduinoNode(Node::K
         static_cast<uint8_t>(tx_pin)   // pin TX per il bit-bang 5-baud
     };
 
-    ESP_LOGI("KlineNode", "created _kline");
+    NLOGI("created _kline");
 
     _rx_sem = xSemaphoreCreateBinary();
     configASSERT(_rx_sem);
 
-    ESP_LOGI("KlineNode", "created _rx_sem");
+    NLOGI("created _rx_sem");
 
     // Task interno dedicato al polling periodico delle ECU configurate.
     // Priorità più bassa del task evento UART (KWP_TASK_PRI + 1) così la
@@ -31,40 +31,40 @@ KlineNode::KlineNode(gpio_num_t tx_pin, gpio_num_t rx_pin): CarduinoNode(Node::K
         "kline_poll", KWP_TASK_STACK, this, KWP_TASK_PRI, nullptr
     );
 
-    ESP_LOGI("KlineNode", "created task");
+    NLOGI("created task");
 
     this->_afterReadExecutors.addExecutor(std::make_shared<FuelConsumptionExecutor>());
 
-    ESP_LOGI("KlineNode", "KlineNode::KlineNode end");
+    NLOGI("KlineNode::KlineNode end");
 }
 
 
 void KlineNode::uart_event_loop() {
-    ESP_LOGI("KlineNode", "KlineNode::uart_event_loop start");
+    NLOGI("KlineNode::uart_event_loop start");
     uart_event_t event;
     while (true) {
         if(_uart_queue != NULL) {
-            ESP_LOGI("KlineNode", "KlineNode::uart_event_loop _uart_queue not null");
+            NLOGI("KlineNode::uart_event_loop _uart_queue not null");
             if (xQueueReceive(_uart_queue, &event, portMAX_DELAY)) {
                 if (event.type == UART_DATA || event.type == UART_BUFFER_FULL) {
                     xSemaphoreGive(_rx_sem);
                 }
             }
         } else {
-            ESP_LOGI("KlineNode", "KlineNode::uart_event_loop _uart_queue null");
+            NLOGI("KlineNode::uart_event_loop _uart_queue null");
             vTaskDelay(pdMS_TO_TICKS(10));
         }
     }
-    ESP_LOGI("KlineNode", "KlineNode::uart_event_loop end");
+    NLOGI("KlineNode::uart_event_loop end");
 }
 // ─────────────────────────────────────────────
 //  Task di polling interno
 // ─────────────────────────────────────────────
 
 void KlineNode::kline_poll_task_trampoline(void *arg) {
-    ESP_LOGI("KlineNode", "KlineNode::kline_poll_task_trampoline start");
+    NLOGI("KlineNode::kline_poll_task_trampoline start");
     static_cast<KlineNode *>(arg)->kline_poll_loop();
-    ESP_LOGI("KlineNode", "KlineNode::kline_poll_task_trampoline end");
+    NLOGI("KlineNode::kline_poll_task_trampoline end");
 }
 
 void KlineNode::kline_poll_loop() {
@@ -327,7 +327,7 @@ void KlineNode::readValues() {
 }
 
 void KlineNode::klineBegin(unsigned long baud) {
-    ESP_LOGI("KlineNode", "KlineNode::klineBegin start");
+    NLOGI("KlineNode::klineBegin start");
 
     if (_uart_task_handle != nullptr) {
         vTaskDelete(_uart_task_handle);
@@ -371,21 +371,21 @@ void KlineNode::klineBegin(unsigned long baud) {
         &_uart_task_handle
     );
     
-    ESP_LOGI("KlineNode", "KlineNode::klineBegin end");
+    NLOGI("KlineNode::klineBegin end");
 };
 
 void KlineNode::klineEnd() {
-    ESP_LOGI("KlineNode", "KlineNode::klineEnd start");
+    NLOGI("KlineNode::klineEnd start");
 
     if (_uart_task_handle != nullptr) {
         vTaskDelete(_uart_task_handle); // Ferma il task "uart_evt" istantaneamente
         _uart_task_handle = nullptr;    // Ripristina il puntatore a null
-        ESP_LOGI("KlineNode", "Vecchio uart_task eliminato con successo");
+        NLOGI("Vecchio uart_task eliminato con successo");
     }
 
     uart_driver_delete(_uart);
     _uart_queue = nullptr;
-    ESP_LOGI("KlineNode", "KlineNode::klineEnd end");
+    NLOGI("KlineNode::klineEnd end");
 };
 
 void KlineNode::klineSend(uint8_t data) {

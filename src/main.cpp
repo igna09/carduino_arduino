@@ -2,7 +2,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "driver/gpio.h"
-#include "esp_log.h"
+#include "NodeLog.h"
 
 // Il LED blu della ESP32-C3 SuperMini è solitamente sul GPIO 8
 #define BLINK_GPIO GPIO_NUM_8
@@ -14,42 +14,42 @@ static const char *TAG_LED_INFO = "LED_INFO";
 void vCheckCppVersionTask(void *pvParameters)
 {
     while(1) {
-        ESP_LOGI(TAG_SYS_INFO, "--- Verifica ambiente di compilazione ---");
+        NLOGI("--- Verifica ambiente di compilazione ---");
     
         // Stampa il valore numerico grezzo della macro standard
-        ESP_LOGI(TAG_SYS_INFO, "Valore raw di __cplusplus: %ld", __cplusplus);
+        NLOGI("Valore raw di __cplusplus: %ld", __cplusplus);
 
         // Identificazione dello standard ISO C++
         switch (__cplusplus) {
             case 202302L:
-                ESP_LOGI(TAG_SYS_INFO, "Standard rilevato: C++23 (Modern C++)");
+                NLOGI("Standard rilevato: C++23 (Modern C++)");
                 break;
             case 202002L:
-                ESP_LOGI(TAG_SYS_INFO, "Standard rilevato: C++20");
+                NLOGI("Standard rilevato: C++20");
                 break;
             case 201703L:
-                ESP_LOGI(TAG_SYS_INFO, "Standard rilevato: C++17");
+                NLOGI("Standard rilevato: C++17");
                 break;
             case 201402L:
-                ESP_LOGI(TAG_SYS_INFO, "Standard rilevato: C++14");
+                NLOGI("Standard rilevato: C++14");
                 break;
             case 201103L:
-                ESP_LOGI(TAG_SYS_INFO, "Standard rilevato: C++11");
+                NLOGI("Standard rilevato: C++11");
                 break;
             default:
                 if (__cplusplus > 202302L) {
-                    ESP_LOGW(TAG_SYS_INFO, "Standard rilevato: Versione C++ successiva a C++23!");
+                    NLOGW("Standard rilevato: Versione C++ successiva a C++23!");
                 } else {
-                    ESP_LOGE(TAG_SYS_INFO, "Standard rilevato: Versione C++ precedente al C++11 o non standard.");
+                    NLOGE("Standard rilevato: Versione C++ precedente al C++11 o non standard.");
                 }
                 break;
         }
 
-        ESP_LOGI(TAG_SYS_INFO, "-----------------------------------------");
+        NLOGI("-----------------------------------------");
 
         // Pratica cruciale in FreeRTOS: un task che termina il suo scopo 
         // deve essere rimosso dallo scheduler per non causare crash.
-        // ESP_LOGD(TAG_SYS_INFO, "Eliminazione del task vCheckCppVersionTask in corso...");
+        // NLOGD("Eliminazione del task vCheckCppVersionTask in corso...");
         // vTaskDelete(NULL); 
         vTaskDelay(pdMS_TO_TICKS(1000));
     }
@@ -69,7 +69,7 @@ void vBlinkLedTask(void *pvParameters)
         led_state = !led_state;
         gpio_set_level(BLINK_GPIO, led_state);
         
-        ESP_LOGI(TAG_LED_INFO, "LED Stato: %s", led_state ? "SPENTO" : "ACCESO");
+        NLOGI("LED Stato: %s", led_state ? "SPENTO" : "ACCESO");
 
         // Pausa di 1000 millisecondi (convertiti in Tick del FreeRTOS)
         vTaskDelay(pdMS_TO_TICKS(333));
@@ -79,7 +79,7 @@ void vBlinkLedTask(void *pvParameters)
 // Entry point principale con linkage C
 extern "C" void app_main(void)
 {
-    ESP_LOGI(TAG_SYS_INFO, "Applicazione avviata. Creazione dei task di sistema...");
+    NLOGI("Applicazione avviata. Creazione dei task di sistema...");
 
     // Creazione del task FreeRTOS
     // - Nome task: "check_cpp_task"

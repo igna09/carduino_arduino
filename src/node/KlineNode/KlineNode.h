@@ -12,9 +12,10 @@
 
 #include "driver/uart.h"
 #include "driver/gpio.h"
-#include "esp_log.h"
 
 #include "KLineKWP1281Lib_ESP32.h"
+
+#include "NodeLog.h"
 
 #include "CarduinoNode.h"
 #include "KlineEcu.h"

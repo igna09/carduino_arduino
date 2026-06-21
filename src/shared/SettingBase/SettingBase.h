@@ -3,13 +3,12 @@
 #include <map>
 #include <functional>
 #include <stdio.h>
-#include "esp_log.h"
 #include "nvs_flash.h"
 #include "nvs.h"
 
 #include "ValueToRead.h"
 #include "Setting.h"
-// #include "Logger.h"
+#include "NodeLog.h"
 
 struct SettingInformation {
     const Setting *setting;

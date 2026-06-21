@@ -3,7 +3,7 @@
 CarduinoNode::CarduinoNode(uint8_t id): SettingBase(), UdpLogSender() {
     _id = id;
 
-    ESP_LOGI("CarduinoNode", "CarduinoNode::CarduinoNode start");
+    NLOGI("CarduinoNode::CarduinoNode start");
 
     // Configure TWAI node
     twai_onchip_node_config_t node_config = {
@@ -32,9 +32,9 @@ CarduinoNode::CarduinoNode(uint8_t id): SettingBase(), UdpLogSender() {
 
     // Enable TWAI node
     ESP_ERROR_CHECK(twai_node_enable(_twai_node));
-    ESP_LOGI(name().c_str(), "TWAI node started successfully");
+    NLOGI("TWAI node started successfully");
 
-    ESP_LOGI("CarduinoNode", "CarduinoNode::CarduinoNode end");
+    NLOGI("CarduinoNode::CarduinoNode end");
 }
 
 std::string CarduinoNode::name() {

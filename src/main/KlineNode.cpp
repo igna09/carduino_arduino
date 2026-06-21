@@ -1,6 +1,6 @@
 #include "KlineNode.h"
 
-static const char *TAG_KLINE_NODE = "KLINE_NODE";
+#include "NodeLog.h"
 
 /** Pin TX collegato alla K-line (tramite driver LIN/ISO9141) */
 static constexpr gpio_num_t TX_PIN        = GPIO_NUM_4;
@@ -11,7 +11,7 @@ static constexpr gpio_num_t RX_PIN        = GPIO_NUM_5;
 // Entry point principale con linkage C
 extern "C" void app_main(void)
 {
-    ESP_LOGI(TAG_KLINE_NODE, "Nodo Kline avviato");
+    NLOGI("Nodo Kline avviato");
 
     KlineNode klineNode(TX_PIN, RX_PIN);
 

@@ -9,11 +9,11 @@
 #include "esp_mac.h"
 #include "esp_wifi.h"
 #include "esp_event.h"
-#include "esp_log.h"
 #include "nvs_flash.h"
 #include "lwip/err.h"
 #include "lwip/sockets.h"
 
+#include "NodeLog.h"
 #include "Definitions.h"
 
 // --- CONFIGURAZIONE ---
@@ -25,8 +25,6 @@
 #define MAX_FILTER_NODES        8     // Numero massimo di nodi filtrabili contemporaneamente
 #define MAX_NODE_NAME_LEN       32    // Lunghezza massima di un nome nodo
 #define CONSOLE_CMD_BUF_SIZE    128   // Buffer per la riga di comando letta da console
-
-static const char *TAG = "AutoAP";
 
 // ---------------------------------------------------------------------------
 // FILTRO NODI
@@ -100,9 +98,9 @@ static void setFilterFromList(char* list) {
     xSemaphoreGive(s_filterMutex);
 
     if (appliedCount == 0) {
-        ESP_LOGI(TAG, "Filtro vuoto/non valido: nessun filtro applicato, mostro tutti i nodi");
+        NLOGI("Filtro vuoto/non valido: nessun filtro applicato, mostro tutti i nodi");
     } else {
-        ESP_LOGI(TAG, "Filtro impostato su %d nodo/i", appliedCount);
+        NLOGI("Filtro impostato su %d nodo/i", appliedCount);
     }
 }
 
@@ -111,18 +109,18 @@ static void clearFilter() {
     xSemaphoreTake(s_filterMutex, portMAX_DELAY);
     s_filterCount = 0;
     xSemaphoreGive(s_filterMutex);
-    ESP_LOGI(TAG, "Filtro rimosso: mostro i log di tutti i nodi");
+    NLOGI("Filtro rimosso: mostro i log di tutti i nodi");
 }
 
 // Stampa l'elenco dei nodi attualmente nel filtro (o "nessuno").
 static void printFilter() {
     xSemaphoreTake(s_filterMutex, portMAX_DELAY);
     if (s_filterCount == 0) {
-        ESP_LOGI(TAG, "Nessun filtro attivo: mostro i log di tutti i nodi");
+        NLOGI("Nessun filtro attivo: mostro i log di tutti i nodi");
     } else {
-        ESP_LOGI(TAG, "Filtro attivo (%d nodo/i):", s_filterCount);
+        NLOGI("Filtro attivo (%d nodo/i):", s_filterCount);
         for (int i = 0; i < s_filterCount; i++) {
-            ESP_LOGI(TAG, "  - %s", s_filterNodes[i]);
+            NLOGI("  - %s", s_filterNodes[i]);
         }
     }
     xSemaphoreGive(s_filterMutex);
@@ -130,11 +128,11 @@ static void printFilter() {
 
 // Stampa i comandi disponibili sulla console.
 static void printConsoleHelp() {
-    ESP_LOGI(TAG, "Comandi console disponibili:");
-    ESP_LOGI(TAG, "  filter <nodo1,nodo2,...>  - mostra solo i log dei nodi indicati");
-    ESP_LOGI(TAG, "  clear                     - rimuove il filtro (mostra tutti i nodi)");
-    ESP_LOGI(TAG, "  list                      - mostra il filtro attualmente attivo");
-    ESP_LOGI(TAG, "  help                      - mostra questo elenco");
+    NLOGI("Comandi console disponibili:");
+    NLOGI("  filter <nodo1,nodo2,...>  - mostra solo i log dei nodi indicati");
+    NLOGI("  clear                     - rimuove il filtro (mostra tutti i nodi)");
+    NLOGI("  list                      - mostra il filtro attualmente attivo");
+    NLOGI("  help                      - mostra questo elenco");
 }
 
 // ---------------------------------------------------------------------------
@@ -182,7 +180,7 @@ static void console_task(void *pvParameters) {
 
             if (strcasecmp(cmd, "filter") == 0) {
                 if (args == nullptr || strlen(args) == 0) {
-                    ESP_LOGW(TAG, "Uso: filter <nodo1,nodo2,...>");
+                    NLOGW("Uso: filter <nodo1,nodo2,...>");
                 } else {
                     setFilterFromList(args);
                 }
@@ -193,7 +191,7 @@ static void console_task(void *pvParameters) {
             } else if (strcasecmp(cmd, "help") == 0) {
                 printConsoleHelp();
             } else if (strlen(cmd) > 0) {
-                ESP_LOGW(TAG, "Comando non riconosciuto: '%s' (digita 'help')", cmd);
+                NLOGW("Comando non riconosciuto: '%s' (digita 'help')", cmd);
             }
             continue;
         }
@@ -212,14 +210,14 @@ static void console_task(void *pvParameters) {
 static void wifi_event_handler(void* arg, esp_event_base_t event_base,
                                     int32_t event_id, void* event_data) {
     if (event_id == WIFI_EVENT_AP_START) {
-        ESP_LOGI(TAG, "SoftAP avviato. SSID: %s | Canale: %d", UDP_LOG_WIFI_SSID, WIFI_CHANNEL);
+        NLOGI("SoftAP avviato. SSID: %s | Canale: %d", UDP_LOG_WIFI_SSID, WIFI_CHANNEL);
     } else if (event_id == WIFI_EVENT_AP_STACONNECTED) {
         auto* event = (wifi_event_ap_staconnected_t*) event_data;
-        ESP_LOGI(TAG, "Stazione connessa - MAC: " MACSTR " | AID: %d", 
+        NLOGI("Stazione connessa - MAC: " MACSTR " | AID: %d", 
                  MAC2STR(event->mac), event->aid);
     } else if (event_id == WIFI_EVENT_AP_STADISCONNECTED) {
         auto* event = (wifi_event_ap_stadisconnected_t*) event_data;
-        ESP_LOGI(TAG, "Stazione disconnessa - MAC: " MACSTR " | AID: %d", 
+        NLOGI("Stazione disconnessa - MAC: " MACSTR " | AID: %d", 
                  MAC2STR(event->mac), event->aid);
     }
 }
@@ -282,32 +280,32 @@ static void udp_server_task(void *pvParameters) {
 
         int sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP);
         if (sock < 0) {
-            ESP_LOGE(TAG, "Impossibile creare il socket: errno %d. Riprovo...", errno);
+            NLOGE("Impossibile creare il socket: errno %d. Riprovo...", errno);
             vTaskDelay(pdMS_TO_TICKS(2000));
             continue;
         }
 
         int err = bind(sock, (struct sockaddr *)&dest_addr, sizeof(dest_addr));
         if (err < 0) {
-            ESP_LOGE(TAG, "Errore bind del socket: errno %d. Riprovo...", errno);
+            NLOGE("Errore bind del socket: errno %d. Riprovo...", errno);
             close(sock);
             vTaskDelay(pdMS_TO_TICKS(2000));
             continue;
         }
 
-        ESP_LOGI(TAG, "Ascolto UDP attivo sulla porta %d", UDP_LOG_PORT);
+        NLOGI("Ascolto UDP attivo sulla porta %d", UDP_LOG_PORT);
 
         while (1) {
             int len = recvfrom(sock, rx_buffer, sizeof(rx_buffer) - 1, 0, (struct sockaddr *)&source_addr, &socklen);
 
             if (len < 0) {
-                ESP_LOGE(TAG, "Errore di ricezione (recvfrom): errno %d", errno);
+                NLOGE("Errore di ricezione (recvfrom): errno %d", errno);
                 break; // Rompe il ciclo interno per ricreare il socket in modo pulito
             } else {
                 rx_buffer[len] = 0; // Null-terminate per sicurezza stringa
 
                 // Rimuove il newline finale (gia' presente nella riga di log
-                // originale lato mittente) per evitare che ESP_LOGI qui sotto
+                // originale lato mittente) per evitare che NLOGI qui sotto
                 // ne aggiunga un altro, producendo una riga vuota in console.
                 while (len > 0 && (rx_buffer[len - 1] == '\n' || rx_buffer[len - 1] == '\r')) {
                     rx_buffer[--len] = 0;
@@ -330,7 +328,7 @@ static void udp_server_task(void *pvParameters) {
                         continue; // Scarto silenzioso: nodo non nel filtro
                     }
                     // Stampa minimale dei messaggi sul bus locale/debug
-                    ESP_LOGI(TAG, "[%s]: %s", nodeName, msg);
+                    NLOGI("[%s]: %s", nodeName, msg);
                 } else {
                     if (!nodePassesFilter(nullptr)) {
                         continue; // Scarto silenzioso: filtro attivo, origine sconosciuta
@@ -340,7 +338,7 @@ static void udp_server_task(void *pvParameters) {
                     if (source_addr.ss_family == PF_INET) {
                         inet_ntoa_r(((struct sockaddr_in *)&source_addr)->sin_addr, ip_str, sizeof(ip_str) - 1);
                     }
-                    ESP_LOGI(TAG, "[UDP %s:%d]: %s", ip_str, UDP_LOG_PORT, msg);
+                    NLOGI("[UDP %s:%d]: %s", ip_str, UDP_LOG_PORT, msg);
                 }
             }
         }

@@ -2,7 +2,7 @@
 
 // SettingBase::SettingBase(Logger* logger, FSBase* fsBase) {
 SettingBase::SettingBase() {
-    ESP_LOGI("SettingBase", "SettingBase::SettingBase start");
+    NLOGI("SettingBase::SettingBase start");
     this->settings = new std::map<uint8_t, SettingInformation*>();
     this->settingsSetupDone = false;
     this->settingsLoaded = false;
@@ -19,7 +19,7 @@ SettingBase::SettingBase() {
         err = nvs_flash_init();
     }
     ESP_ERROR_CHECK(err);
-    ESP_LOGI("SettingBase", "SettingBase::SettingBase end");
+    NLOGI("SettingBase::SettingBase end");
 };
 
 void SettingBase::addSetting(const Setting *setting, bool value, std::function<void(SettingInformation*)> onChange, bool doBackup) {
@@ -128,7 +128,7 @@ void SettingBase::backupSettings() {
     nvs_handle_t my_handle;
     esp_err_t err = nvs_open("storage", NVS_READWRITE, &my_handle);
     if (err != ESP_OK) {
-        ESP_LOGE("TAG", "Errore nell'apertura dell'NVS Handle (%s)", esp_err_to_name(err));
+        NLOGE("Errore nell'apertura dell'NVS Handle (%s)", esp_err_to_name(err));
         return;
     }
 
@@ -149,12 +149,12 @@ void SettingBase::backupSettings() {
                 memcpy(&data_to_save, &settingInformation->value->floatValue, sizeof(float)); // Copia i bit senza alterarli
                 err = nvs_set_u32(my_handle, settingInformation->setting->name, data_to_save);
             }
-            if (err != ESP_OK) ESP_LOGE("TAG", "Errore nella nvs_set!");
+            if (err != ESP_OK) NLOGE("Errore nella nvs_set!");
         }
     }
 
     err = nvs_commit(my_handle);
-    if (err != ESP_OK) ESP_LOGE("TAG", "Errore nel commit!");
+    if (err != ESP_OK) NLOGE("Errore nel commit!");
 
     nvs_close(my_handle);
 
@@ -171,7 +171,7 @@ void SettingBase::restoreSettings() {
     nvs_handle_t my_handle;
     esp_err_t err = nvs_open("storage", NVS_READWRITE, &my_handle);
     if (err != ESP_OK) {
-        ESP_LOGE("TAG", "Errore nell'apertura dell'NVS Handle (%s)", esp_err_to_name(err));
+        NLOGE("Errore nell'apertura dell'NVS Handle (%s)", esp_err_to_name(err));
         return;
     }
 
@@ -209,12 +209,12 @@ void SettingBase::restoreSettings() {
                 }
                 this->putSettingValue(settingInformation->setting, v);
             }
-            if (err != ESP_OK) ESP_LOGE("TAG", "Errore nella nvs_set!");
+            if (err != ESP_OK) NLOGE("Errore nella nvs_set!");
         }
     }
 
     err = nvs_commit(my_handle);
-    if (err != ESP_OK) ESP_LOGE("TAG", "Errore nel commit!");
+    if (err != ESP_OK) NLOGE("Errore nel commit!");
 
     nvs_close(my_handle);
 
