@@ -2269,10 +2269,6 @@ CONFIG_LWIP_DNS_SUPPORT_MDNS_QUERIES=y
 # default:
 CONFIG_LWIP_TIMERS_ONDEMAND=y
 # default:
-CONFIG_LWIP_ND6=y
-# default:
-# CONFIG_LWIP_FORCE_ROUTER_FORWARDING is not set
-# default:
 CONFIG_LWIP_MAX_SOCKETS=10
 # default:
 # CONFIG_LWIP_USE_ONLY_LWIP_SELECT is not set
@@ -2291,15 +2287,9 @@ CONFIG_LWIP_IP_DEFAULT_TTL=64
 # default:
 CONFIG_LWIP_IP4_FRAG=y
 # default:
-CONFIG_LWIP_IP6_FRAG=y
-# default:
 # CONFIG_LWIP_IP4_REASSEMBLY is not set
 # default:
-# CONFIG_LWIP_IP6_REASSEMBLY is not set
-# default:
 CONFIG_LWIP_IP_REASS_MAX_PBUFS=10
-# default:
-CONFIG_LWIP_IPV6_DUP_DETECT_ATTEMPTS=1
 # default:
 # CONFIG_LWIP_IP_FORWARD is not set
 # default:
@@ -2308,10 +2298,6 @@ CONFIG_LWIP_IPV6_DUP_DETECT_ATTEMPTS=1
 CONFIG_LWIP_ESP_GRATUITOUS_ARP=y
 # default:
 CONFIG_LWIP_GARP_TMR_INTERVAL=60
-# default:
-CONFIG_LWIP_ESP_MLDV6_REPORT=y
-# default:
-CONFIG_LWIP_MLDV6_TMR_INTERVAL=40
 # default:
 CONFIG_LWIP_TCPIP_RECVMBOX_SIZE=32
 # default:
@@ -2354,14 +2340,7 @@ CONFIG_LWIP_DHCPS_STATIC_ENTRIES=y
 # CONFIG_LWIP_AUTOIP is not set
 # default:
 CONFIG_LWIP_IPV4=y
-# default:
-CONFIG_LWIP_IPV6=y
-# default:
-# CONFIG_LWIP_IPV6_AUTOCONFIG is not set
-# default:
-CONFIG_LWIP_IPV6_NUM_ADDRESSES=3
-# default:
-# CONFIG_LWIP_IPV6_FORWARD is not set
+# CONFIG_LWIP_IPV6 is not set
 # default:
 # CONFIG_LWIP_NETIF_STATUS_CALLBACK is not set
 # default:
@@ -2447,18 +2426,6 @@ CONFIG_LWIP_TCPIP_TASK_AFFINITY_NO_AFFINITY=y
 # default:
 CONFIG_LWIP_TCPIP_TASK_AFFINITY=0x7FFFFFFF
 # default:
-CONFIG_LWIP_IPV6_MEMP_NUM_ND6_QUEUE=3
-# default:
-CONFIG_LWIP_IPV6_ND6_NUM_NEIGHBORS=5
-# default:
-CONFIG_LWIP_IPV6_ND6_NUM_PREFIXES=5
-# default:
-CONFIG_LWIP_IPV6_ND6_NUM_ROUTERS=3
-# default:
-CONFIG_LWIP_IPV6_ND6_NUM_DESTINATIONS=10
-# default:
-# CONFIG_LWIP_IPV6_ND6_ROUTE_INFO_OPTION_SUPPORT is not set
-# default:
 # CONFIG_LWIP_PPP_SUPPORT is not set
 # default:
 # CONFIG_LWIP_SLIP_SUPPORT is not set
@@ -2507,8 +2474,6 @@ CONFIG_LWIP_DNS_MAX_SERVERS=3
 # CONFIG_LWIP_FALLBACK_DNS_SERVER_SUPPORT is not set
 # default:
 # CONFIG_LWIP_DNS_SETSERVER_WITH_NETIF is not set
-# default:
-# CONFIG_LWIP_USE_ESP_GETADDRINFO is not set
 # end of DNS
 
 # default:
@@ -2526,24 +2491,6 @@ CONFIG_LWIP_HOOK_TCP_ISN_DEFAULT=y
 # default:
 # CONFIG_LWIP_HOOK_TCP_ISN_CUSTOM is not set
 # default:
-CONFIG_LWIP_HOOK_IP6_ROUTE_NONE=y
-# default:
-# CONFIG_LWIP_HOOK_IP6_ROUTE_DEFAULT is not set
-# default:
-# CONFIG_LWIP_HOOK_IP6_ROUTE_CUSTOM is not set
-# default:
-CONFIG_LWIP_HOOK_ND6_GET_GW_NONE=y
-# default:
-# CONFIG_LWIP_HOOK_ND6_GET_GW_DEFAULT is not set
-# default:
-# CONFIG_LWIP_HOOK_ND6_GET_GW_CUSTOM is not set
-# default:
-CONFIG_LWIP_HOOK_IP6_SELECT_SRC_ADDR_NONE=y
-# default:
-# CONFIG_LWIP_HOOK_IP6_SELECT_SRC_ADDR_DEFAULT is not set
-# default:
-# CONFIG_LWIP_HOOK_IP6_SELECT_SRC_ADDR_CUSTOM is not set
-# default:
 CONFIG_LWIP_HOOK_DHCP_EXTRA_OPTION_NONE=y
 # default:
 # CONFIG_LWIP_HOOK_DHCP_EXTRA_OPTION_DEFAULT is not set
@@ -2559,12 +2506,6 @@ CONFIG_LWIP_HOOK_NETCONN_EXT_RESOLVE_NONE=y
 CONFIG_LWIP_HOOK_DNS_EXT_RESOLVE_NONE=y
 # default:
 # CONFIG_LWIP_HOOK_DNS_EXT_RESOLVE_CUSTOM is not set
-# default:
-# CONFIG_LWIP_HOOK_IP6_INPUT_NONE is not set
-# default:
-CONFIG_LWIP_HOOK_IP6_INPUT_DEFAULT=y
-# default:
-# CONFIG_LWIP_HOOK_IP6_INPUT_CUSTOM is not set
 # end of Hooks
 
 # default:
@@ -3250,6 +3191,62 @@ CONFIG_WL_SECTOR_SIZE_4096=y
 # default:
 CONFIG_WL_SECTOR_SIZE=4096
 # end of Wear Levelling
+
+#
+# I2C Device Library
+#
+# default:
+# CONFIG_I2CDEV_USE_LEGACY_DRIVER is not set
+# default:
+# CONFIG_I2CDEV_AUTO_ENABLE_PULLUPS is not set
+# default:
+CONFIG_I2CDEV_DEFAULT_SDA_PIN=21
+# default:
+CONFIG_I2CDEV_DEFAULT_SCL_PIN=22
+# default:
+CONFIG_I2CDEV_MAX_DEVICES_PER_PORT=8
+# default:
+CONFIG_I2CDEV_TIMEOUT=1000
+# default:
+# CONFIG_I2CDEV_NOLOCK is not set
+# end of I2C Device Library
+
+#
+# CMake Utilities
+#
+# default:
+# CONFIG_CU_RELINKER_ENABLE is not set
+# default:
+# CONFIG_CU_DIAGNOSTICS_COLOR_NEVER is not set
+# default:
+CONFIG_CU_DIAGNOSTICS_COLOR_ALWAYS=y
+# default:
+# CONFIG_CU_DIAGNOSTICS_COLOR_AUTO is not set
+# default:
+# CONFIG_CU_GCC_LTO_ENABLE is not set
+# default:
+# CONFIG_CU_GCC_STRING_1BYTE_ALIGN is not set
+# end of CMake Utilities
+
+#
+# Bus Options
+#
+
+#
+# I2C Bus Options
+#
+# default:
+CONFIG_I2C_BUS_DYNAMIC_CONFIG=y
+# default:
+CONFIG_I2C_MS_TO_WAIT=200
+# default:
+# CONFIG_I2C_BUS_BACKWARD_CONFIG is not set
+# default:
+# CONFIG_I2C_BUS_SUPPORT_SOFTWARE is not set
+# default:
+# CONFIG_I2C_BUS_REMOVE_NULL_MEM_ADDR is not set
+# end of I2C Bus Options
+# end of Bus Options
 # end of Component config
 
 # default:

@@ -25,7 +25,18 @@ endfunction()
 set(include_dirs ".")
 set(app_sources "") # Inizializziamo la lista dei sorgenti vuota
 
-if(NOT CARDUINO_NODE STREQUAL "UDP_AP")
+# message(STATUS "${CMAKE_SOURCE_DIR}/cmake_config.cmake")
+# Includi il file generato da Python
+if(EXISTS "${CMAKE_SOURCE_DIR}/cmake_config.cmake")
+    # message(STATUS "--- IL FILE ESISTE ---")
+    include("${CMAKE_SOURCE_DIR}/cmake_config.cmake")
+# else()
+#     message(STATUS "--- IL FILE NON ESISTE ---")
+endif()
+
+# message(STATUS "--- LA VARIABILE IN CMAKE E': ${CARDUINO_NODE_FILE_NAME} ---")
+
+if(NOT CARDUINO_NODE_FILE_NAME STREQUAL "UdpAp")
     add_subdirectories_to_sources(app_sources "${CMAKE_SOURCE_DIR}/src/node/CarduinoNode")
     add_subdirectories_to_include(include_dirs "${CMAKE_SOURCE_DIR}/src/node/CarduinoNode")
 
@@ -36,19 +47,12 @@ else()
     list(APPEND app_sources "${CMAKE_SOURCE_DIR}/src/main/UdpServer.cpp")
 endif()
 
+# Usa le funzioni per KlineNode (prende file e sottocartelle in automatico)
+add_subdirectories_to_sources(app_sources "${CMAKE_SOURCE_DIR}/src/node/${CARDUINO_NODE_FILE_NAME}")
+add_subdirectories_to_include(include_dirs "${CMAKE_SOURCE_DIR}/src/node/${CARDUINO_NODE_FILE_NAME}")
 
-# 2. Controllo se il flag è impostato su KLINE
-if(CARDUINO_NODE STREQUAL "KLINE")
-    
-    # Usa le funzioni per KlineNode (prende file e sottocartelle in automatico)
-    add_subdirectories_to_sources(app_sources "${CMAKE_SOURCE_DIR}/src/node/KlineNode")
-    add_subdirectories_to_include(include_dirs "${CMAKE_SOURCE_DIR}/src/node/KlineNode")
-    
-    # Aggiungiamo il Main specifico (essendo un file singolo, usiamo il list APPEND classico)
-    list(APPEND app_sources "${CMAKE_SOURCE_DIR}/src/main/KlineNodeMain.cpp")
-    
-endif()
-
+# Aggiungiamo il Main specifico (essendo un file singolo, usiamo il list APPEND classico)
+list(APPEND app_sources "${CMAKE_SOURCE_DIR}/src/main/${CARDUINO_NODE_FILE_NAME}.cpp")
 
 # 3. Registrazione del componente ESP-IDF
 idf_component_register(

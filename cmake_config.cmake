@@ -1,0 +1,1 @@
+set(CARDUINO_NODE_FILE_NAME "KlineNode")

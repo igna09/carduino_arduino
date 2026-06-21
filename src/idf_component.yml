@@ -1,0 +1,4 @@
+# dependencies:
+#   espressif/aht20: "^2.0.0"
+#   esp-idf-lib/pcf8574: "^1.0.10"
+#   esp-idf-lib/encoder: "^3.0.2"
