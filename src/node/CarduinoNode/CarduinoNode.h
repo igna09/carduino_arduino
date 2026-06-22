@@ -32,6 +32,8 @@ public:
 private:
     uint8_t _id;
     twai_node_handle_t _twai_node = NULL;
+    std::map<std::string, TaskEntry> tasks_;
+
     struct RepeatingTaskCtx {
         std::function<void()> fn;
         uint32_t periodMs;
@@ -42,5 +44,4 @@ private:
         TaskHandle_t handle;
         RepeatingTaskCtx* ctx;
     };
-    std::map<std::string, TaskEntry> tasks_;
 };
