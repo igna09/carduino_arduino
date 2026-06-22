@@ -1,7 +1,7 @@
 #include "KlineNode.h"
 
 KlineNode::KlineNode(gpio_num_t tx_pin, gpio_num_t rx_pin): CarduinoNode(Node::KLINE.id) {
-    NLOGI("KlineNode::KlineNode start");
+    NLOGD("KlineNode::KlineNode start");
 
     _tx_pin = tx_pin;
     _rx_pin = rx_pin;
@@ -16,12 +16,12 @@ KlineNode::KlineNode(gpio_num_t tx_pin, gpio_num_t rx_pin): CarduinoNode(Node::K
         static_cast<uint8_t>(tx_pin)   // pin TX per il bit-bang 5-baud
     };
 
-    NLOGI("created _kline");
+    NLOGD("created _kline");
 
     _rx_sem = xSemaphoreCreateBinary();
     configASSERT(_rx_sem);
 
-    NLOGI("created _rx_sem");
+    NLOGD("created _rx_sem");
 
     // Task interno dedicato al polling periodico delle ECU configurate.
     // Priorità più bassa del task evento UART (KWP_TASK_PRI + 1) così la
@@ -31,40 +31,40 @@ KlineNode::KlineNode(gpio_num_t tx_pin, gpio_num_t rx_pin): CarduinoNode(Node::K
         "kline_poll", KWP_TASK_STACK, this, KWP_TASK_PRI, nullptr
     );
 
-    NLOGI("created task");
+    NLOGD("created task");
 
     this->_afterReadExecutors.addExecutor(std::make_shared<FuelConsumptionExecutor>());
 
-    NLOGI("KlineNode::KlineNode end");
+    NLOGD("KlineNode::KlineNode end");
 }
 
 
 void KlineNode::uart_event_loop() {
-    NLOGI("KlineNode::uart_event_loop start");
+    NLOGD("KlineNode::uart_event_loop start");
     uart_event_t event;
     while (true) {
         if(_uart_queue != NULL) {
-            NLOGI("KlineNode::uart_event_loop _uart_queue not null");
+            NLOGD("KlineNode::uart_event_loop _uart_queue not null");
             if (xQueueReceive(_uart_queue, &event, portMAX_DELAY)) {
                 if (event.type == UART_DATA || event.type == UART_BUFFER_FULL) {
                     xSemaphoreGive(_rx_sem);
                 }
             }
         } else {
-            NLOGI("KlineNode::uart_event_loop _uart_queue null");
+            NLOGD("KlineNode::uart_event_loop _uart_queue null");
             vTaskDelay(pdMS_TO_TICKS(10));
         }
     }
-    NLOGI("KlineNode::uart_event_loop end");
+    NLOGD("KlineNode::uart_event_loop end");
 }
 // ─────────────────────────────────────────────
 //  Task di polling interno
 // ─────────────────────────────────────────────
 
 void KlineNode::kline_poll_task_trampoline(void *arg) {
-    NLOGI("KlineNode::kline_poll_task_trampoline start");
+    NLOGD("KlineNode::kline_poll_task_trampoline start");
     static_cast<KlineNode *>(arg)->kline_poll_loop();
-    NLOGI("KlineNode::kline_poll_task_trampoline end");
+    NLOGD("KlineNode::kline_poll_task_trampoline end");
 }
 
 void KlineNode::kline_poll_loop() {
@@ -327,7 +327,7 @@ void KlineNode::readValues() {
 }
 
 void KlineNode::klineBegin(unsigned long baud) {
-    NLOGI("KlineNode::klineBegin start");
+    NLOGD("KlineNode::klineBegin start");
 
     if (_uart_task_handle != nullptr) {
         vTaskDelete(_uart_task_handle);
@@ -371,21 +371,21 @@ void KlineNode::klineBegin(unsigned long baud) {
         &_uart_task_handle
     );
     
-    NLOGI("KlineNode::klineBegin end");
+    NLOGD("KlineNode::klineBegin end");
 };
 
 void KlineNode::klineEnd() {
-    NLOGI("KlineNode::klineEnd start");
+    NLOGD("KlineNode::klineEnd start");
 
     if (_uart_task_handle != nullptr) {
         vTaskDelete(_uart_task_handle); // Ferma il task "uart_evt" istantaneamente
         _uart_task_handle = nullptr;    // Ripristina il puntatore a null
-        NLOGI("Vecchio uart_task eliminato con successo");
+        NLOGD("Vecchio uart_task eliminato con successo");
     }
 
     uart_driver_delete(_uart);
     _uart_queue = nullptr;
-    NLOGI("KlineNode::klineEnd end");
+    NLOGD("KlineNode::klineEnd end");
 };
 
 void KlineNode::klineSend(uint8_t data) {
