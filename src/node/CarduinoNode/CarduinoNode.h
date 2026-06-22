@@ -2,6 +2,8 @@
 
 #include <stdio.h>
 #include <string>
+#include <functional>
+#include <map>
 #include "esp_twai.h"
 #include "esp_twai_onchip.h"
 
@@ -23,8 +25,23 @@ public:
     void sendMessage(const Message& m);
     void sendByte(uint16_t messageId, int len, uint8_t *buf);
     void delayTask(unsigned long millisec, std::function<void()> lambda);
+    void startRepeatingTask(const std::string& id, unsigned long millisec, std::function<void()> fn, uint32_t stackSize = 4096, UBaseType_t priority = 5);
+    void stopRepeatingTask(const std::string& id);
+    void stopAllRepeatingTasks();
 
 private:
     uint8_t _id;
     twai_node_handle_t _twai_node = NULL;
+    std::map<std::string, TaskEntry> tasks_;
+
+    struct RepeatingTaskCtx {
+        std::function<void()> fn;
+        uint32_t periodMs;
+        std::string id;
+        volatile bool stop;
+    };
+    struct TaskEntry {
+        TaskHandle_t handle;
+        RepeatingTaskCtx* ctx;
+    };
 };

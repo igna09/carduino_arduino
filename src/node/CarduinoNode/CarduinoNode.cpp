@@ -91,3 +91,49 @@ void CarduinoNode::delayTask(unsigned long millisec, std::function<void()> lambd
         nullptr
     );
 }
+
+void CarduinoNode::startRepeatingTask(const std::string& id, unsigned long millisec, std::function<void()> lambda, uint32_t stackSize, UBaseType_t priority) {
+    stopRepeatingTask(id);
+
+    auto *ctx = new RepeatingTaskCtx{millisec, std::move(lambda), id};
+
+    TaskHandle_t handle = nullptr;
+    xTaskCreate(
+        [](void *param) {
+            auto *p = static_cast<RepeatingTaskCtx *>(param);
+            while (!p->stop) {
+                p->lambda();
+                NLOGD(std::format("Repeating task {} executed, sleeping for {} ms\n", p->id, p->millisec));
+                vTaskDelay(pdMS_TO_TICKS(p->millisec));
+            }
+            delete p;
+            vTaskDelete(NULL);
+        },
+        id.c_str(),
+        3072,
+        ctx,
+        1,
+        &handle
+    );
+
+    tasks_[id] = {handle, ctx};
+}
+
+// Stoppa un singolo task ripetitivo dato l'id
+void CarduinoNode::stopRepeatingTask(const std::string& id) {
+    auto it = tasks_.find(id);
+    if (it == tasks_.end()) return;
+
+    it->second.ctx->stop = true; // segnala lo stop in modo cooperativo
+
+    // Aspetta che il task termini da solo (si autodistrugge)
+    // Alternativa più "brutale": vTaskDelete(it->second.handle) + delete ctx qui.
+    tasks_.erase(it);
+}
+
+void CarduinoNode::stopAllRepeatingTasks() {
+    for (auto& [id, entry] : tasks_) {
+        entry.ctx->stop = true;
+    }
+    tasks_.clear();
+}
