@@ -4,4 +4,5 @@
 .vscode/launch.json
 .vscode/ipch
 _*/
-unpacked_fs
+unpacked_fs/
+managed_components/

@@ -1,9 +1,11 @@
 #include "CarduinoNode.h"
 
 CarduinoNode::CarduinoNode(uint8_t id): SettingBase(), UdpLogSender() {
+    NLOGI("CarduinoNode::CarduinoNode start");
+
     _id = id;
 
-    NLOGI("CarduinoNode::CarduinoNode start");
+    addSetting(&Setting::OTA_MODE, false);
 
     // Configure TWAI node
     twai_onchip_node_config_t node_config = {
@@ -92,19 +94,19 @@ void CarduinoNode::delayTask(unsigned long millisec, std::function<void()> lambd
     );
 }
 
-void CarduinoNode::startRepeatingTask(const std::string& id, unsigned long millisec, std::function<void()> lambda, uint32_t stackSize, UBaseType_t priority) {
+void CarduinoNode::startRepeatingTask(const std::string& id, uint32_t periodMs, std::function<void()> lambda, uint32_t stackSize, UBaseType_t priority) {
     stopRepeatingTask(id);
 
-    auto *ctx = new RepeatingTaskCtx{millisec, std::move(lambda), id};
+    auto *ctx = new RepeatingTaskCtx{std::move(lambda), periodMs, id};
 
     TaskHandle_t handle = nullptr;
     xTaskCreate(
         [](void *param) {
             auto *p = static_cast<RepeatingTaskCtx *>(param);
             while (!p->stop) {
-                p->lambda();
-                NLOGD(std::format("Repeating task {} executed, sleeping for {} ms\n", p->id, p->millisec));
-                vTaskDelay(pdMS_TO_TICKS(p->millisec));
+                p->fn();
+                NLOGD("Repeating task %d executed, sleeping for %d ms\n", p->id, p->periodMs);
+                vTaskDelay(pdMS_TO_TICKS(p->periodMs));
             }
             delete p;
             vTaskDelete(NULL);

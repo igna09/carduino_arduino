@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Enum.h"
+#include "MessageType.h"
 
 class TypedEnum : public Enum {
     public:

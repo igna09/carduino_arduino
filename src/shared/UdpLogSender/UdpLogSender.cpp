@@ -1,7 +1,5 @@
 #include "UdpLogSender.h"
 
-static const char* TAG = "UdpLogSender";
-
 // Puntatore statico locale al file (file-scoped) per aggirare la mancanza del parametro 'arg' nell'API C
 static UdpLogSender* s_instance = nullptr;
 

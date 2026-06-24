@@ -6,9 +6,9 @@
 #include "nvs_flash.h"
 #include "nvs.h"
 
-#include "ValueToRead.h"
 #include "Setting.h"
 #include "NodeLog.h"
+#include "ValueType.h"
 
 struct SettingInformation {
     const Setting *setting;

@@ -3,14 +3,9 @@
 #include "Enum.h"
 #include "Carstatus.h"
 #include "KlineEcu.h"
+#include "ValueType.h"
 
 #define VALUE_TO_READ_SIZE 5
-
-union ValueType {
-    int intValue;
-    float floatValue;
-    bool boolValue;
-};
 
 enum BlockToRead {
     FIRST = 0,

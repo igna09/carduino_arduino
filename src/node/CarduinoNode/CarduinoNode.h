@@ -12,9 +12,21 @@
 #include "Node.h"
 #include "Definitions.h"
 #include "UdpLogSender.h"
+#include "NodeLog.h"
 
 #define TWAI_QUEUE_DEPTH        10
 #define TWAI_BITRATE            1000000
+
+struct RepeatingTaskCtx {
+    std::function<void()> fn;
+    uint32_t periodMs;
+    std::string id;
+    volatile bool stop;
+};
+struct TaskEntry {
+    TaskHandle_t handle;
+    RepeatingTaskCtx* ctx;
+};
 
 class CarduinoNode: public SettingBase, public UdpLogSender {
 public:
@@ -33,15 +45,4 @@ private:
     uint8_t _id;
     twai_node_handle_t _twai_node = NULL;
     std::map<std::string, TaskEntry> tasks_;
-
-    struct RepeatingTaskCtx {
-        std::function<void()> fn;
-        uint32_t periodMs;
-        std::string id;
-        volatile bool stop;
-    };
-    struct TaskEntry {
-        TaskHandle_t handle;
-        RepeatingTaskCtx* ctx;
-    };
 };
