@@ -13,6 +13,7 @@
 #define TWAI_BITRATE            1000000
 // Buffer for burst data handling
 #define POLL_DEPTH              200
+#define BURST_SIZE 300
 
 twai_frame_t tx_frame;
 
@@ -122,46 +123,44 @@ void setupCanbus() {
 }
 
 static void txMessage(void *pvParameters) {
-    const int BURST_SIZE = 300;
-    
-    // Array di supporto locale per contenere i dati fisici del payload (max 8 byte per CAN standard)
-    uint8_t tx_data_buffer[8] = {0}; 
-
     while (1) {
         ESP_LOGI(TAG, "--- Inizio Burst di %d messaggi ---", BURST_SIZE);
 
+        // Creiamo un array di frame e un array di payload dedicati per l'intero burst.
+        // Essendo allocati a inizio ciclo (o statici), rimangono validi e isolati 
+        // per tutta la durata delle trasmissioni.
+        static twai_frame_t local_frames[BURST_SIZE];
+        static uint8_t tx_data_buffers[BURST_SIZE][8];
+
+        memset(local_frames, 0, sizeof(local_frames));
+        memset(tx_data_buffers, 0, sizeof(tx_data_buffers));
+
         for (int i = 0; i < BURST_SIZE; i++) {
-            // 1. Genera una lunghezza random del payload (DLC) tra 0 e 8
+            // Genera una lunghezza random del payload (DLC) tra 0 e 8
             size_t random_len = esp_random() % 9; 
 
-            // 2. Riempi l'array di supporto locale con byte casuali
+            // Riempi il buffer i-esimo con byte casuali
             for (size_t j = 0; j < random_len; j++) {
-                tx_data_buffer[j] = static_cast<uint8_t>(esp_random() % 256);
+                tx_data_buffers[i][j] = static_cast<uint8_t>(esp_random() % 256);
             }
 
-            // 3. Configura correttamente l'header e assegna i puntatori
-            tx_frame.header.id = 0x10;
-            tx_frame.header.dlc = random_len;
-            
-            // Colleghiamo il puntatore della struttura al nostro array reale
-            tx_frame.buffer = tx_data_buffer; 
-            tx_frame.buffer_len = random_len;
+            // Configura i parametri del frame i-esimo puntando al buffer i-esimo
+            local_frames[i].header.id = 0x10;
+            local_frames[i].header.dlc = random_len;
+            local_frames[i].buffer = tx_data_buffers[i]; // <--- Ogni frame ha il suo spazio isolato!
+            local_frames[i].buffer_len = random_len;
 
-            // 4. Trasmissione del messaggio
-            esp_err_t tx_err = twai_node_transmit(twai_listener_ctx.node_hdl, &tx_frame, pdMS_TO_TICKS(50));
+            // Trasmissione del messaggio
+            esp_err_t tx_err = twai_node_transmit(twai_listener_ctx.node_hdl, &local_frames[i], pdMS_TO_TICKS(50));
             
-            if (tx_err == ESP_OK) {
-                ESP_LOGI(TAG, "[%d/%d] Inviato ID: 0x%03X, DLC: %d", 
-                         i + 1, BURST_SIZE, tx_frame.header.id, tx_frame.header.dlc);
-            } else {
-                ESP_LOGE(TAG, "[%d/%d] Errore di trasmissione: %s", 
-                         i + 1, BURST_SIZE, esp_err_to_name(tx_err));
-                
+            if (tx_err != ESP_OK) {
                 if (tx_err == ESP_ERR_TIMEOUT) {
+                    ESP_LOGE(TAG, "[%d] Timeout trasmissione", i);
                     break;
                 }
             }
 
+            // Mantenuto a 1 ms come richiesto
             vTaskDelay(pdMS_TO_TICKS(1));
         }
 
@@ -186,8 +185,10 @@ static void rxMessage(void *pvParameters) {
 
 extern "C" void app_main(void)
 {
+    vTaskDelay(pdMS_TO_TICKS(5000));
+    
     setupCanbus();
 
-    xTaskCreate(txMessage, "SEND_TASK", 4096, NULL, 5, NULL);
+    xTaskCreate(txMessage, "SEND_TASK", 8192, NULL, 5, NULL);
     xTaskCreate(rxMessage, "RECEIVE_TASK", 4096, NULL, 6, NULL);
 }

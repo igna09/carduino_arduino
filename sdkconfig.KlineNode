@@ -3184,6 +3184,25 @@ CONFIG_WL_SECTOR_SIZE=4096
 # end of Wear Levelling
 
 #
+# Rotary encoders
+#
+# default:
+CONFIG_RE_INTERVAL_US=1000
+# default:
+CONFIG_RE_BTN_DEAD_TIME_US=10000
+# default:
+CONFIG_RE_BTN_PRESSED_LEVEL_0=y
+# default:
+# CONFIG_RE_BTN_PRESSED_LEVEL_1 is not set
+# default:
+CONFIG_RE_BTN_LONG_PRESS_TIME_US=500000
+# default:
+CONFIG_RE_ACCELERATION_THRESHOLD=200
+# default:
+CONFIG_RE_ACCELERATION_CAP=4
+# end of Rotary encoders
+
+#
 # I2C Device Library
 #
 # default:
@@ -3201,43 +3220,6 @@ CONFIG_I2CDEV_TIMEOUT=1000
 # default:
 # CONFIG_I2CDEV_NOLOCK is not set
 # end of I2C Device Library
-
-#
-# CMake Utilities
-#
-# default:
-# CONFIG_CU_RELINKER_ENABLE is not set
-# default:
-# CONFIG_CU_DIAGNOSTICS_COLOR_NEVER is not set
-# default:
-CONFIG_CU_DIAGNOSTICS_COLOR_ALWAYS=y
-# default:
-# CONFIG_CU_DIAGNOSTICS_COLOR_AUTO is not set
-# default:
-# CONFIG_CU_GCC_LTO_ENABLE is not set
-# default:
-# CONFIG_CU_GCC_STRING_1BYTE_ALIGN is not set
-# end of CMake Utilities
-
-#
-# Bus Options
-#
-
-#
-# I2C Bus Options
-#
-# default:
-CONFIG_I2C_BUS_DYNAMIC_CONFIG=y
-# default:
-CONFIG_I2C_MS_TO_WAIT=200
-# default:
-# CONFIG_I2C_BUS_BACKWARD_CONFIG is not set
-# default:
-# CONFIG_I2C_BUS_SUPPORT_SOFTWARE is not set
-# default:
-# CONFIG_I2C_BUS_REMOVE_NULL_MEM_ADDR is not set
-# end of I2C Bus Options
-# end of Bus Options
 # end of Component config
 
 # default:
