@@ -15,6 +15,7 @@
 
 #include "NodeLog.h"
 #include "Definitions.h"
+#include "WebLogServer.h"
 
 // --- CONFIGURAZIONE ---
 #define WIFI_CHANNEL            6
@@ -324,19 +325,32 @@ static void udp_server_task(void *pvParameters) {
                 }
 
                 if (nodeName != nullptr) {
+                    // Pubblica sempre verso la webpage: il filtro qui e'
+                    // indipendente da quello console (nodePassesFilter) e
+                    // viene applicato lato client nel browser, non qui.
+                    // La formattazione avviene dentro WebLogServer, in un
+                    // buffer della dimensione corretta (niente buffer
+                    // intermedio sovradimensionato qui).
+                    WebLogServer::pushLineFormatted(nodeName, msg);
+
                     if (!nodePassesFilter(nodeName)) {
-                        continue; // Scarto silenzioso: nodo non nel filtro
+                        continue; // Scarto silenzioso: nodo non nel filtro console
                     }
                     // Stampa minimale dei messaggi sul bus locale/debug
                     NLOGI("[%s]: %s", nodeName, msg);
                 } else {
-                    if (!nodePassesFilter(nullptr)) {
-                        continue; // Scarto silenzioso: filtro attivo, origine sconosciuta
-                    }
                     // Estrazione IP del mittente per il log (fallback)
                     char ip_str[32];
                     if (source_addr.ss_family == PF_INET) {
                         inet_ntoa_r(((struct sockaddr_in *)&source_addr)->sin_addr, ip_str, sizeof(ip_str) - 1);
+                    }
+
+                    char ipPrefix[48];
+                    snprintf(ipPrefix, sizeof(ipPrefix), "UDP %s:%d", ip_str, UDP_LOG_PORT);
+                    WebLogServer::pushLineFormatted(ipPrefix, msg);
+
+                    if (!nodePassesFilter(nullptr)) {
+                        continue; // Scarto silenzioso: filtro console attivo, origine sconosciuta
                     }
                     NLOGI("[UDP %s:%d]: %s", ip_str, UDP_LOG_PORT, msg);
                 }
@@ -368,6 +382,9 @@ extern "C" void app_main(void) {
 
     // Avvio SoftAP
     wifi_init_softap();
+
+    // Avvio web log server (pagina HTML + SSE su http://192.168.4.1/)
+    WebLogServer::init();
 
     // Creazione del task UDP dedicato
     xTaskCreatePinnedToCore(udp_server_task, "udp_log_server", 4096, NULL, 5, NULL, tskNO_AFFINITY);
