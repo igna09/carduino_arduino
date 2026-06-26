@@ -2,6 +2,8 @@
 
 #include <cstring>
 
+#include "driver/gpio.h"
+
 #include "Enum.h"
 #include "Definitions.h"
 

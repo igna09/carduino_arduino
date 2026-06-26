@@ -5,6 +5,7 @@
 #include <functional>
 #include <map>
 #include <atomic>
+#include <iostream>
 #include "esp_twai.h"
 #include "esp_twai_onchip.h"
 
@@ -47,6 +48,7 @@ struct CanRxSlot {
 
 class CarduinoNode: public SettingBase, public UdpLogSender {
 public:
+    uint8_t _id;
     bool isEnabled;
     Executor _serialExecutor;
     Executor _canExecutor;
@@ -54,11 +56,19 @@ public:
     CarduinoNode(uint8_t id);
     std::string name();
     void sendMessage(const Message& m);
+    void sendSerialMessage(const Message& m);
     void sendByte(uint16_t messageId, int len, uint8_t *buf);
     void delayTask(unsigned long millisec, std::function<void()> lambda);
     void startRepeatingTask(const std::string& id, unsigned long millisec, std::function<void()> fn, uint32_t stackSize = 4096, UBaseType_t priority = 5);
     void stopRepeatingTask(const std::string& id);
     void stopAllRepeatingTasks();
+    void enable();
+    void disable();
+    void enableInterrupt();
+    void disableInterrupt();
+    void restart();
+    void heartbeatReceived();
+    void test();
 
     // Hook di dispatch per i messaggi ricevuti dal bus CAN.
     // Settabile dall'esterno (es. dal main) per collegare il routing applicativo
@@ -68,7 +78,6 @@ public:
     void onMessageReceived(std::function<void(Message*)> handler);
 
 private:
-    uint8_t _id;
     twai_node_handle_t _twai_node = NULL;
     std::map<std::string, TaskEntry> tasks_;
 

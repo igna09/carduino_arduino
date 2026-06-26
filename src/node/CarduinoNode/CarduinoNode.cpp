@@ -268,6 +268,10 @@ void CarduinoNode::sendMessage(const Message& m) {
     sendByte(m.canId(), dlc, payload);
 }
 
+void CarduinoNode::sendSerialMessage(const Message& m) {
+    m.print(std::cout, true);
+}
+
 void CarduinoNode::sendByte(uint16_t messageId, int len, uint8_t *buf) {
     // Se il bus è in bus_off, il recovery task per questo nodo se ne sta già
     // occupando in background: non blocchiamo qui, scartiamo il frame.
@@ -364,4 +368,33 @@ void CarduinoNode::stopAllRepeatingTasks() {
         entry.ctx->stop = true;
     }
     tasks_.clear();
+}
+
+
+void CarduinoNode::enable() {
+    NLOGI("CarduinoNode::enable called");
+}
+
+void CarduinoNode::disable() {
+    NLOGI("CarduinoNode::disable called");
+}
+
+void CarduinoNode::enableInterrupt() {
+    NLOGI("CarduinoNode::enableInterrupt called");
+}
+
+void CarduinoNode::disableInterrupt() {
+    NLOGI("CarduinoNode::disableInterrupt called");
+}
+
+void CarduinoNode::restart() {
+    NLOGI("CarduinoNode::restart called");
+}
+
+void CarduinoNode::heartbeatReceived() {
+    NLOGI("CarduinoNode::heartbeatReceived called");
+}
+
+void CarduinoNode::test() {
+    NLOGI("CarduinoNode::test called");
 }

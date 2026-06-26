@@ -177,6 +177,8 @@ public:
     uint8_t    destination;    // 0..15
     EventBase* event;          // owning pointer
 
+    Message() {}
+
     Message(uint8_t prio, uint8_t dst, EventBase* ev)
         : priority(prio), destination(dst), event(ev) {}
 

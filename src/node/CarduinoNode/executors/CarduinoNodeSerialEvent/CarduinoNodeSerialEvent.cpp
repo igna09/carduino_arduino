@@ -16,13 +16,13 @@ void CarduinoNodeSerialEvent::execute(CarduinoNode *node, Message *message) {
         node->disable();
     }
 
-    if(message->destination != node->id || message->destination == NODE_BROADCAST) {
-        node->sendMessage(message);
+    if(message->destination != node->_id || message->destination == Node::BROADCAST.id) {
+        node->sendMessage(*message);
     }
 
     if(
         message->event->id == EV_RESTART
-        && (message->destination == node->id || message->destination == NODE_BROADCAST)
+        && (message->destination == node->_id || message->destination == Node::BROADCAST.id)
     ) {
         node->delayTask(1000, [&](){
             node->restart();

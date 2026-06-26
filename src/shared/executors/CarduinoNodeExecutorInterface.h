@@ -48,5 +48,5 @@ class CarduinoNodeExecutorInterface {
         // a un Message di cui resta owner il chiamante originale in
         // rxTaskEntry).
         virtual void execute(CarduinoNode *node, Message *message) = 0;
-        bool canExecute(CarduinoNode *node, Message *message);
+        virtual bool canExecute(CarduinoNode *node, Message *message);
 };

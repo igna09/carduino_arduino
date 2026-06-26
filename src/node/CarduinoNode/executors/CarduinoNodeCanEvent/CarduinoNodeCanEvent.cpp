@@ -4,7 +4,7 @@ CarduinoNodeCanEvent::CarduinoNodeCanEvent() : CarduinoNodeExecutorInterface() {
 
 void CarduinoNodeCanEvent::execute(CarduinoNode *node, Message *message) {
 
-    if(message->destination == node->id || message->destination == NODE_BROADCAST) {
+    if(message->destination == node->_id || message->destination == Node::BROADCAST.id) {
         if(message->event->id == EV_ENABLE) {
             node->enable();
         } else if(message->event->id == EV_DISABLE) {
@@ -14,20 +14,19 @@ void CarduinoNodeCanEvent::execute(CarduinoNode *node, Message *message) {
         } else if(message->event->id == EV_DISABLE_INTERRUPT) {
             node->disableInterrupt();
         } else if(message->event->id == EV_RESET_WEBAPP) {
-            node->resetWebapp();
+            // node->resetWebapp();
         } else if(message->event->id == EV_RESTART) {
             node->delayTask(1000, [&](){
                 node->restart();
             });
         } else if(message->event->id == EV_GET_HELLOS) {
-            Message *helloMessage = new Message(LOW_PRIORITY, MAIN_NODE_ADDRESS, EventRegistry::createById(EV_HELLO));
+            Message helloMessage(Priority::L.id, Node::MAIN.id, EventRegistry::createById(EV_HELLO));
             node->sendMessage(helloMessage);
-            delete helloMessage;
         }
     }
 
     if(message->event->id == EV_HEARTBEAT) {
-        node->lastTimeReceivedHeartbeat = millis();
+        node->heartbeatReceived();
     }
 };
 
