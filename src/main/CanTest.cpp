@@ -92,13 +92,13 @@ void setupCanbus() {
         .bit_timing = {
             .bitrate = TWAI_BITRATE,
         },
+        .timestamp_resolution_hz = 1000000, // 1 MHz = Risoluzione di 1 microsecondo
         .fail_retry_cnt = 3,
         .tx_queue_depth = TWAI_QUEUE_DEPTH,
         .flags = {
             .enable_self_test = 1,
             .enable_loopback = 1,
         },
-        .timestamp_resolution_hz = 1000000, // 1 MHz = Risoluzione di 1 microsecondo
     };
 
     tx_frame = {
