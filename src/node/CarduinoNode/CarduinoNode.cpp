@@ -43,6 +43,8 @@ CarduinoNode::CarduinoNode(uint8_t id): SettingBase(), UdpLogSender() {
     // Task dedicato al drain del pool RX e dispatch verso Message::fromCanFrame.
     startRxTask();
 
+    _serialExecutor.addExecutor(new CarduinoNodeSerialWriteSetting());
+
     NLOGI("CarduinoNode::CarduinoNode end");
 }
 

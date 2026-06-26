@@ -14,6 +14,8 @@
 #include "Definitions.h"
 #include "UdpLogSender.h"
 #include "NodeLog.h"
+#include "Executor.h"
+#include "CarduinoNodeSerialWriteSetting.h"
 
 #define TWAI_QUEUE_DEPTH        10
 #define TWAI_BITRATE            1000000
@@ -46,6 +48,8 @@ struct CanRxSlot {
 class CarduinoNode: public SettingBase, public UdpLogSender {
 public:
     bool isEnabled;
+    Executor _serialExecutor;
+    Executor _canExecutor;
 
     CarduinoNode(uint8_t id);
     std::string name();
