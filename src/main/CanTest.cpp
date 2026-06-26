@@ -24,6 +24,14 @@ twai_frame_t tx_frame;
 // std::atomic<bool> garantisce la visibilità tra ISR e task senza bisogno di mutex.
 static std::atomic<bool> s_bus_off{false};
 
+// True mentre il task di recovery dedicato sta già gestendo un bus_off, per evitare
+// che vengano lanciati più tentativi di recovery in parallelo.
+static std::atomic<bool> s_recovery_in_progress{false};
+
+// Handle del task di recovery: usato per risvegliarlo via notify dal callback ISR
+// di state-change, senza dover fare polling continuo nel task stesso.
+static TaskHandle_t s_recovery_task_hdl = NULL;
+
 typedef struct {
     twai_frame_t frame;
     uint8_t data[TWAI_FRAME_MAX_LEN];
@@ -55,13 +63,18 @@ static bool IRAM_ATTR twai_listener_on_state_change_callback(twai_node_handle_t 
     ESP_EARLY_LOGI(TAG, "state changed: %s -> %s", twai_state_name[edata->old_sta], twai_state_name[edata->new_sta]);
 
     // Aggiorniamo solo il flag atomico: siamo in contesto ISR, nessuna chiamata bloccante
-    // o di recovery va fatta qui. La gestione effettiva avviene nel task TX.
+    // o di recovery va fatta qui. La gestione effettiva avviene nel task di recovery dedicato.
+    BaseType_t woken = pdFALSE;
     if (edata->new_sta == TWAI_ERROR_BUS_OFF) {
         s_bus_off.store(true, std::memory_order_relaxed);
+        // Risveglia il task di recovery, se esiste, così non deve pollare in continuazione.
+        if (s_recovery_task_hdl != NULL) {
+            vTaskNotifyGiveFromISR(s_recovery_task_hdl, &woken);
+        }
     } else if (edata->new_sta == TWAI_ERROR_ACTIVE) {
         s_bus_off.store(false, std::memory_order_relaxed);
     }
-    return false;
+    return (woken == pdTRUE);
 }
 
 // TWAI receive callback - store data and signal
@@ -138,48 +151,75 @@ void setupCanbus() {
     ESP_LOGI(TAG, "TWAI start listening...");
 }
 
-// Controlla lo stato del bus e, se siamo in bus_off, avvia la recovery e attende
-// che il nodo torni in error_active prima di permettere nuove trasmissioni.
-// Ritorna true se il bus è (o torna) operativo, false se la recovery è ancora in corso/fallita.
-static bool recoverCanbusIfNeeded() {
-    if (!s_bus_off.load(std::memory_order_relaxed)) {
-        return true; // tutto ok, nessuna recovery necessaria
-    }
-
-    ESP_LOGW(TAG, "Bus in BUS_OFF, avvio recovery...");
-    esp_err_t err = twai_node_recover(twai_listener_ctx.node_hdl);
-    if (err != ESP_OK) {
-        ESP_LOGE(TAG, "twai_node_recover() fallita: %s", esp_err_to_name(err));
-        return false;
-    }
-
-    // Attendiamo il ritorno a error_active, controllando periodicamente lo stato reale del nodo
-    // (oltre al flag, così siamo robusti anche se l'evento on_state_change fosse perso).
+// Task dedicato alla recovery del bus CAN, a bassa priorità.
+// Resta in attesa (bloccato, costo zero in CPU) finché:
+//  - il callback ISR di state-change lo risveglia con una notify quando il bus va in bus_off, oppure
+//  - scade il timeout periodico di sicurezza (in caso la notify venisse persa).
+// In questo modo il task TX non viene mai bloccato per la recovery: legge solo s_bus_off
+// e prosegue, mentre tutta la logica di attesa/retry vive qui.
+static void recoveryMonitorTask(void *pvParameters) {
     const int step_ms = 50;
-    int waited_ms = 0;
-    twai_node_status_t node_status;
-    while (waited_ms < RECOVERY_WAIT_MS) {
-        vTaskDelay(pdMS_TO_TICKS(step_ms));
-        waited_ms += step_ms;
+    const TickType_t safety_wait = pdMS_TO_TICKS(500); // wake periodico di sicurezza
 
-        if (twai_node_get_info(twai_listener_ctx.node_hdl, &node_status, NULL) == ESP_OK &&
-            node_status.state == TWAI_ERROR_ACTIVE) {
-            s_bus_off.store(false, std::memory_order_relaxed);
-            ESP_LOGI(TAG, "Recovery completata, nodo error_active dopo %d ms", waited_ms);
-            return true;
+    while (1) {
+        // Si sveglia su notify dall'ISR oppure al massimo dopo safety_wait, per essere
+        // robusto anche se una notify venisse persa o il bus_off non passasse mai da ISR.
+        ulTaskNotifyTake(pdTRUE, safety_wait);
+
+        if (!s_bus_off.load(std::memory_order_relaxed)) {
+            continue; // nessuna recovery necessaria, torniamo in attesa
         }
-    }
 
-    ESP_LOGE(TAG, "Recovery non completata dopo %d ms, nodo ancora in errore", RECOVERY_WAIT_MS);
-    return false;
+        // Evitiamo di lanciare più tentativi di recovery in parallelo se uno è già in corso
+        // (es. se il monitor si risveglia di nuovo per il timeout di sicurezza).
+        if (s_recovery_in_progress.exchange(true, std::memory_order_relaxed)) {
+            continue;
+        }
+
+        ESP_LOGW(TAG, "Bus in BUS_OFF, avvio recovery...");
+        esp_err_t err = twai_node_recover(twai_listener_ctx.node_hdl);
+        if (err != ESP_OK) {
+            ESP_LOGE(TAG, "twai_node_recover() fallita: %s", esp_err_to_name(err));
+            s_recovery_in_progress.store(false, std::memory_order_relaxed);
+            continue;
+        }
+
+        // Attendiamo il ritorno a error_active, controllando periodicamente lo stato reale del nodo
+        // (oltre al flag, così siamo robusti anche se l'evento on_state_change fosse perso).
+        // Questo polling blocca solo questo task dedicato, non il TX.
+        int waited_ms = 0;
+        bool recovered = false;
+        twai_node_status_t node_status;
+        while (waited_ms < RECOVERY_WAIT_MS) {
+            vTaskDelay(pdMS_TO_TICKS(step_ms));
+            waited_ms += step_ms;
+
+            if (twai_node_get_info(twai_listener_ctx.node_hdl, &node_status, NULL) == ESP_OK &&
+                node_status.state == TWAI_ERROR_ACTIVE) {
+                s_bus_off.store(false, std::memory_order_relaxed);
+                ESP_LOGI(TAG, "Recovery completata, nodo error_active dopo %d ms", waited_ms);
+                recovered = true;
+                break;
+            }
+        }
+
+        if (!recovered) {
+            ESP_LOGE(TAG, "Recovery non completata dopo %d ms, nodo ancora in errore", RECOVERY_WAIT_MS);
+            // Il flag s_bus_off resta true: il prossimo wake (notify o safety_wait) ritenterà.
+        }
+
+        s_recovery_in_progress.store(false, std::memory_order_relaxed);
+    }
 }
 
 static void txMessage(void *pvParameters) {
     while (1) {
-        // Prima di ogni burst verifichiamo lo stato del bus: se è in bus_off avviamo
-        // la procedura di recovery e, se non si conclude in tempo, saltiamo il burst.
-        if (!recoverCanbusIfNeeded()) {
-            vTaskDelay(pdMS_TO_TICKS(2000));
+        // Non blocchiamo più qui per la recovery: ci limitiamo a controllare il flag.
+        // Se il bus è in bus_off, il task dedicato recoveryMonitorTask se ne occupa
+        // in background; noi facciamo solo un breve delay e ricontrolliamo, restando
+        // liberi di occuparci di altro (es. popolare la coda RX) nel frattempo.
+        if (s_bus_off.load(std::memory_order_relaxed)) {
+            vTaskDelay(pdMS_TO_TICKS(100));
             continue;
         }
 
@@ -271,6 +311,11 @@ extern "C" void app_main(void)
     vTaskDelay(pdMS_TO_TICKS(5000));
     
     setupCanbus();
+
+    // Task di recovery dedicato, priorità bassa: l'handle va salvato PRIMA che il
+    // callback ISR possa tentare di notificarlo (qui non c'è race perché il bus
+    // parte sempre in error_active, ma è buona norma crearlo subito dopo il setup).
+    xTaskCreate(recoveryMonitorTask, "CAN_RECOVERY", 4096, NULL, 2, &s_recovery_task_hdl);
 
     xTaskCreate(txMessage, "SEND_TASK", 8192, NULL, 5, NULL);
     xTaskCreate(rxMessage, "RECEIVE_TASK", 4096, NULL, 6, NULL);
