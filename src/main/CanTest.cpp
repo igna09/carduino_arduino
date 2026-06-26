@@ -82,7 +82,8 @@ void setupCanbus() {
         .flags = {
             .enable_self_test = 1,
             .enable_loopback = 1,
-        }
+        },
+        .timestamp_resolution_hz = 1000000, // 1 MHz = Risoluzione di 1 microsecondo
     };
 
     tx_frame = {
