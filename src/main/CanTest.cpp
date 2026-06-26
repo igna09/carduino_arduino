@@ -173,22 +173,28 @@ static void txMessage(void *pvParameters) {
 static void rxMessage(void *pvParameters) {
     while (1) {
         if (xSemaphoreTake(twai_listener_ctx.rx_result_semaphore, portMAX_DELAY) == pdTRUE) {
-            twai_frame_t *frame = &twai_listener_ctx.rx_pool[twai_listener_ctx.read_idx].frame;
+            // Salviamo l'indice corrente in una variabile locale prima che venga incrementato
+            int current_idx = twai_listener_ctx.read_idx;
+            twai_frame_t *frame = &twai_listener_ctx.rx_pool[current_idx].frame;
             
-            // Buffer temporaneo per contenere i byte del payload formattati in esadecimale.
-            // 8 byte massimi * 3 caratteri ("ff " per ciascuno) + 1 carattere terminatore = 25
+            // Buffer temporaneo per il payload in esadecimale
             char payload_str[25] = {0}; 
             int offset = 0;
             
-            // Cicla solo per la lunghezza specificata nel DLC (Data Length Code)
+            // Cicla solo per i byte effettivi del DLC
             for (int i = 0; i < frame->header.dlc; i++) {
                 offset += snprintf(payload_str + offset, sizeof(payload_str) - offset, "%x ", frame->buffer[i]);
             }
 
-            // Stampa le informazioni dell'header seguite dalla stringa del payload dinamica
-            ESP_LOGI(TAG, "RX: timestamp %llu, %lx [%d] %s", \
-                     frame->header.timestamp, (long unsigned int)frame->header.id, frame->header.dlc, payload_str);
+            // Aggiunto l'indice [Buf:%d] all'inizio del messaggio di log
+            ESP_LOGI(TAG, "RX [Buf:%d]: timestamp %llu, %lx [%d] %s", \
+                     current_idx, \
+                     frame->header.timestamp, \
+                     (long unsigned int)frame->header.id, \
+                     frame->header.dlc, \
+                     payload_str);
                      
+            // Incremento dell'indice circolare
             twai_listener_ctx.read_idx = (twai_listener_ctx.read_idx + 1) % POLL_DEPTH;
             xSemaphoreGive(twai_listener_ctx.free_pool_semaphore);
         }
