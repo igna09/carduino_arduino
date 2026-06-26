@@ -173,10 +173,21 @@ static void rxMessage(void *pvParameters) {
     while (1) {
         if (xSemaphoreTake(twai_listener_ctx.rx_result_semaphore, portMAX_DELAY) == pdTRUE) {
             twai_frame_t *frame = &twai_listener_ctx.rx_pool[twai_listener_ctx.read_idx].frame;
-            ESP_LOGI(TAG, "RX: timestamp %llu, %x [%d] %x %x %x %x %x %x %x %x", \
-                     frame->header.timestamp, frame->header.id, frame->header.dlc, \
-                     frame->buffer[0], frame->buffer[1], frame->buffer[2], frame->buffer[3], \
-                     frame->buffer[4], frame->buffer[5], frame->buffer[6], frame->buffer[7]);
+            
+            // Buffer temporaneo per contenere i byte del payload formattati in esadecimale.
+            // 8 byte massimi * 3 caratteri ("ff " per ciascuno) + 1 carattere terminatore = 25
+            char payload_str[25] = {0}; 
+            int offset = 0;
+            
+            // Cicla solo per la lunghezza specificata nel DLC (Data Length Code)
+            for (int i = 0; i < frame->header.dlc; i++) {
+                offset += snprintf(payload_str + offset, sizeof(payload_str) - offset, "%x ", frame->buffer[i]);
+            }
+
+            // Stampa le informazioni dell'header seguite dalla stringa del payload dinamica
+            ESP_LOGI(TAG, "RX: timestamp %llu, %lx [%d] %s", \
+                     frame->header.timestamp, (long unsigned int)frame->header.id, frame->header.dlc, payload_str);
+                     
             twai_listener_ctx.read_idx = (twai_listener_ctx.read_idx + 1) % POLL_DEPTH;
             xSemaphoreGive(twai_listener_ctx.free_pool_semaphore);
         }
