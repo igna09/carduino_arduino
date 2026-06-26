@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <atomic>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "esp_log.h"
@@ -14,8 +15,14 @@
 // Buffer for burst data handling
 #define POLL_DEPTH              200
 #define BURST_SIZE 300
+// Recovery: tempo massimo di attesa dopo twai_node_recover() prima di considerarla fallita
+#define RECOVERY_WAIT_MS        1000
 
 twai_frame_t tx_frame;
+
+// Flag aggiornato dal callback ISR di state-change: true quando il bus è in bus_off.
+// std::atomic<bool> garantisce la visibilità tra ISR e task senza bisogno di mutex.
+static std::atomic<bool> s_bus_off{false};
 
 typedef struct {
     twai_frame_t frame;
@@ -46,6 +53,14 @@ static bool IRAM_ATTR twai_listener_on_state_change_callback(twai_node_handle_t 
 {
     const char *twai_state_name[] = {"error_active", "error_warning", "error_passive", "bus_off"};
     ESP_EARLY_LOGI(TAG, "state changed: %s -> %s", twai_state_name[edata->old_sta], twai_state_name[edata->new_sta]);
+
+    // Aggiorniamo solo il flag atomico: siamo in contesto ISR, nessuna chiamata bloccante
+    // o di recovery va fatta qui. La gestione effettiva avviene nel task TX.
+    if (edata->new_sta == TWAI_ERROR_BUS_OFF) {
+        s_bus_off.store(true, std::memory_order_relaxed);
+    } else if (edata->new_sta == TWAI_ERROR_ACTIVE) {
+        s_bus_off.store(false, std::memory_order_relaxed);
+    }
     return false;
 }
 
@@ -123,8 +138,51 @@ void setupCanbus() {
     ESP_LOGI(TAG, "TWAI start listening...");
 }
 
+// Controlla lo stato del bus e, se siamo in bus_off, avvia la recovery e attende
+// che il nodo torni in error_active prima di permettere nuove trasmissioni.
+// Ritorna true se il bus è (o torna) operativo, false se la recovery è ancora in corso/fallita.
+static bool recoverCanbusIfNeeded() {
+    if (!s_bus_off.load(std::memory_order_relaxed)) {
+        return true; // tutto ok, nessuna recovery necessaria
+    }
+
+    ESP_LOGW(TAG, "Bus in BUS_OFF, avvio recovery...");
+    esp_err_t err = twai_node_recover(twai_listener_ctx.node_hdl);
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "twai_node_recover() fallita: %s", esp_err_to_name(err));
+        return false;
+    }
+
+    // Attendiamo il ritorno a error_active, controllando periodicamente lo stato reale del nodo
+    // (oltre al flag, così siamo robusti anche se l'evento on_state_change fosse perso).
+    const int step_ms = 50;
+    int waited_ms = 0;
+    twai_node_status_t node_status;
+    while (waited_ms < RECOVERY_WAIT_MS) {
+        vTaskDelay(pdMS_TO_TICKS(step_ms));
+        waited_ms += step_ms;
+
+        if (twai_node_get_info(twai_listener_ctx.node_hdl, &node_status, NULL) == ESP_OK &&
+            node_status.state == TWAI_ERROR_ACTIVE) {
+            s_bus_off.store(false, std::memory_order_relaxed);
+            ESP_LOGI(TAG, "Recovery completata, nodo error_active dopo %d ms", waited_ms);
+            return true;
+        }
+    }
+
+    ESP_LOGE(TAG, "Recovery non completata dopo %d ms, nodo ancora in errore", RECOVERY_WAIT_MS);
+    return false;
+}
+
 static void txMessage(void *pvParameters) {
     while (1) {
+        // Prima di ogni burst verifichiamo lo stato del bus: se è in bus_off avviamo
+        // la procedura di recovery e, se non si conclude in tempo, saltiamo il burst.
+        if (!recoverCanbusIfNeeded()) {
+            vTaskDelay(pdMS_TO_TICKS(2000));
+            continue;
+        }
+
         ESP_LOGI(TAG, "--- Inizio Burst di %d messaggi ---", BURST_SIZE);
 
         // Creiamo un array di frame e un array di payload dedicati per l'intero burst.
@@ -137,6 +195,13 @@ static void txMessage(void *pvParameters) {
         memset(tx_data_buffers, 0, sizeof(tx_data_buffers));
 
         for (int i = 0; i < BURST_SIZE; i++) {
+            // Se durante il burst il bus va in bus_off, interrompiamo subito:
+            // la recovery verrà gestita al prossimo giro del ciclo esterno.
+            if (s_bus_off.load(std::memory_order_relaxed)) {
+                ESP_LOGW(TAG, "Bus_off rilevato durante il burst, interrompo trasmissione corrente");
+                break;
+            }
+
             // Genera una lunghezza random del payload (DLC) tra 0 e 8
             size_t random_len = esp_random() % 9; 
 
