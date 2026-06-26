@@ -10,7 +10,8 @@ extern "C" void app_main(void)
     MainNode mainNode;
 
     mainNode.delayTask(10000, [&](){
-        mainNode.enableUdpLog();
+        // mainNode.enableUdpLog();
+        mainNode.enable();
     });
 
     /* A questo punto app_main può continuare a fare altro, 

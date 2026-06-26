@@ -3,17 +3,26 @@
 MainNode::MainNode(): CarduinoNode(Node::MAIN.id), I2cNode() {
     NLOGD("MainNode::MainNode called");
 
-    configTemt6000();
-    configAht();
+    _canExecutor.addExecutor(new BootExecutor());
+
+    // configTemt6000();
+    // configAht();
+
+    // Chiamiamo l'inizializzazione dei dispositivi adesso che l'oggetto è pronto!
+    initI2cDevices();
+
+    // this->enable();
 }
 
 void MainNode::configAht() {
+    // Azzera completamente la struttura per ripulire la memoria da valori residui/spazzatura
+    memset(&aht_dev, 0, sizeof(aht_dev));
+
     // --- Configurazione del sensore AHT ---
     aht_dev.mode = AHT_MODE_NORMAL;
     aht_dev.type = AHT_TYPE_AHT20;
 
-    // // NOTA: Passando la macro I2C_NUM_0 come porta, i2cdev capisce che 
-    // // deve cercare un bus già inizializzato su quella porta hardware.
+    // Ora i2cdev troverà il puntatore del mutex a NULL e lo allocherà correttamente in RAM
     ESP_ERROR_CHECK(aht_init_desc(&aht_dev, AHT_I2C_ADDRESS_GND, I2C_NUM_0, DEFAULT_I2C_SDA_PIN, DEFAULT_I2C_SCL_PIN));
     ESP_ERROR_CHECK(aht_init(&aht_dev));
     NLOGD("Sensore AHT inizializzato.");
@@ -30,14 +39,13 @@ void MainNode::configTemt6000() {
     ESP_ERROR_CHECK(adc_oneshot_new_unit(&init_config, &adc_handle));
 
     // 2. Configurazione del Canale ADC
-    // Usiamo l'attenuazione massima (12dB) per poter leggere quasi fino a 3.3V
     adc_oneshot_chan_cfg_t config = {
         .atten = ADC_ATTEN_DB_12,
-        .bitwidth = ADC_BITWIDTH_DEFAULT, // Risoluzione massima del chip (es. 12 bit)
+        .bitwidth = ADC_BITWIDTH_DEFAULT, 
     };
     ESP_ERROR_CHECK(adc_oneshot_config_channel(adc_handle, TEMT6000_ADC_CHANNEL, &config));
 
-    // 3. Configurazione della Calibrazione (Opzionale ma altamente consigliata)
+    // 3. Configurazione della Calibrazione
     adc_cali_handle_t cali_handle = NULL;
     bool do_calibration = false;
     
@@ -53,27 +61,33 @@ void MainNode::configTemt6000() {
     }
     #endif
 
-    int adc_raw;
-    int voltage;
+    // MODIFICA QUI: 
+    // 1. Cambiamo [&] in [adc_handle, cali_handle, do_calibration] per copiare i descrittori per valore.
+    //    In questo modo rimarranno salvati persistentemente all'interno dell'oggetto della lambda.
+    startRepeatingTask("temt6000_read", 1000, [adc_handle, cali_handle, do_calibration]() {
+        // 2. Spostiamo le variabili di supporto qui dentro, così vengono allocate ad ogni ciclo
+        int adc_raw = 0;
+        int voltage = 0;
 
-    startRepeatingTask("temt6000_read", 1000, [&]() {
+        // Ora adc_handle è una copia valida e non memoria corrotta dello stack passato
         ESP_ERROR_CHECK(adc_oneshot_read(adc_handle, TEMT6000_ADC_CHANNEL, &adc_raw));
         
         if (do_calibration) {
-            // Converte il valore grezzo in Millivolt reali
             adc_cali_raw_to_voltage(cali_handle, adc_raw, &voltage);
             NLOGD("Valore Grezzo: %d | Tensione: %d mV", adc_raw, voltage);
         } else {
             NLOGD("Valore Grezzo: %d (Calibrazione non disponibile)", adc_raw);
         }
-        
-        // NLOGD("TEMT6000 light intensity: %d", measurement.lightIntensity);
-
-        // sendMessage(Message(Priority::L.id, Node::BROADCAST.id, EventMulti<float>(EventRegistry::getByName("INTERNAL_LUMINANCE").id, measurement.lightIntensity)));
     });
 }
 
 void MainNode::initI2cDevices() {
     // Inizializza eventuali dispositivi I2C aggiuntivi qui
     NLOGD("MainNode: initI2cDevices called");
+}
+
+void MainNode::enable() {
+    CarduinoNode::enable();
+
+    sendMessage(Message(Priority::L.id, Node::MAIN.id, EventRegistry::createById(EV_GET_HELLOS)));
 }

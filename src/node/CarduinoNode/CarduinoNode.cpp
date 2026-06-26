@@ -43,6 +43,20 @@ CarduinoNode::CarduinoNode(uint8_t id): SettingBase(), UdpLogSender() {
     // Task dedicato al drain del pool RX e dispatch verso Message::fromCanFrame.
     startRxTask();
 
+    // Annuncio spontaneo a MAIN: ogni nodo che NON è MAIN, appena pronto a
+    // ricevere/inviare sul bus, si annuncia mandando HELLO con il proprio id
+    // nel payload. MAIN non manda HELLO a se stesso: riceve solo annunci
+    // (sia spontanei come questo, sia in risposta a un suo GET_HELLOS).
+    // MAIN risponderà con ENABLE (gestito in CarduinoNodeCanEvent), che a
+    // sua volta fa scattare startTimeSync() su questo nodo.
+    if (_id != Node::MAIN.id) {
+        Message hello(Priority::L.id, Node::MAIN.id,
+                      new EventMulti<uint8_t>(EV_HELLO, "HELLO"));
+        std::get<0>(static_cast<EventMulti<uint8_t>*>(hello.event)->values) = _id;
+        sendMessage(hello);
+        NLOGI("HELLO inviato a MAIN (id=%u)", static_cast<unsigned>(_id));
+    }
+
     _serialExecutor.addExecutor(new CarduinoNodeSerialWriteSetting());
 
     NLOGI("CarduinoNode::CarduinoNode end");
@@ -370,6 +384,95 @@ void CarduinoNode::stopAllRepeatingTasks() {
     tasks_.clear();
 }
 
+
+// ============================================================================
+// Time sync
+// ============================================================================
+
+bool CarduinoNode::isTimeSynced() const {
+    return _timeSynced.load(std::memory_order_relaxed);
+}
+
+uint32_t CarduinoNode::syncedMillis() const {
+    if (!_timeSynced.load(std::memory_order_relaxed)) {
+        // Fallback silenzioso sul clock locale (equivalente a offset=0).
+        // Logghiamo una volta sola per non spammare se il chiamante interroga
+        // questo metodo a ripetizione prima che il sync vada a buon fine.
+        if (!_unsyncedWarnLogged) {
+            const_cast<CarduinoNode*>(this)->_unsyncedWarnLogged = true;
+            NLOGW("syncedMillis() chiamato prima del time sync: ritorno clock locale non corretto");
+        }
+        return localMillis();
+    }
+    // _timeOffsetMs può essere negativo: il cast a int64_t evita underflow
+    // strani vicino a 0 prima di tornare a uint32_t (wrap atteso a ~49 giorni,
+    // coerente per entrambi i lati visto che usano la stessa size).
+    return static_cast<uint32_t>(static_cast<int64_t>(localMillis()) + _timeOffsetMs);
+}
+
+void CarduinoNode::startTimeSync() {
+    if (_syncPending.exchange(true, std::memory_order_relaxed)) {
+        NLOGW("startTimeSync: sync già in corso, richiesta ignorata");
+        return;
+    }
+
+    _syncT1Ms = localMillis();
+    NLOGI("Time sync: invio TIME_SYNC_REQUEST a MAIN (T1=%u ms)", static_cast<unsigned>(_syncT1Ms));
+
+    Message req(Priority::H.id, Node::MAIN.id,
+                new EventMulti<uint8_t>(EV_TIME_SYNC_REQUEST, "TIME_SYNC_REQUEST"));
+    std::get<0>(static_cast<EventMulti<uint8_t>*>(req.event)->values) = _id;
+
+    sendMessage(req);
+
+    // Timeout difensivo: se la response non arriva, libera _syncPending così
+    // un retry successivo (manuale o a un nuovo ENABLE) non resta bloccato.
+    delayTask(TIME_SYNC_TIMEOUT_MS, [this]() {
+        if (_syncPending.exchange(false, std::memory_order_relaxed)) {
+            NLOGE("Time sync: timeout dopo %d ms, nessuna TIME_SYNC_RESPONSE ricevuta", TIME_SYNC_TIMEOUT_MS);
+        }
+    });
+}
+
+void CarduinoNode::handleTimeSyncRequest(uint8_t requesterId) {
+    // Eseguito sul nodo MAIN (è l'unico a cui arrivano richieste con
+    // destination==MAIN). T2 va preso il più vicino possibile alla ricezione,
+    // T3 il più vicino possibile all'invio, per minimizzare il tempo di
+    // elaborazione incluso per errore nella stima.
+    uint32_t t2 = localMillis();
+    uint32_t t3 = localMillis();
+
+    Message resp(Priority::H.id, requesterId,
+                 new EventMulti<uint32_t, uint32_t>(EV_TIME_SYNC_RESPONSE, "TIME_SYNC_RESPONSE"));
+    std::get<0>(static_cast<EventMulti<uint32_t,uint32_t>*>(resp.event)->values) = t2;
+    std::get<1>(static_cast<EventMulti<uint32_t,uint32_t>*>(resp.event)->values) = t3;
+
+    sendMessage(resp);
+}
+
+void CarduinoNode::handleTimeSyncResponse(uint32_t t2Ms, uint32_t t3Ms) {
+    if (!_syncPending.exchange(false, std::memory_order_relaxed)) {
+        // Risposta arrivata dopo il timeout (o senza una request pendente):
+        // scartiamo per non applicare un offset calcolato su un RTT non più
+        // valido/misurato.
+        NLOGW("Time sync: TIME_SYNC_RESPONSE ricevuta senza request pendente, scartata");
+        return;
+    }
+
+    uint32_t t4 = localMillis();
+    uint32_t t1 = _syncT1Ms;
+
+    // Schema NTP a 4 timestamp (single round, nessuna media):
+    //   round_trip = (t4 - t1) - (t3 - t2)
+    //   offset     = ((t2 - t1) + (t3 - t4)) / 2
+    int32_t roundTrip = static_cast<int32_t>(t4 - t1) - static_cast<int32_t>(t3Ms - t2Ms);
+    int32_t offset = (static_cast<int32_t>(t2Ms - t1) + static_cast<int32_t>(t3Ms - t4)) / 2;
+
+    _timeOffsetMs = offset;
+    _timeSynced.store(true, std::memory_order_relaxed);
+
+    NLOGI("Time sync completato: RTT=%d ms, offset=%d ms", roundTrip, offset);
+}
 
 void CarduinoNode::enable() {
     NLOGI("CarduinoNode::enable called");

@@ -15,12 +15,9 @@ void I2cNode::initI2c() {
     if (i2cInitialized) return;
 
     // 1. Inizializza il gestore centrale i2cdev.
-    // Nelle versioni v5.3+, questa funzione prepara internamente i semafori (mutex) 
-    // per rendere ogni successiva transazione sul bus "Thread-Safe".
     ESP_ERROR_CHECK(i2cdev_init());
     i2cInitialized = true;
     NLOGD("I2cNode: I2C initialized successfully");
 
-    initI2cDevices();
-    NLOGD("I2cNode: I2C devices initialized successfully");
+    // NOTA: Rimosso initI2cDevices() da qui per evitare il crash sul metodo virtuale puro
 }

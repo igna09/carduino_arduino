@@ -3,7 +3,7 @@
 #include "Message.h"
 #include "CarduinoNode.h"
 #include "CarduinoNodeExecutorInterface.h"
-
+#include "EventMulti.h"
 
 class CarduinoNodeCanEvent : public CarduinoNodeExecutorInterface {
     public:

@@ -19,7 +19,7 @@ DECLARE_EVENT(DISABLE,                  0x03, "DISABLE")
 DECLARE_EVENT(DISABLE_INTERRUPT,        0x04, "DISABLE_INTERRUPT")
 DECLARE_EVENT(DISABLE_FINISH,           0x05, "DISABLE_FINISH")
 DECLARE_EVENT(GET_HELLOS,               0x06, "GET_HELLOS")
-DECLARE_EVENT(HELLO,                    0x07, "HELLO")
+DECLARE_EVENT(HELLO,                    0x07, "HELLO",                      uint8_t)
 DECLARE_EVENT(HEARTBEAT,                0x08, "HEARTBEAT")
 DECLARE_EVENT(LOCK_CAR,                 0x09, "LOCK_CAR")
 DECLARE_EVENT(UNLOCK_CAR,               0x0A, "UNLOCK_CAR")
@@ -60,8 +60,10 @@ DECLARE_EVENT(NEXT,         0x28, "NEXT")
 DECLARE_EVENT(LONG_PRESS,   0x29, "LONG_PRESS")
 
 // --- Sincronizzazione tempo -------------------------------------------------
-DECLARE_EVENT(TIME_SYNC_REQUEST,  0x2A, "TIME_SYNC_REQUEST")
-DECLARE_EVENT(TIME_SYNC_RESPONSE, 0x2B, "TIME_SYNC_RESPONSE", uint32_t)
+// Payload TIME_SYNC_REQUEST: [source node id (1B)]
+DECLARE_EVENT(TIME_SYNC_REQUEST,  0x2A, "TIME_SYNC_REQUEST", uint8_t)
+// Payload TIME_SYNC_RESPONSE: [T2 ricezione request su MAIN (4B)] + [T3 invio response da MAIN (4B)], entrambi in ms (esp_timer_get_time()/1000)
+DECLARE_EVENT(TIME_SYNC_RESPONSE, 0x2B, "TIME_SYNC_RESPONSE", uint32_t, uint32_t)
 
 // --- Impostazioni -----------------------------------------------------------
 // Payload: [Setting ID (1B)] + [Value (4B)] = 5 byte totali
