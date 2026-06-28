@@ -11,7 +11,28 @@ MainNode::MainNode(): CarduinoNode(Node::MAIN.id), I2cNode() {
     // Chiamiamo l'inizializzazione dei dispositivi adesso che l'oggetto è pronto!
     initI2cDevices();
 
-    // this->enable();
+    this->enable();
+
+    // xTaskCreate([](void* pvParameters) {
+    //     auto* self = static_cast<CarduinoNode*>(pvParameters);
+    //     const uint32_t periodo_ms = 5000; // 5 secondi
+
+    //     while (true) {
+    //         uint32_t now = self->syncedMillis();
+            
+    //         // 1. Calcola matematicamente il prossimo multiplo tondo di 5000 ms
+    //         uint32_t prossimo_multiplo = ((now / periodo_ms) + 1) * periodo_ms;
+            
+    //         // 2. Calcola quanti millisecondi mancano esattamente a quel momento
+    //         uint32_t ms_da_attendere = prossimo_multiplo - now;
+            
+    //         // 3. Metti in pausa il task per il tempo calcolato
+    //         vTaskDelay(pdMS_TO_TICKS(ms_da_attendere));
+            
+    //         // --- Esecuzione della tua Lambda / Log ---
+    //         std::cout << "[SYNC TASK] Svegliato a syncedMillis: " << self->syncedMillis() << std::endl;
+    //     }
+    // }, "synced_task", 4096, this, 5, NULL);
 }
 
 void MainNode::configAht() {
@@ -87,7 +108,9 @@ void MainNode::initI2cDevices() {
 }
 
 void MainNode::enable() {
+    NLOGD("MainNode::enable called");
     CarduinoNode::enable();
 
-    sendMessage(Message(Priority::L.id, Node::MAIN.id, EventRegistry::createById(EV_GET_HELLOS)));
+    Message m(Priority::L.id, Node::BROADCAST.id, EventRegistry::createById(EV_GET_HELLOS));
+    sendMessage(m);
 }

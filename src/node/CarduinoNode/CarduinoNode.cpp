@@ -1,7 +1,7 @@
 #include "CarduinoNode.h"
 
 CarduinoNode::CarduinoNode(uint8_t id): SettingBase(), UdpLogSender() {
-    NLOGI("CarduinoNode::CarduinoNode start");
+    NLOGD("CarduinoNode::CarduinoNode start");
 
     _id = id;
 
@@ -43,6 +43,10 @@ CarduinoNode::CarduinoNode(uint8_t id): SettingBase(), UdpLogSender() {
     // Task dedicato al drain del pool RX e dispatch verso Message::fromCanFrame.
     startRxTask();
 
+
+    /**
+     * TODO: inviare ciclicamente hello se non enabled, il main essendo abilitato di default non invia ev_hello
+     */
     // Annuncio spontaneo a MAIN: ogni nodo che NON è MAIN, appena pronto a
     // ricevere/inviare sul bus, si annuncia mandando HELLO con il proprio id
     // nel payload. MAIN non manda HELLO a se stesso: riceve solo annunci
@@ -58,16 +62,13 @@ CarduinoNode::CarduinoNode(uint8_t id): SettingBase(), UdpLogSender() {
     }
 
     _serialExecutor.addExecutor(new CarduinoNodeSerialWriteSetting());
+    _canExecutor.addExecutor(new CarduinoNodeCanEvent());
 
-    NLOGI("CarduinoNode::CarduinoNode end");
+    NLOGD("CarduinoNode::CarduinoNode end");
 }
 
 std::string CarduinoNode::name() {
     return std::string(Node::getValueById(_id)->name);
-}
-
-void CarduinoNode::onMessageReceived(std::function<void(Message*)> handler) {
-    _onMessage = std::move(handler);
 }
 
 // ============================================================================
@@ -252,15 +253,13 @@ void CarduinoNode::rxTaskEntry(void *pvParameters) {
             // silenziosamente (con log) e liberiamo lo slot.
             Message* msg = Message::fromCanFrame(frame->header.id, frame->buffer, frame->header.dlc);
 
+            NLOGI("received message %s", msg->toString().c_str());
+
             if (msg == nullptr) {
                 NLOGW("RX: frame id=0x%x dlc=%d non decodificabile, scartato",
                       static_cast<unsigned>(frame->header.id), frame->header.dlc);
-            } else if (self->_onMessage) {
-                // Il chiamante diventa owner del Message* e deve fare delete.
-                self->_onMessage(msg);
             } else {
-                // Nessun handler registrato: evitiamo il leak.
-                NLOGD("RX: %s (nessun handler registrato)", msg->toString().c_str());
+                self->_canExecutor.execute(self, msg);
                 delete msg;
             }
 
@@ -280,6 +279,8 @@ void CarduinoNode::sendMessage(const Message& m) {
     uint8_t dlc = m.toCanFrame(id, payload, sizeof(payload));
 
     sendByte(m.canId(), dlc, payload);
+
+    NLOGI("Sent message %s", m.toString().c_str());
 }
 
 void CarduinoNode::sendSerialMessage(const Message& m) {
@@ -472,32 +473,53 @@ void CarduinoNode::handleTimeSyncResponse(uint32_t t2Ms, uint32_t t3Ms) {
     _timeSynced.store(true, std::memory_order_relaxed);
 
     NLOGI("Time sync completato: RTT=%d ms, offset=%d ms", roundTrip, offset);
+
+    // xTaskCreate([](void* pvParameters) {
+    //     auto* self = static_cast<CarduinoNode*>(pvParameters);
+    //     const uint32_t periodo_ms = 5000; // 5 secondi
+
+    //     while (true) {
+    //         uint32_t now = self->syncedMillis();
+            
+    //         // 1. Calcola matematicamente il prossimo multiplo tondo di 5000 ms
+    //         uint32_t prossimo_multiplo = ((now / periodo_ms) + 1) * periodo_ms;
+            
+    //         // 2. Calcola quanti millisecondi mancano esattamente a quel momento
+    //         uint32_t ms_da_attendere = prossimo_multiplo - now;
+            
+    //         // 3. Metti in pausa il task per il tempo calcolato
+    //         vTaskDelay(pdMS_TO_TICKS(ms_da_attendere));
+            
+    //         // --- Esecuzione della tua Lambda / Log ---
+    //         std::cout << "[SYNC TASK] Svegliato a syncedMillis: " << self->syncedMillis() << std::endl;
+    //     }
+    // }, "synced_task", 4096, this, 5, NULL);
 }
 
 void CarduinoNode::enable() {
-    NLOGI("CarduinoNode::enable called");
+    NLOGD("CarduinoNode::enable called");
 }
 
 void CarduinoNode::disable() {
-    NLOGI("CarduinoNode::disable called");
+    NLOGD("CarduinoNode::disable called");
 }
 
 void CarduinoNode::enableInterrupt() {
-    NLOGI("CarduinoNode::enableInterrupt called");
+    NLOGD("CarduinoNode::enableInterrupt called");
 }
 
 void CarduinoNode::disableInterrupt() {
-    NLOGI("CarduinoNode::disableInterrupt called");
+    NLOGD("CarduinoNode::disableInterrupt called");
 }
 
 void CarduinoNode::restart() {
-    NLOGI("CarduinoNode::restart called");
+    NLOGD("CarduinoNode::restart called");
 }
 
 void CarduinoNode::heartbeatReceived() {
-    NLOGI("CarduinoNode::heartbeatReceived called");
+    NLOGD("CarduinoNode::heartbeatReceived called");
 }
 
 void CarduinoNode::test() {
-    NLOGI("CarduinoNode::test called");
+    NLOGD("CarduinoNode::test called");
 }

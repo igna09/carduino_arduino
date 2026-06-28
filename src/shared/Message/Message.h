@@ -10,6 +10,7 @@
 #include "MessageType.h"
 #include "Node.h"
 #include "Priority.h"
+#include "NodeLog.h"
 
 #define CANBUSM_MAX_TOKENS 16
 #define CANBUSM_BUF_SIZE   128
@@ -300,11 +301,11 @@ public:
     // Stampa su qualsiasi Print& (Serial, SoftwareSerial, WiFiClient, ...)
     void print(std::ostream& out, bool serialMode = false) const {
         if (serialMode) {
-            out << priority;
+            out << (unsigned)priority;
             out << ';';
-            out << destination;
+            out << (unsigned)destination;
             out << ';';
-            out << event->id;
+            out << (unsigned)event->id;
             out << ';';
             event->printValue(out, true);
         } else {
@@ -312,16 +313,18 @@ public:
             out << std::hex
                 << std::setw(2)
                 << std::setfill('0')
-                << canId();
+                << canId()
+                << std::dec;
             out << " [prio=";
-            out << priority;
+            out << (unsigned)priority;
             out << ", dst=";
-            out << destination;
+            out << (unsigned)destination;
             out << ", event=0x";
             out << std::hex
                 << std::setw(2)
                 << std::setfill('0')
-                << event->id;
+                << (unsigned)event->id
+                << std::dec;
             out << "] ";
             out << event->name;
             out << ' ';

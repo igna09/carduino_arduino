@@ -4,7 +4,7 @@
 static UdpLogSender* s_instance = nullptr;
 
 UdpLogSender::UdpLogSender() {
-    NLOGI("UdpLogSender::UdpLogSender start");
+    NLOGD("UdpLogSender::UdpLogSender start");
 
     s_instance = this;
 
@@ -14,15 +14,17 @@ UdpLogSender::UdpLogSender() {
     s_sockfd = -1;
     s_originalVprintf = nullptr;
 
+    esp_log_level_set("wifi", ESP_LOG_WARN);
+
     this->udp_log_sender_init();
     
-    NLOGI("UdpLogSender::UdpLogSender end");
+    NLOGD("UdpLogSender::UdpLogSender end");
 }
 
 void UdpLogSender::enableUdpLog() {
-    NLOGI("UdpLogSender::enableUdpLog start");
+    NLOGD("UdpLogSender::enableUdpLog start");
     s_udpEnabled = true;
-    NLOGI("UdpLogSender::enableUdpLog end");
+    NLOGD("UdpLogSender::enableUdpLog end");
 }
 
 void UdpLogSender::disableUdpLog() {
@@ -41,7 +43,7 @@ bool UdpLogSender::isWifiConnected() const {
 // Inizializzazione
 // ---------------------------------------------------------------------------
 void UdpLogSender::udp_log_sender_init() {
-    NLOGI("UdpLogSender::udp_log_sender_init start");
+    NLOGD("UdpLogSender::udp_log_sender_init start");
 
     if (s_initialized) {
         return;
@@ -54,29 +56,29 @@ void UdpLogSender::udp_log_sender_init() {
     // quella parte specifica: qui lo inizializziamo in modo defensivo.
     esp_err_t err = nvs_flash_init();
     if (err == ESP_ERR_NVS_NO_FREE_PAGES || err == ESP_ERR_NVS_NEW_VERSION_FOUND) {
-        NLOGI("UdpLogSender::udp_log_sender_init error");
+        NLOGW("UdpLogSender::udp_log_sender_init error");
         nvs_flash_erase();
         nvs_flash_init();
     }
-    NLOGI("UdpLogSender::udp_log_sender_init flash initialized");
+    NLOGD("UdpLogSender::udp_log_sender_init flash initialized");
 
     esp_netif_init();
     esp_event_loop_create_default();
     esp_netif_create_default_wifi_sta();
 
-    NLOGI("UdpLogSender::udp_log_sender_init mode set");
+    NLOGD("UdpLogSender::udp_log_sender_init mode set");
 
     wifi_init_config_t wifiInitCfg = WIFI_INIT_CONFIG_DEFAULT();
     esp_wifi_init(&wifiInitCfg);
 
-    NLOGI("UdpLogSender::udp_log_sender_init initialized");
+    NLOGD("UdpLogSender::udp_log_sender_init initialized");
 
     esp_event_handler_instance_register(
         WIFI_EVENT, ESP_EVENT_ANY_ID, &UdpLogSender::wifiEventHandlerTrampoline, this, nullptr);
     esp_event_handler_instance_register(
         IP_EVENT, IP_EVENT_STA_GOT_IP, &UdpLogSender::wifiEventHandlerTrampoline, this, nullptr);
 
-    NLOGI("UdpLogSender::udp_log_sender_init event set");
+    NLOGD("UdpLogSender::udp_log_sender_init event set");
 
     wifi_config_t wifiConfig = {};
     strncpy(reinterpret_cast<char*>(wifiConfig.sta.ssid),
@@ -85,7 +87,7 @@ void UdpLogSender::udp_log_sender_init() {
             UDP_LOG_WIFI_PASSWORD, sizeof(wifiConfig.sta.password) - 1);
     wifiConfig.sta.threshold.authmode = WIFI_AUTH_WPA2_PSK;
 
-    NLOGI("UdpLogSender::udp_log_sender_init config set");
+    NLOGD("UdpLogSender::udp_log_sender_init config set");
 
     esp_wifi_set_mode(WIFI_MODE_STA);
     esp_wifi_set_config(WIFI_IF_STA, &wifiConfig);
@@ -96,7 +98,7 @@ void UdpLogSender::udp_log_sender_init() {
     // avviene in modo asincrono: questa funzione ritorna immediatamente
     // e non blocca mai, anche se il WiFi non è disponibile.
 
-    NLOGI("UdpLogSender::udp_log_sender_init wifi started");
+    NLOGD("UdpLogSender::udp_log_sender_init wifi started");
 
     // Agganciamo il nostro hook al sistema di log, conservando il vprintf
     // originale per continuare a stampare su console esattamente come prima.
@@ -106,7 +108,7 @@ void UdpLogSender::udp_log_sender_init() {
 
     s_initialized = true;
 
-    NLOGI("UdpLogSender::udp_log_sender_init end");
+    NLOGD("UdpLogSender::udp_log_sender_init end");
 }
 
 int UdpLogSender::vprintfHookTrampoline(const char *fmt, va_list args) {
@@ -121,7 +123,7 @@ int UdpLogSender::vprintfHookTrampoline(const char *fmt, va_list args) {
 
 void UdpLogSender::wifiEventHandlerTrampoline(void *arg, esp_event_base_t event_base, 
                                        int32_t event_id, void *event_data) {
-    NLOGI("UdpLogSender::wifiEventHandlerTrampoline start");
+    NLOGD("UdpLogSender::wifiEventHandlerTrampoline start");
     // Convertiamo il puntatore generico void* nel tipo della nostra classe
     auto* instance = static_cast<UdpLogSender*>(arg);
     
@@ -129,7 +131,7 @@ void UdpLogSender::wifiEventHandlerTrampoline(void *arg, esp_event_base_t event_
         // Saltiamo dentro l'istanza della classe
         instance->handleWifiEvent(event_base, event_id, event_data);
     }
-    NLOGI("UdpLogSender::wifiEventHandlerTrampoline end");
+    NLOGD("UdpLogSender::wifiEventHandlerTrampoline end");
 }
 
 // ---------------------------------------------------------------------------
@@ -138,15 +140,15 @@ void UdpLogSender::wifiEventHandlerTrampoline(void *arg, esp_event_base_t event_
 // nessun task dedicato necessario, nessun blocco del resto del sistema.
 // ---------------------------------------------------------------------------
 void UdpLogSender::handleWifiEvent(esp_event_base_t event_base, int32_t event_id, void* event_data) {
-    NLOGI("UdpLogSender::handleWifiEvent start");
+    NLOGD("UdpLogSender::handleWifiEvent start");
     if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_START) {
-        NLOGI("UdpLogSender::handleWifiEvent WIFI_EVENT_STA_START");
+        NLOGD("UdpLogSender::handleWifiEvent WIFI_EVENT_STA_START");
         esp_wifi_connect();
         return;
     }
 
     if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_DISCONNECTED) {
-        NLOGI("UdpLogSender::handleWifiEvent WIFI_EVENT_STA_DISCONNECTED");
+        NLOGD("UdpLogSender::handleWifiEvent WIFI_EVENT_STA_DISCONNECTED");
         s_wifiConnected = false;
         // Chiude la socket UDP: verrà ricreata alla prossima connessione
         // riuscita. Questo evita di tenere una socket "orfana" legata a
@@ -155,7 +157,7 @@ void UdpLogSender::handleWifiEvent(esp_event_base_t event_base, int32_t event_id
             close(s_sockfd);
             s_sockfd = -1;
         }
-        NLOGW("WiFi disconnesso, riconnessione in corso...");
+        NLOGD("WiFi disconnesso, riconnessione in corso...");
         // Riconnessione automatica, non bloccante: il driver WiFi gestisce
         // i ritardi/backoff internamente; qui ritentiamo semplicemente.
         esp_wifi_connect();
@@ -163,7 +165,7 @@ void UdpLogSender::handleWifiEvent(esp_event_base_t event_base, int32_t event_id
     }
 
     if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP) {
-        NLOGI("UdpLogSender::handleWifiEvent IP_EVENT_STA_GOT_IP");
+        NLOGD("UdpLogSender::handleWifiEvent IP_EVENT_STA_GOT_IP");
         s_wifiConnected = true;
 
         // Crea (o ricrea) la socket UDP usata per il broadcast dei log.
@@ -183,7 +185,7 @@ void UdpLogSender::handleWifiEvent(esp_event_base_t event_base, int32_t event_id
                  s_udpEnabled ? "attivo" : "disponibile (disabilitato)");
         return;
     }
-    NLOGI("UdpLogSender::handleWifiEvent end");
+    NLOGD("UdpLogSender::handleWifiEvent end");
 }
 
 // ---------------------------------------------------------------------------

@@ -19,6 +19,7 @@
 #include "Executor.h"
 #include "CarduinoNodeSerialWriteSetting.h"
 #include "EventMulti.h"
+#include "CarduinoNodeCanEvent.h"
 
 #define TWAI_QUEUE_DEPTH        10
 #define TWAI_BITRATE            1000000
@@ -104,13 +105,6 @@ public:
     void handleTimeSyncRequest(uint8_t requesterId);
     void handleTimeSyncResponse(uint32_t t2Ms, uint32_t t3Ms);
 
-    // Hook di dispatch per i messaggi ricevuti dal bus CAN.
-    // Settabile dall'esterno (es. dal main) per collegare il routing applicativo
-    // senza che CarduinoNode debba conoscere la logica a valle.
-    // Il Message* è owning: chi riceve la callback ne diventa responsabile
-    // (deve fare delete quando ha finito).
-    void onMessageReceived(std::function<void(Message*)> handler);
-
 private:
     twai_node_handle_t _twai_node = NULL;
     std::map<std::string, TaskEntry> tasks_;
@@ -127,9 +121,6 @@ private:
     int                _rxWriteIdx = 0;
     int                _rxReadIdx = 0;
     TaskHandle_t       _rxTaskHdl = nullptr;
-
-    // Callback applicativa per i messaggi ricevuti (default: nessuna azione)
-    std::function<void(Message*)> _onMessage = nullptr;
 
     // --- Time sync (per-nodo) ---
     std::atomic<bool>    _timeSynced{false};

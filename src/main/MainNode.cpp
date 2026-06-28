@@ -5,14 +5,16 @@
 // Entry point principale con linkage C
 extern "C" void app_main(void)
 {
-    NLOGI("Nodo Kline avviato");
+    vTaskDelay(pdMS_TO_TICKS(10000));
 
-    MainNode mainNode;
+    NLOGI("Nodo Main avviato");
 
-    mainNode.delayTask(10000, [&](){
-        // mainNode.enableUdpLog();
-        mainNode.enable();
-    });
+    MainNode *mainNode = new MainNode();
+
+    // mainNode->delayTask(10000, [mainNode](){
+    //     // mainNode.enableUdpLog();
+    //     mainNode->enable();
+    // });
 
     /* A questo punto app_main può continuare a fare altro, 
        come inizializzare i driver I2C o TWAI (CAN bus),
