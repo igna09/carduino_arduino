@@ -1,6 +1,6 @@
 #include "CarduinoNode.h"
 
-CarduinoNode::CarduinoNode(uint8_t id): SettingBase(), UdpLogSender() {
+CarduinoNode::CarduinoNode(uint8_t id): SettingBase(), UdpLogSender(), isEnabled(false) {
     NLOGD("CarduinoNode::CarduinoNode start");
 
     _id = id;
@@ -44,22 +44,28 @@ CarduinoNode::CarduinoNode(uint8_t id): SettingBase(), UdpLogSender() {
     startRxTask();
 
 
-    /**
-     * TODO: inviare ciclicamente hello se non enabled, il main essendo abilitato di default non invia ev_hello
-     */
-    // Annuncio spontaneo a MAIN: ogni nodo che NON è MAIN, appena pronto a
-    // ricevere/inviare sul bus, si annuncia mandando HELLO con il proprio id
-    // nel payload. MAIN non manda HELLO a se stesso: riceve solo annunci
-    // (sia spontanei come questo, sia in risposta a un suo GET_HELLOS).
+    // Annuncio periodico a MAIN: finché questo nodo non viene enablato
+    // (isEnabled == false), si annuncia mandando HELLO con il proprio id nel
+    // payload ogni HELLO_PERIOD_MS. enable() (chiamato da un altro contesto,
+    // tipicamente l'executor CAN alla ricezione di EV_ENABLE) si occupa di
+    // fermare questo task tramite stopRepeatingTask(HELLO_TASK_ID): la
+    // lambda qui sotto NON chiama stopRepeatingTask su se stessa, perché
+    // farlo dal task che sta eseguendo la lambda stessa farebbe cancellare
+    // (delete) il proprio RepeatingTaskCtx mentre è ancora in uso più avanti
+    // nel loop del task (use-after-free). Si limita quindi a non rimandare
+    // più HELLO una volta che isEnabled diventa true, lasciando il task vivo
+    // (ma silenzioso) finché qualcun altro non lo ferma esplicitamente.
+    // Per MainNode, che richiama enable() già nel proprio costruttore subito
+    // dopo quello base, equivale a non mandare mai un HELLO effettivo (vedi
+    // MainNode in CarduinoNode.h, nessun controllo esplicito sull'id qui).
     // MAIN risponderà con ENABLE (gestito in CarduinoNodeCanEvent), che a
-    // sua volta fa scattare startTimeSync() su questo nodo.
-    if (_id != Node::MAIN.id) {
-        Message hello(Priority::L.id, Node::MAIN.id,
-                      new EventMulti<uint8_t>(EV_HELLO, "HELLO"));
-        std::get<0>(static_cast<EventMulti<uint8_t>*>(hello.event)->values) = _id;
-        sendMessage(hello);
-        NLOGI("HELLO inviato a MAIN (id=%u)", static_cast<unsigned>(_id));
-    }
+    // sua volta chiama enable() e fa scattare startTimeSync() su questo nodo.
+    startRepeatingTask(HELLO_TASK_ID, HELLO_PERIOD_MS, [this]() {
+        if (isEnabled) {
+            return;
+        }
+        sendHello();
+    });
 
     _serialExecutor.addExecutor(new CarduinoNodeSerialWriteSetting());
     _canExecutor.addExecutor(new CarduinoNodeCanEvent());
@@ -309,6 +315,14 @@ void CarduinoNode::sendByte(uint16_t messageId, int len, uint8_t *buf) {
     }
 };
 
+void CarduinoNode::sendHello() {
+    Message hello(Priority::L.id, Node::MAIN.id,
+                  new EventMulti<uint8_t>(EV_HELLO, "HELLO"));
+    std::get<0>(static_cast<EventMulti<uint8_t>*>(hello.event)->values) = _id;
+    sendMessage(hello);
+    NLOGI("HELLO inviato a MAIN (id=%u)", static_cast<unsigned>(_id));
+}
+
 void CarduinoNode::delayTask(unsigned long millisec, std::function<void()> lambda) {
     // Passiamo i ms e la lambda al task FreeRTOS
     struct TaskArgs {
@@ -497,7 +511,18 @@ void CarduinoNode::handleTimeSyncResponse(uint32_t t2Ms, uint32_t t3Ms) {
 }
 
 void CarduinoNode::enable() {
-    NLOGD("CarduinoNode::enable called");
+    if (isEnabled) {
+        // Già enabled: chiamata idempotente, nessun effetto (niente nuovo
+        // stop del task HELLO, niente nuovo startTimeSync()).
+        NLOGD("CarduinoNode::enable called, ma il nodo è già enabled: no-op");
+        return;
+    }
+
+    isEnabled = true;
+    stopRepeatingTask(HELLO_TASK_ID); // smette di annunciarsi via HELLO
+    NLOGI("CarduinoNode::enable: nodo enabled (id=%u)", static_cast<unsigned>(_id));
+
+    startTimeSync();
 }
 
 void CarduinoNode::disable() {

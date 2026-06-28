@@ -33,6 +33,10 @@
 // --- Time sync (ping-pong stile NTP, single-shot all'avvio/enable) ---------
 #define TIME_SYNC_TIMEOUT_MS     2000    // se non arriva la response entro questo tempo, sync considerato fallito (loggato una volta)
 
+// --- Hello (annuncio periodico finché il nodo non viene enablato) ---------
+#define HELLO_TASK_ID            "hello_task"
+#define HELLO_PERIOD_MS          1000    // intervallo tra un HELLO e il successivo, mentre isEnabled == false
+
 struct RepeatingTaskCtx {
     std::function<void()> fn;
     uint32_t periodMs;
@@ -55,6 +59,11 @@ struct CanRxSlot {
 class CarduinoNode: public SettingBase, public UdpLogSender {
 public:
     uint8_t _id;
+    // True solo dopo una chiamata a enable() andata a buon fine (richiamare
+    // enable() quando isEnabled è già true non ha alcun effetto, vedi cpp).
+    // Finché resta false, il nodo manda HELLO periodicamente (vedi
+    // HELLO_TASK_ID); MainNode parte già enabled di default e quindi non
+    // manda mai HELLO.
     bool isEnabled;
     Executor _serialExecutor;
     Executor _canExecutor;
@@ -136,6 +145,11 @@ private:
     void registerTwaiCallbacks();
     void startRecoveryTask();
     void startRxTask();
+
+    // Costruisce e invia il messaggio EV_HELLO (id del nodo nel payload),
+    // destinato a Node::MAIN. Richiamato dal repeating task avviato nel
+    // costruttore finché isEnabled è false.
+    void sendHello();
 
     // --- Callback ISR statici (firma richiesta dal driver TWAI) ---
     static bool IRAM_ATTR onRxDoneCallback(twai_node_handle_t handle,

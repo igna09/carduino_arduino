@@ -108,9 +108,15 @@ void MainNode::initI2cDevices() {
 }
 
 void MainNode::enable() {
-    NLOGD("MainNode::enable called");
+    if (isEnabled) {
+        NLOGD("MainNode::enable called, ma il nodo è già enabled: no-op");
+        return;
+    }
+
     CarduinoNode::enable();
 
-    Message m(Priority::L.id, Node::BROADCAST.id, EventRegistry::createById(EV_GET_HELLOS));
-    sendMessage(m);
+    stopRepeatingTask(HELLO_TASK_ID);
+    NLOGI("MainNode::enable: nodo MAIN enabled (id=%u)", static_cast<unsigned>(_id));
+
+    sendMessage(Message(Priority::L.id, Node::BROADCAST.id, EventRegistry::createById(EV_GET_HELLOS)));
 }
