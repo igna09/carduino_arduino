@@ -4,6 +4,7 @@ MainNode::MainNode(): CarduinoNode(Node::MAIN.id), I2cNode() {
     NLOGD("MainNode::MainNode called");
 
     _canExecutor.addExecutor(new BootExecutor());
+    _canExecutor.addExecutor(new HelloTrackerExecutor());
 
     // configTemt6000();
     // configAht();
@@ -119,4 +120,18 @@ void MainNode::enable() {
     NLOGI("MainNode::enable: nodo MAIN enabled (id=%u)", static_cast<unsigned>(_id));
 
     sendMessage(Message(Priority::L.id, Node::BROADCAST.id, EventRegistry::createById(EV_GET_HELLOS)));
+}
+
+void MainNode::recordHello(uint8_t senderId) {
+    _knownNodes[senderId] = syncedMillis();
+    NLOGD("MainNode: HELLO ricevuto da id=%u, nodi noti=%u", static_cast<unsigned>(senderId), static_cast<unsigned>(_knownNodes.size()));
+}
+
+bool MainNode::hasSeenNode(uint8_t nodeId) const {
+    return _knownNodes.find(nodeId) != _knownNodes.end();
+}
+
+uint32_t MainNode::lastHelloMillis(uint8_t nodeId) const {
+    auto it = _knownNodes.find(nodeId);
+    return it != _knownNodes.end() ? it->second : 0;
 }
