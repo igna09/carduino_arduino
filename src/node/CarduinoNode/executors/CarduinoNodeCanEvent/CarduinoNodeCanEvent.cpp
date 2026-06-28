@@ -33,13 +33,11 @@ void CarduinoNodeCanEvent::execute(CarduinoNode *node, Message *message) {
                                   new EventMulti<uint8_t>(EV_HELLO, "HELLO"));
             std::get<0>(static_cast<EventMulti<uint8_t>*>(helloMessage.event)->values) = node->_id;
             node->sendMessage(helloMessage);
-        } else if(message->event->id == EV_HELLO) {
-            // Arriva solo su MAIN (destination è sempre MAIN per costruzione).
-            // Il mittente è nel payload: rispondiamo con ENABLE diretto a lui,
-            // che a sua volta fa scattare startTimeSync() sul nodo richiedente.
-            uint8_t senderId = std::get<0>(static_cast<EventMulti<uint8_t>*>(message->event)->values);
-            Message enableMessage(Priority::L.id, senderId, EventRegistry::createById(EV_ENABLE));
-            node->sendMessage(enableMessage);
+        } else if(message->event->id == EV_TIME_SYNC_REQUEST) {
+            // Arriva solo su MAIN. Il mittente è nel payload, serve per
+            // sapere a chi indirizzare la TIME_SYNC_RESPONSE.
+            uint8_t requesterId = std::get<0>(static_cast<EventMulti<uint8_t>*>(message->event)->values);
+            node->handleTimeSyncRequest(requesterId);
         } else if(message->event->id == EV_TIME_SYNC_RESPONSE) {
             // Arriva sul nodo che aveva richiesto il sync (destination==lui).
             auto *ev = static_cast<EventMulti<uint32_t, uint32_t>*>(message->event);
