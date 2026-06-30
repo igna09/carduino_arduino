@@ -68,7 +68,7 @@ public:
     Executor _serialExecutor;
     Executor _canExecutor;
 
-    CarduinoNode(uint8_t id);
+    CarduinoNode(uint8_t id, bool isEnabled = false);
     
     std::string name();
     void sendMessage(const Message& m);
@@ -107,12 +107,18 @@ public:
     // Chiamato internamente quando il nodo riceve EV_ENABLE in seguito al
     // proprio annuncio EV_HELLO, ma esposto anche pubblicamente per un
     // eventuale retry manuale.
-    void startTimeSync();
+    virtual void startTimeSync();
 
-    // Gestori chiamati da CarduinoNodeCanEvent in risposta ai relativi
-    // eventi CAN. Pubblici perché invocati dall'executor, non da node stesso.
-    void handleTimeSyncRequest(uint8_t requesterId);
     void handleTimeSyncResponse(uint32_t t2Ms, uint32_t t3Ms);
+
+    static uint32_t localMillis() { return static_cast<uint32_t>(esp_timer_get_time() / 1000); }
+
+    void startAnnouncingTask();
+
+    // Costruisce e invia il messaggio EV_HELLO (id del nodo nel payload),
+    // destinato a Node::MAIN. Richiamato dal repeating task avviato nel
+    // costruttore finché isEnabled è false.
+    void sendHello();
 
 private:
     twai_node_handle_t _twai_node = NULL;
@@ -138,18 +144,11 @@ private:
     std::atomic<bool>    _syncPending{false};      // true tra l'invio della request e la response (o il timeout)
     bool                 _unsyncedWarnLogged = false; // evita spam di log se syncedMillis() viene chiamato pre-sync
 
-    static uint32_t localMillis() { return static_cast<uint32_t>(esp_timer_get_time() / 1000); }
-
     // --- Setup interno ---
     void setupRxPool();
     void registerTwaiCallbacks();
     void startRecoveryTask();
     void startRxTask();
-
-    // Costruisce e invia il messaggio EV_HELLO (id del nodo nel payload),
-    // destinato a Node::MAIN. Richiamato dal repeating task avviato nel
-    // costruttore finché isEnabled è false.
-    void sendHello();
 
     // --- Callback ISR statici (firma richiesta dal driver TWAI) ---
     static bool IRAM_ATTR onRxDoneCallback(twai_node_handle_t handle,

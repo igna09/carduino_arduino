@@ -309,7 +309,7 @@ public:
             out << ';';
             event->printValue(out, true);
         } else {
-            out << "Message { canId=0x";
+            out << "{ canId=0x";
             out << std::hex
                 << std::setw(2)
                 << std::setfill('0')

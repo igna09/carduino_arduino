@@ -1,6 +1,6 @@
 #include "MainNode.h"
 
-MainNode::MainNode(): CarduinoNode(Node::MAIN.id), I2cNode() {
+MainNode::MainNode(): CarduinoNode(Node::MAIN.id, true), I2cNode() {
     NLOGD("MainNode::MainNode called");
 
     _canExecutor.addExecutor(new BootExecutor());
@@ -109,10 +109,10 @@ void MainNode::initI2cDevices() {
 }
 
 void MainNode::enable() {
-    if (isEnabled) {
-        NLOGD("MainNode::enable called, ma il nodo è già enabled: no-op");
-        return;
-    }
+    // if (isEnabled) {
+    //     NLOGD("MainNode::enable called, ma il nodo è già enabled: no-op");
+    //     return;
+    // }
 
     CarduinoNode::enable();
 
@@ -134,4 +134,29 @@ bool MainNode::hasSeenNode(uint8_t nodeId) const {
 uint32_t MainNode::lastHelloMillis(uint8_t nodeId) const {
     auto it = _knownNodes.find(nodeId);
     return it != _knownNodes.end() ? it->second : 0;
+}
+
+void MainNode::handleTimeSyncRequest(uint8_t requesterId) {
+    // Eseguito sul nodo MAIN (è l'unico a cui arrivano richieste con
+    // destination==MAIN). T2 va preso il più vicino possibile alla ricezione,
+    // T3 il più vicino possibile all'invio, per minimizzare il tempo di
+    // elaborazione incluso per errore nella stima.
+    uint32_t t2 = localMillis();
+
+    Message resp(Priority::H.id, requesterId,
+                 new EventMulti<uint32_t, uint32_t>(EV_TIME_SYNC_RESPONSE, "TIME_SYNC_RESPONSE"));
+    std::get<0>(static_cast<EventMulti<uint32_t,uint32_t>*>(resp.event)->values) = t2;
+    
+    uint32_t t3 = localMillis();
+    std::get<1>(static_cast<EventMulti<uint32_t,uint32_t>*>(resp.event)->values) = t3;
+
+    sendMessage(resp);
+}
+
+void MainNode::startTimeSync() {
+    return;
+}
+
+uint32_t MainNode::syncedMillis() const {
+    return localMillis();
 }

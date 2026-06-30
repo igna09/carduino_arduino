@@ -32,6 +32,8 @@ class MainNode : public CarduinoNode, public I2cNode {
 public:
     MainNode();
 
+    bool isEnabled = true;
+
     void enable() override;
 
     // Chiamato da HelloTrackerExecutor quando arriva un EV_HELLO da
@@ -49,6 +51,8 @@ public:
     // visto" da "visto a syncedMillis()==0".
     uint32_t lastHelloMillis(uint8_t nodeId) const;
 
+    void handleTimeSyncRequest(uint8_t requesterId);
+
 private:
     aht_t aht_dev;
     float temperature, humidity;
@@ -63,4 +67,6 @@ private:
     void configTemt6000();
     void initI2cDevices() override;
     void configAht();
+    void startTimeSync() override;
+    uint32_t syncedMillis() const override;
 };

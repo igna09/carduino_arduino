@@ -1,5 +1,4 @@
 #include "HelloTrackerExecutor.h"
-#include "MainNode.h"
 
 void HelloTrackerExecutor::execute(CarduinoNode *node, Message *message) {
     if (message->destination != node->_id || message->event->id != EV_HELLO) {

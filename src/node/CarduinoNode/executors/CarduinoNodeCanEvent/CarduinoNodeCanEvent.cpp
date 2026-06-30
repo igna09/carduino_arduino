@@ -7,12 +7,6 @@ void CarduinoNodeCanEvent::execute(CarduinoNode *node, Message *message) {
     if(message->destination == node->_id || message->destination == Node::BROADCAST.id) {
         if(message->event->id == EV_ENABLE) {
             node->enable();
-            // Il time sync parte solo sui nodi non-MAIN, in risposta al
-            // proprio ENABLE (che MAIN manda dopo aver ricevuto il loro
-            // HELLO). MAIN non ha bisogno di sincronizzarsi con se stesso.
-            if (node->_id != Node::MAIN.id) {
-                node->startTimeSync();
-            }
         } else if(message->event->id == EV_DISABLE) {
             node->disable();
         } else if(message->event->id == EV_ENABLE_INTERRUPT) {
@@ -26,18 +20,10 @@ void CarduinoNodeCanEvent::execute(CarduinoNode *node, Message *message) {
                 node->restart();
             });
         } else if(message->event->id == EV_GET_HELLOS) {
-            if(node->_id == Node::MAIN.id) return;
+            if(node->isEnabled) return;
             // HELLO ora porta l'id del mittente nel payload (1 byte), così
             // MAIN sa a chi rispondere con ENABLE.
-            Message helloMessage(Priority::L.id, Node::MAIN.id,
-                                  new EventMulti<uint8_t>(EV_HELLO, "HELLO"));
-            std::get<0>(static_cast<EventMulti<uint8_t>*>(helloMessage.event)->values) = node->_id;
-            node->sendMessage(helloMessage);
-        } else if(message->event->id == EV_TIME_SYNC_REQUEST) {
-            // Arriva solo su MAIN. Il mittente è nel payload, serve per
-            // sapere a chi indirizzare la TIME_SYNC_RESPONSE.
-            uint8_t requesterId = std::get<0>(static_cast<EventMulti<uint8_t>*>(message->event)->values);
-            node->handleTimeSyncRequest(requesterId);
+            node->sendHello();
         } else if(message->event->id == EV_TIME_SYNC_RESPONSE) {
             // Arriva sul nodo che aveva richiesto il sync (destination==lui).
             auto *ev = static_cast<EventMulti<uint32_t, uint32_t>*>(message->event);
