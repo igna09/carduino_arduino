@@ -9,6 +9,7 @@
 #include "esp_twai.h"
 #include "esp_twai_onchip.h"
 #include "esp_timer.h"
+#include "driver/gpio.h"
 
 #include "SettingBase.h"
 #include "Message.h"
@@ -20,6 +21,7 @@
 #include "CarduinoNodeSerialWriteSetting.h"
 #include "EventMulti.h"
 #include "CarduinoNodeCanEvent.h"
+#include "SyncedTaskScheduler.h"
 
 #define TWAI_QUEUE_DEPTH        10
 #define TWAI_BITRATE            1000000
@@ -36,6 +38,16 @@
 // --- Hello (annuncio periodico finché il nodo non viene enablato) ---------
 #define HELLO_TASK_ID            "hello_task"
 #define HELLO_PERIOD_MS          1000    // intervallo tra un HELLO e il successivo, mentre isEnabled == false
+
+// --- LED onboard (heartbeat visivo) ---------------------------------------
+// ADATTA LED_ONBOARD_PIN al pin reale della tua board (es. GPIO_NUM_2 su
+// molte dev board ESP32 classiche, GPIO_NUM_8 su alcune ESP32-C3, ecc.).
+#ifndef LED_ONBOARD_PIN
+#define LED_ONBOARD_PIN           GPIO_NUM_8
+#endif
+#define LED_BLINK_TASK_ID        "led_blink_task"
+#define LED_BLINK_ON_MS          500     // durata accensione
+#define LED_BLINK_PERIOD_MS      2000    // ciclo completo (-> spento per 2000-500=1500ms)
 
 struct RepeatingTaskCtx {
     std::function<void()> fn;
@@ -67,6 +79,16 @@ public:
     bool isEnabled;
     Executor _serialExecutor;
     Executor _canExecutor;
+
+    // Scheduler per lambda eseguite in sincronia con syncedMillis(): ogni
+    // lambda registrata con syncedTasks.addTask(...) ha il proprio task
+    // FreeRTOS dedicato, quindi può bloccare liberamente (vTaskDelay, ecc.)
+    // senza impattare le altre. Registrato con this nella init list del
+    // costruttore: vedi CarduinoNode::CarduinoNode in CarduinoNode.cpp.
+    // Esposto public così chiunque abbia un puntatore al nodo può
+    // registrare task sincronizzati (es. node->syncedTasks.addTask("blink",
+    // 1000, [...](){ ... });).
+    SyncedTaskScheduler syncedTasks;
 
     CarduinoNode(uint8_t id, bool isEnabled = false);
     
@@ -115,10 +137,21 @@ public:
 
     void startAnnouncingTask();
 
+    // Avvia il lampeggio del LED onboard come heartbeat visivo sincronizzato
+    // sul tempo di rete (syncedMillis()): acceso per LED_BLINK_ON_MS ogni
+    // multiplo di LED_BLINK_PERIOD_MS. Su nodi diversi con isTimeSynced()
+    // true, il lampeggio risulta in fase tra loro. Per fermarlo:
+    // syncedTasks.removeTask(LED_BLINK_TASK_ID).
+    void startLedBlinkTask();
+
     // Costruisce e invia il messaggio EV_HELLO (id del nodo nel payload),
     // destinato a Node::MAIN. Richiamato dal repeating task avviato nel
     // costruttore finché isEnabled è false.
     void sendHello();
+
+    void addSyncedTask(const std::string& id, uint32_t periodMs, std::function<void()> fn,
+                 uint32_t phaseMs = 0, uint32_t stackSize = 4096, UBaseType_t priority = 5);
+    void removeSyncedTask(const std::string& id);
 
 private:
     twai_node_handle_t _twai_node = NULL;

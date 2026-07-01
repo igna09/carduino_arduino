@@ -1,12 +1,21 @@
 #include "CarduinoNode.h"
 
-CarduinoNode::CarduinoNode(uint8_t id, bool isEnabled): SettingBase(), UdpLogSender() {
+CarduinoNode::CarduinoNode(uint8_t id, bool isEnabled)
+    : SettingBase(), UdpLogSender(), syncedTasks(this) {
     NLOGD("CarduinoNode::CarduinoNode start");
 
     _id = id;
     this->isEnabled = isEnabled;
+
     addSetting(&Setting::OTA_MODE, false);
 
+    // Registra gli executor PRIMA di abilitare il bus / avviare i task che
+    // possono ricevere messaggi (rxTask) o generarne in uscita
+    // (startAnnouncingTask -> sendHello). Se questo viene fatto dopo, esiste
+    // una finestra in cui un frame CAN arriva, viene letto da rxTaskEntry e
+    // passato a Executor::execute, ma _canExecutor.executors è ancora vuoto
+    // -> il messaggio viene scartato silenziosamente (visto in pratica con
+    // un ENABLE perso e un doppio giro di HELLO).
     _serialExecutor.addExecutor(new CarduinoNodeSerialWriteSetting());
     _canExecutor.addExecutor(new CarduinoNodeCanEvent());
 
@@ -46,6 +55,16 @@ CarduinoNode::CarduinoNode(uint8_t id, bool isEnabled): SettingBase(), UdpLogSen
     // Task dedicato al drain del pool RX e dispatch verso Message::fromCanFrame.
     startRxTask();
 
+    // Heartbeat visivo: non dipende dal time sync, può partire subito.
+    // startLedBlinkTask();
+
+    addSyncedTask(LED_BLINK_TASK_ID, LED_BLINK_PERIOD_MS, [this]() {
+        static int n = 0;
+        NLOGI("synced #%d syncedMillis=%lu", ++n, (unsigned long)this->syncedMillis());
+    });
+
+    // Ultimo: da qui il nodo comincia a generare traffico in uscita (HELLO),
+    // tutto il resto deve essere già pronto a riceverne le risposte.
     startAnnouncingTask();
 
     NLOGD("CarduinoNode::CarduinoNode end");
@@ -128,6 +147,21 @@ void CarduinoNode::startAnnouncingTask() {
             return;
         }
         sendHello();
+    });
+}
+
+void CarduinoNode::startLedBlinkTask() {
+    gpio_reset_pin(LED_ONBOARD_PIN);
+    gpio_set_direction(LED_ONBOARD_PIN, GPIO_MODE_OUTPUT);
+    gpio_set_level(LED_ONBOARD_PIN, 1); // parte spento
+
+    // Ogni lambda registrata su syncedTasks ha ora il proprio task FreeRTOS
+    // dedicato (vedi SyncedTaskScheduler): possiamo bloccare qui dentro con
+    // vTaskDelay senza impattare altre lambda sincronizzate sullo stesso nodo.
+    syncedTasks.addTask(LED_BLINK_TASK_ID, LED_BLINK_PERIOD_MS, []() {
+        gpio_set_level(LED_ONBOARD_PIN, 0);
+        vTaskDelay(pdMS_TO_TICKS(LED_BLINK_ON_MS));
+        gpio_set_level(LED_ONBOARD_PIN, 1);
     });
 }
 
@@ -479,28 +513,14 @@ void CarduinoNode::handleTimeSyncResponse(uint32_t t2Ms, uint32_t t3Ms) {
     _timeOffsetMs = offset;
     _timeSynced.store(true, std::memory_order_relaxed);
 
-    NLOGD("Time sync completato: RTT=%d ms, offset=%d ms", roundTrip, offset);
+    NLOGI("Time sync completato: RTT=%d ms, offset=%d ms", roundTrip, offset);
 
-    // xTaskCreate([](void* pvParameters) {
-    //     auto* self = static_cast<CarduinoNode*>(pvParameters);
-    //     const uint32_t periodo_ms = 5000; // 5 secondi
-
-    //     while (true) {
-    //         uint32_t now = self->syncedMillis();
-            
-    //         // 1. Calcola matematicamente il prossimo multiplo tondo di 5000 ms
-    //         uint32_t prossimo_multiplo = ((now / periodo_ms) + 1) * periodo_ms;
-            
-    //         // 2. Calcola quanti millisecondi mancano esattamente a quel momento
-    //         uint32_t ms_da_attendere = prossimo_multiplo - now;
-            
-    //         // 3. Metti in pausa il task per il tempo calcolato
-    //         vTaskDelay(pdMS_TO_TICKS(ms_da_attendere));
-            
-    //         // --- Esecuzione della tua Lambda / Log ---
-    //         std::cout << "[SYNC TASK] Svegliato a syncedMillis: " << self->syncedMillis() << std::endl;
-    //     }
-    // }, "synced_task", 4096, this, 5, NULL);
+    // Le lambda periodiche allineate al tempo di rete si registrano ora
+    // tramite syncedTasks.addTask(...) (vedi SyncedTaskScheduler.h), non più
+    // con un xTaskCreate ad-hoc qui. Lo scheduler è già avviato dal
+    // costruttore (syncedTasks.start()), quindi può essere già popolato
+    // anche PRIMA che il sync converga: i boundary verranno semplicemente
+    // ricalcolati sul nuovo offset alla prossima iterazione del loop.
 }
 
 void CarduinoNode::enable() {
@@ -540,4 +560,13 @@ void CarduinoNode::heartbeatReceived() {
 
 void CarduinoNode::test() {
     NLOGD("CarduinoNode::test called");
+}
+
+void CarduinoNode::addSyncedTask(const std::string& id, uint32_t periodMs, std::function<void()> fn,
+                uint32_t phaseMs, uint32_t stackSize, UBaseType_t priority) {
+    syncedTasks.addTask(id, periodMs, fn, phaseMs, stackSize, priority);
+}
+
+void CarduinoNode::removeSyncedTask(const std::string& id) {
+    syncedTasks.removeTask(id);
 }
