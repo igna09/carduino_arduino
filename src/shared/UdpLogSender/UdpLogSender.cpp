@@ -3,6 +3,8 @@
 // Puntatore statico locale al file (file-scoped) per aggirare la mancanza del parametro 'arg' nell'API C
 static UdpLogSender* s_instance = nullptr;
 
+bool UdpLogSender::s_serialEnabled = (SERIAL_LOG_DEFAULT != 0);
+
 UdpLogSender::UdpLogSender() {
     NLOGD("UdpLogSender::UdpLogSender start");
 
@@ -100,8 +102,10 @@ void UdpLogSender::udp_log_sender_init() {
 
     NLOGD("UdpLogSender::udp_log_sender_init wifi started");
 
-    // Agganciamo il nostro hook al sistema di log, conservando il vprintf
-    // originale per continuare a stampare su console esattamente come prima.
+    // Il livello di compilazione massimo resta 3 (INFO) come richiesto.
+    // Qui sblocchiamo il runtime allo stesso livello, unico punto di controllo.
+    esp_log_level_set("*", ESP_LOG_INFO);
+
     s_originalVprintf = esp_log_set_vprintf(&UdpLogSender::vprintfHookTrampoline);
 
     NLOGI("UdpLogSender inizializzato (UDP broadcast porta %d)", UDP_LOG_PORT);
@@ -192,25 +196,23 @@ void UdpLogSender::handleWifiEvent(esp_event_base_t event_base, int32_t event_id
 // Hook installato in esp_log_set_vprintf.
 // ---------------------------------------------------------------------------
 int UdpLogSender::vprintfHook(const char* fmt, va_list args) {
-    // 1) Stampa su console esattamente come faceva prima del nostro hook.
-    int ret;
-    if (s_originalVprintf) {
-        ret = s_originalVprintf(fmt, args);
-    } else {
+    int ret = 0;
+
+    if (s_serialEnabled) {
         va_list argsCopy;
         va_copy(argsCopy, args);
-        ret = vprintf(fmt, argsCopy);
+        if (s_originalVprintf) {
+            ret = s_originalVprintf(fmt, argsCopy);
+        } else {
+            ret = vprintf(fmt, argsCopy);
+        }
         va_end(argsCopy);
     }
 
-    // 2) Se l'inoltro UDP non è richiesto o il WiFi non è connesso, ci
-    //    fermiamo qui: il logging su console resta sempre funzionante,
-    //    nessun blocco, nessun costo aggiuntivo.
     if (!s_udpEnabled || !s_wifiConnected || s_sockfd < 0) {
         return ret;
     }
 
-    // 3) Formatta la riga nel buffer statico (nessuna allocazione dinamica).
     int len = vsnprintf(s_lineBuf, sizeof(s_lineBuf), fmt, args);
     if (len <= 0) {
         return ret;
@@ -220,7 +222,6 @@ int UdpLogSender::vprintfHook(const char* fmt, va_list args) {
     }
 
     sendUdpLine(s_lineBuf, len);
-
     return ret;
 }
 

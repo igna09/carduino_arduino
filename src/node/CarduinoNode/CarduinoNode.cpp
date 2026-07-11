@@ -67,6 +67,8 @@ CarduinoNode::CarduinoNode(uint8_t id, bool isEnabled)
     // tutto il resto deve essere già pronto a riceverne le risposte.
     startAnnouncingTask();
 
+    enableUdpLog();
+
     NLOGD("CarduinoNode::CarduinoNode end");
 }
 

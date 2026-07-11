@@ -54,6 +54,10 @@
     #define UDP_LOG_WIFI_MAX_RETRY  5
 #endif
 
+#ifndef SERIAL_LOG_DEFAULT
+#define SERIAL_LOG_DEFAULT 1  // fallback se non definito in platformio.ini
+#endif
+
 /**
  * UdpLogSender
  *
@@ -91,6 +95,9 @@ public:
     // True se il WiFi STA è attualmente connesso e ha un IP valido.
     bool isWifiConnected() const;
 
+    static void setSerialEnabled(bool enabled) { s_serialEnabled = enabled; }
+    static bool isSerialEnabled() { return s_serialEnabled; }
+
 protected:
     bool s_initialized;
     volatile bool s_udpEnabled;
@@ -116,4 +123,6 @@ private:
     // di log di ESP-IDF, quindi il vprintf hook non viene mai eseguito in
     // modo concorrente da due thread sullo stesso buffer.
     char s_lineBuf[UDP_LOG_BUF_SIZE];
+    
+    static bool s_serialEnabled;
 };
