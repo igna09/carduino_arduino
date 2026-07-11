@@ -58,10 +58,10 @@ CarduinoNode::CarduinoNode(uint8_t id, bool isEnabled)
     // Heartbeat visivo: non dipende dal time sync, può partire subito.
     // startLedBlinkTask();
 
-    addSyncedTask(LED_BLINK_TASK_ID, LED_BLINK_PERIOD_MS, [this]() {
-        static int n = 0;
-        NLOGI("synced #%d syncedMillis=%lu", ++n, (unsigned long)this->syncedMillis());
-    });
+    // addSyncedTask(LED_BLINK_TASK_ID, LED_BLINK_PERIOD_MS, [this]() {
+    //     static int n = 0;
+    //     NLOGI("synced #%d syncedMillis=%lu", ++n, (unsigned long)this->syncedMillis());
+    // });
 
     // Ultimo: da qui il nodo comincia a generare traffico in uscita (HELLO),
     // tutto il resto deve essere già pronto a riceverne le risposte.

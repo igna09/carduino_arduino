@@ -5,6 +5,7 @@ MainNode::MainNode(): CarduinoNode(Node::MAIN.id, true), I2cNode() {
 
     _canExecutor.addExecutor(new BootExecutor());
     _canExecutor.addExecutor(new HelloTrackerExecutor());
+    _canExecutor.addExecutor(new MainNodeCanEvent());
 
     // configTemt6000();
     // configAht();

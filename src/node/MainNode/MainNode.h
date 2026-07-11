@@ -23,6 +23,7 @@
 #include "I2CNode.h"
 #include "BootExecutor.h"
 #include "HelloTrackerExecutor.h"
+#include "MainNodeCanEvent.h"
 
 // Configurazione ADC (Ad esempio usando il pin GPIO36 / ADC1 Canale 0)
 #define TEMT6000_ADC_CHANNEL    ADC_CHANNEL_0 
