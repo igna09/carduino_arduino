@@ -16,7 +16,7 @@
 // ---------------------------------------------------------------------------
 class EventRegistry {
 public:
-    using CreatorFn = EventBase* (*)(uint8_t id, const char* name);
+    using CreatorFn = EventBase* (*)(uint8_t id, const char* name, EventCategory cat);
 
     struct Entry {
         const char* name;
@@ -34,14 +34,14 @@ public:
     static EventBase* createByName(const char* name) {
         for (uint8_t i = 0; i < count; i++)
             if (strcmp(entries[i].name, name) == 0)
-                return entries[i].creator(entries[i].id, entries[i].name);
+                return entries[i].creator(entries[i].id, entries[i].name, entries[i].category);
         return nullptr;
     }
 
     static EventBase* createById(uint8_t id) {
         for (uint8_t i = 0; i < count; i++)
             if (entries[i].id == id)
-                return entries[i].creator(entries[i].id, entries[i].name);
+                return entries[i].creator(entries[i].id, entries[i].name, entries[i].category);
         return nullptr;
     }
 
@@ -93,10 +93,9 @@ template<typename T>
 struct EventRegistrar {
     EventRegistrar(const char* name, uint8_t id, EventCategory cat) {
         EventRegistry::registerEvent(name, id,
-            [](uint8_t id, const char* name) -> EventBase* {
-                return new T(id, name);
-            }
-            , cat
+            [](uint8_t id, const char* name, EventCategory cat) -> EventBase* {
+                return new T(id, name, cat);
+            }, cat
         );
     }
 };
