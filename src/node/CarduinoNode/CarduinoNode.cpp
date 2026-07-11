@@ -301,8 +301,6 @@ void CarduinoNode::rxTaskEntry(void *pvParameters) {
             // silenziosamente (con log) e liberiamo lo slot.
             Message* msg = Message::fromCanFrame(frame->header.id, frame->buffer, frame->header.dlc);
 
-            NLOGI("received message %s", msg->toString().c_str());
-
             if (msg == nullptr) {
                 NLOGW("RX: frame id=0x%x dlc=%d non decodificabile, scartato",
                       static_cast<unsigned>(frame->header.id), frame->header.dlc);
