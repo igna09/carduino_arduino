@@ -43,6 +43,7 @@ DECLARE_EVENT(FRONT_DISTANCE,                   0x18, "FRONT_DISTANCE",         
 DECLARE_EVENT(ENGINE_WATER_COOLING_TEMPERATURE, 0x19, "ENGINE_WATER_COOLING_TEMPERATURE", EventCategory::SENSOR, float)
 DECLARE_EVENT(ENGINE_OIL_TEMPERATURE,           0x1A, "ENGINE_OIL_TEMPERATURE",           EventCategory::SENSOR, float)
 DECLARE_EVENT(ENGINE_INTAKE_MANIFOLD_PRESSURE,  0x1B, "ENGINE_INTAKE_MANIFOLD_PRESSURE",  EventCategory::SENSOR, float)
+DECLARE_EVENT(INTERNAL_PRESSURE,                0x2E, "INTERNAL_PRESSURE",                EventCategory::SENSOR, uint16_t)
 DECLARE_EVENT(ENGINE_RPM,                       0x1C, "ENGINE_RPM",                       EventCategory::SENSOR, uint16_t)
 DECLARE_EVENT(TRIP_DURATION,                    0x1D, "TRIP_DURATION",                    EventCategory::SENSOR, uint32_t)
 DECLARE_EVENT(TRIP_AVERAGE_SPEED,               0x1E, "TRIP_AVERAGE_SPEED",               EventCategory::SENSOR, uint8_t)

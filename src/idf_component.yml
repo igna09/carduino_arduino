@@ -2,4 +2,5 @@ dependencies:
   esp-idf-lib/i2cdev: "^2.1.1"
   esp-idf-lib/aht: "^1.0.0"
   esp-idf-lib/encoder: "^3.0.2"
+  esp-idf-lib/bmp280: "^1.0.0"
 #   esp-idf-lib/pcf8574: "^1.0.10"

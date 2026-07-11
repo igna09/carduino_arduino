@@ -72,7 +72,7 @@ public:
                 << +entries[i].id;
             out << "] ";
             out << entries[i].name;
-            out << " (" << toString(entries[i].category) << ")" << std::endl;
+            out << " (" << eventCategoryToString(entries[i].category) << ")" << std::endl;
         }
     }
 

@@ -301,11 +301,13 @@ public:
     // Stampa su qualsiasi Print& (Serial, SoftwareSerial, WiFiClient, ...)
     void print(std::ostream& out, bool serialMode = false) const {
         if (serialMode) {
-            out << (unsigned)priority;
+            // out << (unsigned)priority;
+            // out << ';';
+            // out << (unsigned)destination;
+            // out << ';';
+            out << eventCategoryToString(event->category);
             out << ';';
-            out << (unsigned)destination;
-            out << ';';
-            out << (unsigned)event->id;
+            out << event->name;
             out << ';';
             event->printValue(out, true);
         } else {
@@ -331,6 +333,7 @@ public:
             event->printValue(out, false);
             out << " }";
         }
+        out << std::endl << std::flush;
     }
 
     std::string toString(bool serialMode = false) const {
