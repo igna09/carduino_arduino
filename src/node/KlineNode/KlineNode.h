@@ -12,6 +12,9 @@
 
 #include "driver/uart.h"
 #include "driver/gpio.h"
+#include "esp_adc/adc_oneshot.h"
+#include "esp_adc/adc_cali.h"
+#include "esp_adc/adc_cali_scheme.h"
 
 #include "KLineKWP1281Lib_ESP32.h"
 
@@ -22,6 +25,10 @@
 #include "ValueToRead.h"
 #include "AfterReadExecutors.h"
 #include "FuelConsumptionExecutor.h"
+
+// Configurazione ADC (Ad esempio usando il pin GPIO36 / ADC1 Canale 0) GPIO 0
+#define VOLTAGE_ADC_CHANNEL    ADC_CHANNEL_0 
+#define VOLTAGE_ADC_UNIT       ADC_UNIT_1
 
 // ─────────────────────────────────────────────
 //  Configurazione — modifica questi valori
@@ -114,4 +121,6 @@ private:
 
     // Instrada una misura già calcolata sul CAN bus e aggiorna lastReadValue
     void dispatchMeasurement(ValueToRead *valueToRead, float value);
+
+    void configVoltageSensor();
 };
