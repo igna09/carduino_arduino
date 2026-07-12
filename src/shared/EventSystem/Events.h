@@ -36,13 +36,13 @@ DECLARE_EVENT(WARNING_SEVERITY_HIGH,    0x13, "WARNING_SEVERITY_HIGH")
 // --- Sensori ----------------------------------------------------------------
 DECLARE_EVENT(EXTERNAL_TEMPERATURE,             0x14, "EXTERNAL_TEMPERATURE",             float)
 DECLARE_EVENT(INTERNAL_TEMPERATURE,             0x15, "INTERNAL_TEMPERATURE",             float)
-DECLARE_EVENT(SPEED,                            0x16, "SPEED",                            uint8_t)
+DECLARE_EVENT(SPEED,                            0x16, "SPEED",                            uint32_t) //uint8_t
 DECLARE_EVENT(INTERNAL_LUMINANCE,               0x17, "INTERNAL_LUMINANCE",               uint16_t)
 DECLARE_EVENT(FRONT_DISTANCE,                   0x18, "FRONT_DISTANCE",                   float)
 DECLARE_EVENT(ENGINE_WATER_COOLING_TEMPERATURE, 0x19, "ENGINE_WATER_COOLING_TEMPERATURE", float)
 DECLARE_EVENT(ENGINE_OIL_TEMPERATURE,           0x1A, "ENGINE_OIL_TEMPERATURE",           float)
 DECLARE_EVENT(ENGINE_INTAKE_MANIFOLD_PRESSURE,  0x1B, "ENGINE_INTAKE_MANIFOLD_PRESSURE",  float)
-DECLARE_EVENT(ENGINE_RPM,                       0x1C, "ENGINE_RPM",                       uint16_t)
+DECLARE_EVENT(ENGINE_RPM,                       0x1C, "ENGINE_RPM",                       uint32_t) //uint16_t
 DECLARE_EVENT(TRIP_DURATION,                    0x1D, "TRIP_DURATION",                    uint32_t)
 DECLARE_EVENT(TRIP_AVERAGE_SPEED,               0x1E, "TRIP_AVERAGE_SPEED",               uint8_t)
 DECLARE_EVENT(TRIP_MAX_SPEED,                   0x1F, "TRIP_MAX_SPEED",                   uint8_t)

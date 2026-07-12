@@ -146,8 +146,8 @@ void KlineNode::dispatchMeasurement(ValueToRead *valueToRead, float value) {
             printlnWrapper("KlineNode: invio messaggio CAN per " + String(valueToRead->carstatus.name));
         #endif
         if (valueToRead->carstatus.type->id == MessageType::INT.id) {
-            auto *ev = static_cast<EventMulti<int32_t> *>(EventRegistry::createByName(valueToRead->carstatus.name));
-            std::get<0>(ev->values) = static_cast<int32_t>(value);
+            auto *ev = static_cast<EventMulti<uint32_t> *>(EventRegistry::createByName(valueToRead->carstatus.name));
+            std::get<0>(ev->values) = static_cast<uint32_t>(value);
             sendMessage(Message(Priority::L.id, Node::MAIN.id, ev));
         } else if (valueToRead->carstatus.type->id == MessageType::FLOAT.id) {
             auto *ev = static_cast<EventMulti<float> *>(EventRegistry::createByName(valueToRead->carstatus.name));
