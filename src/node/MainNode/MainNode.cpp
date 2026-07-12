@@ -27,7 +27,7 @@ void MainNode::configBmp() {
 
     NLOGD("Sensore BMP inizializzato.");
 
-    startRepeatingTask("bmp280_read", 1000, [this]() {
+    startRepeatingTask("bmp280_read", 15000, [this]() {
         float temperature;
         float pressure;
         float humidity;
@@ -65,7 +65,7 @@ void MainNode::configAht() {
     NLOGD("Sensore AHT inizializzato.");
     
 
-    startRepeatingTask("bmp280_read", 1000, [this]() {
+    startRepeatingTask("aht20_read", 15000, [this]() {
         float temperature;
         float humidity;
 
@@ -109,7 +109,7 @@ void MainNode::configTemt6000() {
     adc_cali_curve_fitting_config_t cali_config = {
         .unit_id = TEMT6000_ADC_UNIT,
         .chan = TEMT6000_ADC_CHANNEL,
-        .atten = ADC_ATTEN_DB_12,
+        .atten = ADC_ATTEN_DB_2_5,
         .bitwidth = ADC_BITWIDTH_DEFAULT,
     };
     if (adc_cali_create_scheme_curve_fitting(&cali_config, &cali_handle) == ESP_OK) {

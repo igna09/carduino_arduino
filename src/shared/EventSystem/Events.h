@@ -37,14 +37,14 @@ DECLARE_EVENT(WARNING_SEVERITY_HIGH,    0x13, "WARNING_SEVERITY_HIGH",    EventC
 // --- Sensori ----------------------------------------------------------------
 DECLARE_EVENT(EXTERNAL_TEMPERATURE,             0x14, "EXTERNAL_TEMPERATURE",             EventCategory::SENSOR, float)
 DECLARE_EVENT(INTERNAL_TEMPERATURE,             0x15, "INTERNAL_TEMPERATURE",             EventCategory::SENSOR, float)
-DECLARE_EVENT(SPEED,                            0x16, "SPEED",                            EventCategory::SENSOR, uint8_t)
+DECLARE_EVENT(SPEED,                            0x16, "SPEED",                            EventCategory::SENSOR, uint32_t) //uint8_t
 DECLARE_EVENT(INTERNAL_LUMINANCE,               0x17, "INTERNAL_LUMINANCE",               EventCategory::SENSOR, uint16_t)
 DECLARE_EVENT(FRONT_DISTANCE,                   0x18, "FRONT_DISTANCE",                   EventCategory::SENSOR, float)
 DECLARE_EVENT(ENGINE_WATER_COOLING_TEMPERATURE, 0x19, "ENGINE_WATER_COOLING_TEMPERATURE", EventCategory::SENSOR, float)
 DECLARE_EVENT(ENGINE_OIL_TEMPERATURE,           0x1A, "ENGINE_OIL_TEMPERATURE",           EventCategory::SENSOR, float)
 DECLARE_EVENT(ENGINE_INTAKE_MANIFOLD_PRESSURE,  0x1B, "ENGINE_INTAKE_MANIFOLD_PRESSURE",  EventCategory::SENSOR, float)
 DECLARE_EVENT(INTERNAL_PRESSURE,                0x2E, "INTERNAL_PRESSURE",                EventCategory::SENSOR, uint16_t)
-DECLARE_EVENT(ENGINE_RPM,                       0x1C, "ENGINE_RPM",                       EventCategory::SENSOR, uint16_t)
+DECLARE_EVENT(ENGINE_RPM,                       0x1C, "ENGINE_RPM",                       EventCategory::SENSOR, uint32_t) //uint16_t
 DECLARE_EVENT(TRIP_DURATION,                    0x1D, "TRIP_DURATION",                    EventCategory::SENSOR, uint32_t)
 DECLARE_EVENT(TRIP_AVERAGE_SPEED,               0x1E, "TRIP_AVERAGE_SPEED",               EventCategory::SENSOR, uint8_t)
 DECLARE_EVENT(TRIP_MAX_SPEED,                   0x1F, "TRIP_MAX_SPEED",                   EventCategory::SENSOR, uint8_t)

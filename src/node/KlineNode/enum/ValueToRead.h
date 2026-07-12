@@ -129,14 +129,19 @@ class ValueToRead : public Enum {
 
         static uint8_t* getBlockValuesByEcu(ValueToRead** src, uint8_t srcSize, KlineEcu ecu) {
             uint8_t sizeByEcu = getBlockValuesByEcuSize(ecu);
-            uint8_t counter = 0;
             uint8_t *arrayValues = new uint8_t[sizeByEcu];
+            uint8_t counter = 0;
 
-            for(uint8_t i = 0; i < srcSize; i++) {
+            for(uint8_t i = 0; i < srcSize && counter < sizeByEcu; i++) {
                 ValueToRead *v = src[i];
                 if(v->klineEcu.id == ecu.id) {
-                    arrayValues[counter] = v->group;
-                    counter++;
+                    bool present = false;
+                    for(uint8_t j = 0; j < counter && !present; j++) {
+                        present = (arrayValues[j] == v->group);
+                    }
+                    if(!present) {
+                        arrayValues[counter++] = v->group;
+                    }
                 }
             }
 
@@ -185,7 +190,7 @@ class ValueToRead : public Enum {
             uint8_t counter = 0;
             ValueToRead** arrayValues = new ValueToRead*[sizeByEcuBlock];
 
-            for(uint8_t i = 0; i < VALUE_TO_READ_SIZE; i++) {
+            for(uint8_t i = 0; i < VALUE_TO_READ_SIZE && counter < sizeByEcuBlock; i++) {
                 ValueToRead *v = (ValueToRead*) ValueToRead::values[i];
                 if(v->klineEcu.id == ecu.id && v->group == block) {
                     arrayValues[counter] = v;

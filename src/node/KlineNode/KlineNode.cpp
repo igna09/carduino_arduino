@@ -102,7 +102,7 @@ void KlineNode::configVoltageSensor() {
         Message m = Message(Priority::L.id, Node::BROADCAST.id, ev);
 
         sendMessage(m);
-    }, 1);
+    }, 4096, 1);
 }
 
 void KlineNode::uart_event_loop() {
@@ -136,7 +136,14 @@ void KlineNode::kline_poll_task_trampoline(void *arg) {
 void KlineNode::kline_poll_loop() {
     const TickType_t period = pdMS_TO_TICKS(KLINE_POLL_INTERVAL_MS);
     while (true) {
+        UBaseType_t freeStack = uxTaskGetStackHighWaterMark(NULL); // NULL = task corrente
+        NLOGI("before readValues()");
+        NLOGI("Stack libero: %u words (%u bytes)", freeStack, freeStack * sizeof(StackType_t));
+        NLOGI("Heap libero: %u bytes, min storico: %u", esp_get_free_heap_size(), esp_get_minimum_free_heap_size());
         readValues();
+        NLOGI("after readValues()");
+        NLOGI("Stack libero: %u words (%u bytes)", freeStack, freeStack * sizeof(StackType_t));
+        NLOGI("Heap libero: %u bytes, min storico: %u", esp_get_free_heap_size(), esp_get_minimum_free_heap_size());
         vTaskDelay(period);
     }
 }
@@ -349,6 +356,7 @@ void KlineNode::readValues() {
     }
 
     for (uint8_t ecuIndex = 0; ecuIndex < ecusToReadSize; ecuIndex++) {
+        // esp_task_wdt_reset(); // nutri il WDT ad ogni ECU
         KlineEcu *ecu = ecusToRead[ecuIndex];
         if (ecu == nullptr) {
             continue;
@@ -431,7 +439,7 @@ void KlineNode::klineBegin(unsigned long baud) {
             self->uart_event_loop(); // Userà internamente self->_uart_queue
         },
         "uart_evt",
-        2048,
+        4096,
         this,
         KWP_TASK_PRI + 1,
         &_uart_task_handle
