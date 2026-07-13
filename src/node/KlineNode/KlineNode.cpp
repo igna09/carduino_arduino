@@ -178,18 +178,14 @@ bool KlineNode::ensureConnected(KlineEcu *ecu) {
         _currentEcu.connState = ConnState::DISCONNECTED;
     }
 
-    #ifdef DEBUG_KLINE_NODE
-    printlnWrapper("KlineNode: tentativo di connessione a ECU " + String(ecu->address, HEX));
-    #endif
+    NLOGI("tentativo di connessione a ECU %s", std::str(ecu->address, HEX));
 
     bool connected = _kline.attemptConnect(ecu->address, ecu->baud) == KLineKWP1281Lib::SUCCESS;
 
     if (connected) {
         _currentEcu.connState   = ConnState::CONNECTED;
         _currentEcu.consecFails = 0;
-        #ifdef DEBUG_KLINE_NODE
-        printlnWrapper("KlineNode: connessione riuscita");
-        #endif
+        NLOGI("connessione riuscita");
         return true;
     }
 
@@ -200,9 +196,7 @@ bool KlineNode::ensureConnected(KlineEcu *ecu) {
     if (_currentEcu.consecFails >= KLINE_MAX_CONSEC_FAILURES) {
         _currentEcu.connState         = ConnState::ERROR_BACKOFF;
         _currentEcu.backoffUntilTicks = xTaskGetTickCount() + pdMS_TO_TICKS(KLINE_BACKOFF_MS);
-        #ifdef DEBUG_KLINE_NODE
-        printlnWrapper("KlineNode: troppi fallimenti, backoff su ECU " + String(ecu->address, HEX));
-        #endif
+        NLOGI("connessione fallita, backoff di %u ms su ECU %s", KLINE_BACKOFF_MS, std::str(ecu->address, HEX));
     } else {
         _currentEcu.connState = ConnState::DISCONNECTED;
     }
@@ -215,20 +209,26 @@ bool KlineNode::ensureConnected(KlineEcu *ecu) {
 
 void KlineNode::dispatchMeasurement(ValueToRead *valueToRead, float value) {
     if (valueToRead->send) {
-        #ifdef DEBUG_KLINE_NODE
-            printlnWrapper("KlineNode: invio messaggio CAN per " + String(valueToRead->carstatus.name));
-        #endif
         if (valueToRead->carstatus.type->id == MessageType::INT.id) {
             auto *ev = static_cast<EventMulti<uint32_t> *>(EventRegistry::createByName(valueToRead->carstatus.name));
             std::get<0>(ev->values) = static_cast<uint32_t>(value);
+            std::ostringstream ss;
+            ev->printValue(ss, false);            
+            NLOGI("dispatchMeasurement: %s, float: %.2f, event: %s", valueToRead->name, value, ss.str().c_str());
             sendMessage(Message(Priority::L.id, Node::MAIN.id, ev));
         } else if (valueToRead->carstatus.type->id == MessageType::FLOAT.id) {
             auto *ev = static_cast<EventMulti<float> *>(EventRegistry::createByName(valueToRead->carstatus.name));
             std::get<0>(ev->values) = value;
+            std::ostringstream ss;
+            ev->printValue(ss, false);            
+            NLOGI("dispatchMeasurement: %s, float: %.2f, event: %s", valueToRead->name, value, ss.str().c_str());
             sendMessage(Message(Priority::L.id, Node::MAIN.id, ev));
         } else if (valueToRead->carstatus.type->id == MessageType::BOOL.id) {
             auto *ev = static_cast<EventMulti<bool> *>(EventRegistry::createByName(valueToRead->carstatus.name));
             std::get<0>(ev->values) = (value == 1.0f);
+            std::ostringstream ss;
+            ev->printValue(ss, false);            
+            NLOGI("dispatchMeasurement: %s, float: %.2f, event: %s", valueToRead->name, value, ss.str().c_str());
             sendMessage(Message(Priority::L.id, Node::MAIN.id, ev));
         }
     }
@@ -268,18 +268,14 @@ bool KlineNode::readBlock(KlineEcu *ecu, uint8_t block) {
         case KLineKWP1281Lib::ERROR:
             // Errore di comunicazione: la connessione va considerata persa.
             // Non riprovo gli altri blocchi su questa ECU in questo ciclo.
-            #ifdef DEBUG_KLINE_NODE
-            printlnWrapper("KlineNode: errore di lettura sul blocco " + String(block));
-            #endif
+            NLOGI("KlineNode: errore di lettura sul blocco %u", block);
             communicationOk = false;
             break;
 
         case KLineKWP1281Lib::FAIL:
             // Il blocco richiesto non esiste su questa ECU: non è un errore di comunicazione,
             // semplicemente non ci sono valori da estrarre.
-            #ifdef DEBUG_KLINE_NODE
-            printlnWrapper("KlineNode: il blocco " + String(block) + " non esiste su questa ECU");
-            #endif
+            NLOGI("KlineNode: il blocco %u non esiste su questa ECU", block);
             break;
 
         case KLineKWP1281Lib::SUCCESS:
@@ -294,11 +290,7 @@ bool KlineNode::readBlock(KlineEcu *ecu, uint8_t block) {
                         float value = static_cast<float>(KLineKWP1281Lib::getMeasurementValue(
                             valueToRead->groupIndex, amount_of_measurements, measurements, sizeof(measurements)));
 
-                        #ifdef DEBUG_KLINE_NODE
-                        char logBuf[64];
-                        snprintf(logBuf, sizeof(logBuf), "KlineNode: letto %s = %.2f", valueToRead->name, value);
-                        printlnWrapper(logBuf);
-                        #endif
+                        NLOGI("KlineNode: letto %s = %.2f", valueToRead->name, value);
 
                         dispatchMeasurement(valueToRead, value);
                         break;
@@ -308,9 +300,7 @@ bool KlineNode::readBlock(KlineEcu *ecu, uint8_t block) {
                         char text_string[16];
                         KLineKWP1281Lib::getMeasurementText(valueToRead->groupIndex, amount_of_measurements,
                             measurements, sizeof(measurements), text_string, sizeof(text_string));
-                        #ifdef DEBUG_KLINE_NODE
-                        printlnWrapper("KlineNode: misura testuale: " + String(text_string));
-                        #endif
+                        NLOGI("KlineNode: misura testuale: %s", text_string);
                         break;
                     }
 
@@ -389,9 +379,7 @@ void KlineNode::readValues() {
             // persa. Al prossimo giro ensureConnected() tenterà di riconnettersi (con backoff
             // se gli errori persistono), invece di restare agganciati a un'ECU morta.
             _currentEcu.connState = ConnState::DISCONNECTED;
-            #ifdef DEBUG_KLINE_NODE
-            printlnWrapper("KlineNode: connessione persa con ECU " + String(ecu->address, HEX));
-            #endif
+            NLOGI("KlineNode: connessione persa con ECU %s", std::to_string(ecu->address).c_str());
         } else {
             _afterReadExecutors.execute(this);
         }
