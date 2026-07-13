@@ -11,7 +11,7 @@ static constexpr gpio_num_t RX_PIN        = GPIO_NUM_9;
 // Entry point principale con linkage C
 extern "C" void app_main(void)
 {
-    vTaskDelay(pdMS_TO_TICKS(10000));
+    vTaskDelay(pdMS_TO_TICKS(5000));
     
     NLOGI("Nodo Kline avviato");
 

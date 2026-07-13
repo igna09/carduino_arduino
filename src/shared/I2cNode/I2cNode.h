@@ -18,4 +18,5 @@ private:
     uint32_t _clockSpeedHz;
 
     void initI2c();
+    void scanI2C();
 };

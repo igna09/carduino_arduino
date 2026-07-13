@@ -1,6 +1,14 @@
 #include "CarduinoNodeCanEvent.h"
 
-CarduinoNodeCanEvent::CarduinoNodeCanEvent() : CarduinoNodeExecutorInterface() {};
+CarduinoNodeCanEvent::CarduinoNodeCanEvent() : CarduinoNodeExecutorInterface({
+    EV_GET_HELLOS, 
+    EV_ENABLE, 
+    EV_DISABLE, 
+    EV_HEARTBEAT, 
+    EV_HELLO, 
+    EV_TIME_SYNC_REQUEST, 
+    EV_TIME_SYNC_RESPONSE
+}) {};
 
 void CarduinoNodeCanEvent::execute(CarduinoNode *node, Message *message) {
 

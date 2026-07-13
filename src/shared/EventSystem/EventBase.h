@@ -3,12 +3,16 @@
 #include <cstdint>
 #include <ostream>
 
+#include "EventCategory.h"
+
 class EventBase {
 public:
     const uint8_t id;
     const char*   name;
+    const EventCategory category;
 
-    EventBase(uint8_t id, const char* name) : id(id), name(name) {}
+    EventBase(uint8_t id, const char* name, EventCategory category)
+        : id(id), name(name), category(category) {}
     virtual ~EventBase() {}
 
     // Numero di valori nel payload

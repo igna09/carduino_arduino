@@ -5,14 +5,49 @@ MainNode::MainNode(): CarduinoNode(Node::MAIN.id, true), I2cNode() {
 
     _canExecutor.addExecutor(new BootExecutor());
     _canExecutor.addExecutor(new HelloTrackerExecutor());
+    _canExecutor.addExecutor(new MainNodeCanEvent());
 
-    // configTemt6000();
-    // configAht();
+    configTemt6000();
+    configAht();
+    configBmp();
 
     // Chiamiamo l'inizializzazione dei dispositivi adesso che l'oggetto è pronto!
     initI2cDevices();
 
     this->enable();
+}
+
+void MainNode::configBmp() {
+    bmp280_params_t params;
+    bmp280_init_default_params(&params);
+    memset(&bpm_dev, 0, sizeof(bmp280_t));
+
+    ESP_ERROR_CHECK(bmp280_init_desc(&bpm_dev, BMP280_I2C_ADDRESS_1, I2C_NUM_0, DEFAULT_I2C_SDA_PIN, DEFAULT_I2C_SCL_PIN));
+    ESP_ERROR_CHECK(bmp280_init(&bpm_dev, &params));
+
+    NLOGD("Sensore BMP inizializzato.");
+
+    startRepeatingTask("bmp280_read", 15000, [this]() {
+        float temperature;
+        float pressure;
+        float humidity;
+
+        if (bmp280_read_float(&bpm_dev, &temperature, &pressure, &humidity) != ESP_OK)
+        {
+            NLOGI("Temperature/pressure reading failed");
+            return;
+        }
+
+        uint16_t pressure_int = (uint16_t)(pressure / 100);
+
+        
+        auto *ev = static_cast<EventMulti<uint16_t> *>(EventRegistry::createById(EV_INTERNAL_PRESSURE));
+        std::get<0>(ev->values) = pressure_int;
+        Message m = Message(Priority::L.id, Node::BROADCAST.id, ev);
+
+        sendMessage(m);
+        sendSerialMessage(m);
+    });
 }
 
 void MainNode::configAht() {
@@ -26,7 +61,27 @@ void MainNode::configAht() {
     // Ora i2cdev troverà il puntatore del mutex a NULL e lo allocherà correttamente in RAM
     ESP_ERROR_CHECK(aht_init_desc(&aht_dev, AHT_I2C_ADDRESS_GND, I2C_NUM_0, DEFAULT_I2C_SDA_PIN, DEFAULT_I2C_SCL_PIN));
     ESP_ERROR_CHECK(aht_init(&aht_dev));
+
     NLOGD("Sensore AHT inizializzato.");
+    
+
+    startRepeatingTask("aht20_read", 15000, [this]() {
+        float temperature;
+        float humidity;
+
+        if (aht_get_data(&aht_dev, &temperature, &humidity) != ESP_OK)
+        {
+            NLOGI("Temperature/humidity reading failed");
+            return;
+        }
+        
+        auto *ev = static_cast<EventMulti<float> *>(EventRegistry::createById(EV_INTERNAL_TEMPERATURE));
+        std::get<0>(ev->values) = temperature;
+        Message m = Message(Priority::L.id, Node::BROADCAST.id, ev);
+
+        sendMessage(m);
+        sendSerialMessage(m);
+    });
 }
 
 void MainNode::configTemt6000() {
@@ -42,19 +97,19 @@ void MainNode::configTemt6000() {
     // 2. Configurazione del Canale ADC
     adc_oneshot_chan_cfg_t config = {
         .atten = ADC_ATTEN_DB_12,
-        .bitwidth = ADC_BITWIDTH_DEFAULT, 
+        .bitwidth = ADC_BITWIDTH_DEFAULT,
     };
     ESP_ERROR_CHECK(adc_oneshot_config_channel(adc_handle, TEMT6000_ADC_CHANNEL, &config));
 
     // 3. Configurazione della Calibrazione
     adc_cali_handle_t cali_handle = NULL;
     bool do_calibration = false;
-    
+
     #if ADC_CALI_SCHEME_CURVE_FITTING_SUPPORTED
     adc_cali_curve_fitting_config_t cali_config = {
         .unit_id = TEMT6000_ADC_UNIT,
         .chan = TEMT6000_ADC_CHANNEL,
-        .atten = ADC_ATTEN_DB_12,
+        .atten = ADC_ATTEN_DB_2_5,
         .bitwidth = ADC_BITWIDTH_DEFAULT,
     };
     if (adc_cali_create_scheme_curve_fitting(&cali_config, &cali_handle) == ESP_OK) {
@@ -62,22 +117,55 @@ void MainNode::configTemt6000() {
     }
     #endif
 
-    // MODIFICA QUI: 
-    // 1. Cambiamo [&] in [adc_handle, cali_handle, do_calibration] per copiare i descrittori per valore.
-    //    In questo modo rimarranno salvati persistentemente all'interno dell'oggetto della lambda.
-    startRepeatingTask("temt6000_read", 1000, [adc_handle, cali_handle, do_calibration]() {
-        // 2. Spostiamo le variabili di supporto qui dentro, così vengono allocate ad ogni ciclo
-        int adc_raw = 0;
-        int voltage = 0;
+    static constexpr int   SAMPLES_NUM  = 10;     // n. campioni per media
+    static constexpr float LOAD_OHM     = 10000.0f; // resistore di carico (10kΩ)
+    static constexpr float UA_PER_LUX   = 2.0f;    // datasheet: 2µA -> 1 lux
 
-        // Ora adc_handle è una copia valida e non memoria corrotta dello stack passato
-        ESP_ERROR_CHECK(adc_oneshot_read(adc_handle, TEMT6000_ADC_CHANNEL, &adc_raw));
+    startRepeatingTask("temt6000_read", 1000, [this, adc_handle, cali_handle, do_calibration]() {
+        int adc_raw = 0;
+        long voltage_sum_mv = 0;
+        int valid_samples = 0;
+
+        for (int i = 0; i < SAMPLES_NUM; ++i) {
+            if (adc_oneshot_read(adc_handle, TEMT6000_ADC_CHANNEL, &adc_raw) != ESP_OK) {
+                NLOGI("adc_oneshot_read error");
+                continue;
+            }
+
+            if (do_calibration) {
+                int voltage_mv = 0;
+                if (adc_cali_raw_to_voltage(cali_handle, adc_raw, &voltage_mv) == ESP_OK) {
+                    voltage_sum_mv += voltage_mv;
+                    valid_samples++;
+                }
+            }
+        }
+
+        if (do_calibration && valid_samples > 0) {
+            float voltage_avg_mv = (float)voltage_sum_mv / valid_samples;
+
+            // I = V / R  (mV / ohm -> mA, poi convertito in µA)
+            float current_uA = (voltage_avg_mv / LOAD_OHM) * 1000.0f;
+
+            // lux = corrente(µA) / 2
+            float lux = current_uA / UA_PER_LUX;
+            int lux_int = (int)(lux + 0.5f);
+
+            // percentuale rispetto al fondo scala 3300 mV (indicativo)
+            float light_percent = (voltage_avg_mv / 3300.0f) * 100.0f;
+            if (light_percent > 100.0f) light_percent = 100.0f;
+
+            NLOGD("TEMT6000: %.1f mV | %.2f lux | %.1f%%", voltage_avg_mv, lux, light_percent);
+
         
-        if (do_calibration) {
-            adc_cali_raw_to_voltage(cali_handle, adc_raw, &voltage);
-            NLOGD("Valore Grezzo: %d | Tensione: %d mV", adc_raw, voltage);
+            auto *ev = static_cast<EventMulti<uint16_t> *>(EventRegistry::createById(EV_INTERNAL_LUMINANCE));
+            std::get<0>(ev->values) = lux_int;
+            Message m = Message(Priority::L.id, Node::BROADCAST.id, ev);
+
+            sendMessage(m);
+            sendSerialMessage(m);
         } else {
-            NLOGD("Valore Grezzo: %d (Calibrazione non disponibile)", adc_raw);
+            NLOGD("TEMT6000: calibrazione non disponibile o lettura fallita");
         }
     });
 }

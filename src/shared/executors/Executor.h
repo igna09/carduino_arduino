@@ -5,6 +5,7 @@
 
 #include "Message.h"
 #include "CarduinoNodeExecutorInterface.h"
+#include "NodeLog.h"
 
 // Forward declaration, non include completo: CarduinoNode.h include questo
 // header (possiede serialExecutor/canExecutor come campi), quindi includere

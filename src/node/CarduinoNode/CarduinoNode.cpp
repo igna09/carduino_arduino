@@ -58,14 +58,16 @@ CarduinoNode::CarduinoNode(uint8_t id, bool isEnabled)
     // Heartbeat visivo: non dipende dal time sync, può partire subito.
     // startLedBlinkTask();
 
-    addSyncedTask(LED_BLINK_TASK_ID, LED_BLINK_PERIOD_MS, [this]() {
-        static int n = 0;
-        NLOGI("synced #%d syncedMillis=%lu", ++n, (unsigned long)this->syncedMillis());
-    });
+    // addSyncedTask(LED_BLINK_TASK_ID, LED_BLINK_PERIOD_MS, [this]() {
+    //     static int n = 0;
+    //     NLOGI("synced #%d syncedMillis=%lu", ++n, (unsigned long)this->syncedMillis());
+    // });
 
     // Ultimo: da qui il nodo comincia a generare traffico in uscita (HELLO),
     // tutto il resto deve essere già pronto a riceverne le risposte.
     startAnnouncingTask();
+
+    enableUdpLog();
 
     NLOGD("CarduinoNode::CarduinoNode end");
 }
@@ -301,8 +303,6 @@ void CarduinoNode::rxTaskEntry(void *pvParameters) {
             // silenziosamente (con log) e liberiamo lo slot.
             Message* msg = Message::fromCanFrame(frame->header.id, frame->buffer, frame->header.dlc);
 
-            NLOGI("received message %s", msg->toString().c_str());
-
             if (msg == nullptr) {
                 NLOGW("RX: frame id=0x%x dlc=%d non decodificabile, scartato",
                       static_cast<unsigned>(frame->header.id), frame->header.dlc);
@@ -333,6 +333,7 @@ void CarduinoNode::sendMessage(const Message& m) {
 
 void CarduinoNode::sendSerialMessage(const Message& m) {
     m.print(std::cout, true);
+    // std::cout << std::endl << std::flush;
 }
 
 void CarduinoNode::sendByte(uint16_t messageId, int len, uint8_t *buf) {

@@ -36,7 +36,11 @@ public:
     std::tuple<Types...> values;
 
     EventMulti(uint8_t id, const char* name)
-        : EventBase(id, name), values{} {}
+        : EventMulti(id, name, EventCategory::CONTROL) {}
+
+    EventMulti(uint8_t id, const char* name, EventCategory category)
+        : EventBase(id, name, category), values{} {}
+
 
     // --- Metadati -----------------------------------------------------------
 
