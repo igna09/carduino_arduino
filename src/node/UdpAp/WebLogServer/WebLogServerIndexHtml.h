@@ -219,7 +219,17 @@ static const char WEB_LOG_INDEX_HTML[] = R"HTML_PAGE(<!DOCTYPE html>
     };
   }
 
-  connect();
+  // All'avvio: leggo il filtro eventualmente gia' impostato lato firmware
+  // (es. rimasto da una sessione precedente) e prevalorizzo la barra di
+  // ricerca, poi mi connetto alla SSE per ricevere la history gia' coerente
+  // con quel filtro.
+  fetch('/filter')
+    .then(r => r.ok ? r.text() : '')
+    .then(text => {
+      if (text) filterInput.value = text;
+    })
+    .catch(() => { /* firmware non raggiungibile per la lettura, procedo comunque */ })
+    .finally(() => connect());
 })();
 </script>
 

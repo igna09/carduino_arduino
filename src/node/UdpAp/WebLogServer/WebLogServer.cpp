@@ -12,7 +12,7 @@
 namespace WebLogServer {
 
 #define WEB_LOG_LINE_MAX     160
-#define WEB_LOG_RING_SIZE    300
+#define WEB_LOG_RING_SIZE    800
 #define WEB_LOG_MAX_CLIENTS  4   
 #define WEB_LOG_ASYNC_WORKERS WEB_LOG_MAX_CLIENTS
 
@@ -282,12 +282,22 @@ static esp_err_t downloadGetHandler(httpd_req_t* req) {
 
 static esp_err_t filterGetHandler(httpd_req_t* req) {
     char query[128];
-    char textParam[WEB_LOG_FILTER_MAX] = "";
+    bool hasQuery = (httpd_req_get_url_query_len(req) > 0 &&
+                      httpd_req_get_url_query_str(req, query, sizeof(query)) == ESP_OK);
 
-    if (httpd_req_get_url_query_len(req) > 0 &&
-        httpd_req_get_url_query_str(req, query, sizeof(query)) == ESP_OK) {
-        httpd_query_key_value(query, "text", textParam, sizeof(textParam));
+    if (!hasQuery) {
+        // Nessuna query: e' una lettura, ritorna il filtro attualmente impostato
+        char current[WEB_LOG_FILTER_MAX];
+        xSemaphoreTake(s_filterMutex, portMAX_DELAY);
+        strlcpy(current, s_filterText, sizeof(current));
+        xSemaphoreGive(s_filterMutex);
+
+        httpd_resp_set_type(req, "text/plain");
+        return httpd_resp_send(req, current, HTTPD_RESP_USE_STRLEN);
     }
+
+    char textParam[WEB_LOG_FILTER_MAX] = "";
+    httpd_query_key_value(query, "text", textParam, sizeof(textParam));
     // URL-decode minimale: sostituisce '+' con spazio (i browser codificano cosi' gli spazi in querystring)
     for (char* p = textParam; *p; p++) {
         if (*p == '+') *p = ' ';
