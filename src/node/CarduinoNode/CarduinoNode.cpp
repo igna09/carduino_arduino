@@ -333,7 +333,7 @@ void CarduinoNode::sendMessage(const Message& m) {
 
 void CarduinoNode::sendSerialMessage(const Message& m) {
     m.print(std::cout, true);
-    // std::cout << std::endl << std::flush;
+    std::cout << std::endl << std::flush;
 }
 
 void CarduinoNode::sendByte(uint16_t messageId, int len, uint8_t *buf) {

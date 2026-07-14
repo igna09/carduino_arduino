@@ -32,4 +32,6 @@ public:
 
     // Stampa i valori su Serial (debug)
     virtual void printValue(std::ostream& out, bool serialMode = false) const = 0;
+
+    virtual void setFromFloat(float v) = 0;
 };

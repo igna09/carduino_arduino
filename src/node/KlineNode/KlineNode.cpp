@@ -218,28 +218,15 @@ bool KlineNode::ensureConnected(KlineEcu *ecu) {
 
 void KlineNode::dispatchMeasurement(ValueToRead *valueToRead, float value) {
     if (valueToRead->send) {
-        if (valueToRead->carstatus.type->id == MessageType::INT.id) {
-            auto *ev = static_cast<EventMulti<uint32_t> *>(EventRegistry::createByName(valueToRead->carstatus.name));
-            std::get<0>(ev->values) = static_cast<uint32_t>(value);
+        EventBase *ev = EventRegistry::createByName(valueToRead->carstatus.name);
+        ev->setFromFloat(value);
+
             std::ostringstream ss;
             ev->printValue(ss, false);            
-            NLOGI("dispatchMeasurement: %s, float: %.2f, event: %s", valueToRead->name, value, ss.str().c_str());
+        NLOGI("dispatchMeasurement: %s, float: %.2f, event: %s",
+            valueToRead->name, value, ss.str().c_str());
+
             sendMessage(Message(Priority::L.id, Node::MAIN.id, ev));
-        } else if (valueToRead->carstatus.type->id == MessageType::FLOAT.id) {
-            auto *ev = static_cast<EventMulti<float> *>(EventRegistry::createByName(valueToRead->carstatus.name));
-            std::get<0>(ev->values) = value;
-            std::ostringstream ss;
-            ev->printValue(ss, false);            
-            NLOGI("dispatchMeasurement: %s, float: %.2f, event: %s", valueToRead->name, value, ss.str().c_str());
-            sendMessage(Message(Priority::L.id, Node::MAIN.id, ev));
-        } else if (valueToRead->carstatus.type->id == MessageType::BOOL.id) {
-            auto *ev = static_cast<EventMulti<bool> *>(EventRegistry::createByName(valueToRead->carstatus.name));
-            std::get<0>(ev->values) = (value == 1.0f);
-            std::ostringstream ss;
-            ev->printValue(ss, false);            
-            NLOGI("dispatchMeasurement: %s, float: %.2f, event: %s", valueToRead->name, value, ss.str().c_str());
-            sendMessage(Message(Priority::L.id, Node::MAIN.id, ev));
-        }
     }
 
     // Aggiorniamo la cache locale dell'ultimo valore letto, indipendentemente dal fatto che venga inviato sul CAN.

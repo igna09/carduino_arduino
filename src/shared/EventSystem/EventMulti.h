@@ -5,6 +5,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <ostream>
+#include <cmath>
 
 #include "EventBase.h"
 
@@ -32,6 +33,22 @@ static void printOne(std::ostream& out, const T& v) {
         out << v;
     }
 }
+
+template <typename T>
+static inline T clampFromFloat(float v) {
+    if constexpr (std::is_same_v<T, bool>) {
+        return v == 1.0f;
+    } else if constexpr (std::is_integral_v<T>) {
+        if (std::isnan(v)) return T{0};
+        float r = std::round(v);
+        r = std::max<float>(r, (float)std::numeric_limits<T>::min());
+        r = std::min<float>(r, (float)std::numeric_limits<T>::max());
+        return static_cast<T>(r);
+    } else {
+        return static_cast<T>(v); // float/double
+    }
+}
+
 
 // ---------------------------------------------------------------------------
 // EventMulti<Types...>
@@ -85,6 +102,13 @@ public:
         if(!serialMode) out << '[';
         printImpl(out, serialMode, std::index_sequence_for<Types...>{});
         if(!serialMode) out << ']';
+    }
+
+    void setFromFloat(float v) override {
+        if constexpr (sizeof...(Types) > 0) {
+            using T0 = std::tuple_element_t<0, std::tuple<Types...>>;
+            std::get<0>(values) = clampFromFloat<T0>(v);
+        }
     }
 
 private:
