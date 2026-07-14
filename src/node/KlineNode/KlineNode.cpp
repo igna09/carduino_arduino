@@ -294,11 +294,12 @@ bool KlineNode::readBlock(KlineEcu *ecu, uint8_t block) {
                         float value = static_cast<float>(KLineKWP1281Lib::getMeasurementValue(
                             valueToRead->groupIndex, amount_of_measurements, measurements, sizeof(measurements)));
 
-                        #ifdef DEBUG_KLINE_NODE
-                        char logBuf[64];
-                        snprintf(logBuf, sizeof(logBuf), "KlineNode: letto %s = %.2f", valueToRead->name, value);
-                        printlnWrapper(logBuf);
-                        #endif
+                        if ((std::isnan)(value)) {
+                            NLOGI("KlineNode: valore NaN per %s, scarto", valueToRead->name);
+                            break; // non chiamare dispatchMeasurement con NaN
+                        }
+
+                        NLOGI("KlineNode: letto %s = %.2f", valueToRead->name, value);
 
                         dispatchMeasurement(valueToRead, value);
                         break;

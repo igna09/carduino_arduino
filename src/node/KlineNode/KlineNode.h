@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <math.h>
 #include <tuple>
+#include <cmath>
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
