@@ -178,7 +178,10 @@ bool KlineNode::ensureConnected(KlineEcu *ecu) {
         _currentEcu.connState = ConnState::DISCONNECTED;
     }
 
-    NLOGI("tentativo di connessione a ECU %s", std::str(ecu->address, HEX).c_str());
+    std::stringstream ss;
+    // static_cast<int> è FONDAMENTALE, altrimenti ss inserisce il carattere ASCII corrispondente
+    ss << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(ecu->address);
+    NLOGI("tentativo di connessione a ECU %s", ss.str().c_str());
 
     bool connected = _kline.attemptConnect(ecu->address, ecu->baud) == KLineKWP1281Lib::SUCCESS;
 
@@ -196,7 +199,13 @@ bool KlineNode::ensureConnected(KlineEcu *ecu) {
     if (_currentEcu.consecFails >= KLINE_MAX_CONSEC_FAILURES) {
         _currentEcu.connState         = ConnState::ERROR_BACKOFF;
         _currentEcu.backoffUntilTicks = xTaskGetTickCount() + pdMS_TO_TICKS(KLINE_BACKOFF_MS);
-        NLOGI("connessione fallita, backoff di %u ms su ECU %s", KLINE_BACKOFF_MS, std::str(ecu->address, HEX).c_str());
+
+        
+
+        std::stringstream ss;
+        // static_cast<int> è FONDAMENTALE, altrimenti ss inserisce il carattere ASCII corrispondente
+        ss << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(ecu->address);
+        NLOGI("connessione fallita, backoff di %u ms su ECU %s", KLINE_BACKOFF_MS, ss.str().c_str());
     } else {
         _currentEcu.connState = ConnState::DISCONNECTED;
     }
