@@ -333,7 +333,7 @@ public:
             event->printValue(out, false);
             out << " }";
         }
-        out << std::endl << std::flush;
+        // out << std::endl << std::flush;
     }
 
     std::string toString(bool serialMode = false) const {

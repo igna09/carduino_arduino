@@ -24,6 +24,15 @@ namespace canbus_detail {
     inline void parseToken(bool&     out, const char* s) { out = (atoi(s) != 0); }
 }
 
+template<typename T>
+static void printOne(std::ostream& out, const T& v) {
+    if constexpr (std::is_same_v<T, uint8_t> || std::is_same_v<T, int8_t>) {
+        out << static_cast<int>(v);
+    } else {
+        out << v;
+    }
+}
+
 // ---------------------------------------------------------------------------
 // EventMulti<Types...>
 //   - Types = {} → evento senza payload (HEARTBEAT, ENABLE, ...)
@@ -114,11 +123,12 @@ private:
             bool first = true;
             const char* separator = serialMode ? ";" : ", ";
             ((out << (first ? "" : separator),
-              out << std::get<I>(values),
+              printOne(out, std::get<I>(values)),
               first = false), ...);
             if(serialMode) out << separator;
         }
     }
+
 };
 
 // ---------------------------------------------------------------------------
