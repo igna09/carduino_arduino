@@ -83,6 +83,12 @@ public:
         return EventCategory::CONTROL; // fallback, valuta se serve UNKNOWN
     }
 
+    static const char* getName(uint8_t id) {
+        for (uint8_t i = 0; i < count; i++)
+            if (entries[i].id == id) return entries[i].name;
+        return "?";
+    }
+
 private:
     static Entry   entries[EVENT_REGISTRY_MAX_SIZE];
     static uint8_t count;

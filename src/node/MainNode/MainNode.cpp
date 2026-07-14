@@ -10,12 +10,22 @@ MainNode::MainNode(): CarduinoNode(Node::MAIN.id, true), I2cNode() {
     configTemt6000();
     configAht();
     configBmp();
+    configSwc();
+    configEncoder();
+
+    _buzzer.init(GPIO_NUM_2);
 
     // Chiamiamo l'inizializzazione dei dispositivi adesso che l'oggetto è pronto!
     initI2cDevices();
 
     this->enable();
 }
+
+void MainNode::configSwc() {
+    // stesso bus I2C già usato da AHT/BMP280 (I2cNode)
+    ESP_ERROR_CHECK(_swc.init(I2C_NUM_0, 0x21, DEFAULT_I2C_SDA_PIN, DEFAULT_I2C_SCL_PIN)); // adatta SDA/SCL ai tuoi già usati
+}
+
 
 void MainNode::configBmp() {
     bmp280_params_t params;
@@ -187,6 +197,10 @@ void MainNode::enable() {
     NLOGI("MainNode::enable: nodo MAIN enabled (id=%u)", static_cast<unsigned>(_id));
 
     sendMessage(Message(Priority::L.id, Node::BROADCAST.id, EventRegistry::createById(EV_GET_HELLOS)));
+
+    // delayTask(5000, [this](){
+    //     startSwcPairing();
+    // });
 }
 
 void MainNode::recordHello(uint8_t senderId) {
@@ -226,4 +240,104 @@ void MainNode::startTimeSync() {
 
 uint32_t MainNode::syncedMillis() const {
     return localMillis();
+}
+
+void MainNode::encoderEventHandler(const rotary_encoder_event_t *event, void *ctx) {
+    xQueueSendToBack((QueueHandle_t)ctx, event, 0);
+}
+
+void MainNode::configEncoder() {
+    event_queue = xQueueCreate(EV_QUEUE_LEN, sizeof(rotary_encoder_event_t));
+
+    rotary_encoder_config_t config = ROTARY_ENCODER_DEFAULT_CONFIG();
+    config.pin_a = GPIO_ENCODER_A;
+    config.pin_b = GPIO_ENCODER_B;
+    config.pin_btn = GPIO_BUTTON;
+    config.callback = encoderEventHandler;
+    config.callback_ctx = event_queue;
+
+    ESP_ERROR_CHECK(rotary_encoder_create(&config, &re));
+
+    xTaskCreate(encoderTask, "encoder_task", configMINIMAL_STACK_SIZE * 8, this, 5, NULL);
+}
+
+static void pressTask(void* arg) {
+    PressParams* p = static_cast<PressParams*>(arg);
+    p->ctrl->pressOneShotAsync(p->channel, p->holdMs);
+    delete p;
+    vTaskDelete(NULL);
+}
+
+void MainNode::pressSwcAsync(uint8_t channel, uint32_t holdMs) {
+    auto* params = new PressParams{&_swc, channel, holdMs};
+    xTaskCreate(pressTask, "swc_press", configMINIMAL_STACK_SIZE * 2, params, 5, NULL);
+}
+
+
+void MainNode::encoderTask(void *arg) {
+    MainNode *self = static_cast<MainNode*>(arg);
+    rotary_encoder_event_t e;
+    int32_t val = 0;
+
+    while (1) {
+        xQueueReceive(self->event_queue, &e, portMAX_DELAY);
+        switch (e.type) {
+            case RE_ET_BTN_PRESSED:
+                NLOGI("Encoder Bottone premuto");
+                for(uint8_t i = 0; i < 8; i++) {
+                    self->pressSwcAsync(i, 9000);
+                    vTaskDelay(pdMS_TO_TICKS(10000));
+                }
+                break;
+            case RE_ET_BTN_RELEASED:
+                NLOGI("Encoder Bottone rilasciato");
+                break;
+            case RE_ET_BTN_CLICKED:
+                NLOGI("Encoder Click");
+                rotary_encoder_enable_acceleration(self->re, 100);
+                break;
+            case RE_ET_BTN_LONG_PRESSED:
+                NLOGI("Encoder Pressione lunga");
+                rotary_encoder_disable_acceleration(self->re);
+                break;
+            case RE_ET_CHANGED:
+                val += e.diff;
+                NLOGI("Encoder Valore = %" PRIi32, val);
+                // TODO: dispatchare evento con val, se serve
+                break;
+            default:
+                break;
+        }
+    }
+}
+
+void MainNode::startSwcPairing() {
+    if (swcPairing) return;
+    swcPairing = true;
+    xTaskCreate(swcPairingTask, "swc_pairing", 4096, this, 5, nullptr);
+}
+
+void MainNode::swcPairingTask(void* param) {
+    auto* self = static_cast<MainNode*>(param);
+    vTaskDelay(pdMS_TO_TICKS(SWC_FIRST_WAITING_PAIRING_INTERVAL));
+
+    self->_buzzer.playToneAsync(ToneType::WARNING);
+
+    for (uint8_t i = 0; i < SWC_MAPPINGS_SIZE; i++) {
+        const SwcMapping& m = SWC_MAPPINGS[i];
+
+        self->_buzzer.playToneAsync(ToneType::INFO);
+        NLOGI("MainNode SWC pairing: %s (channel %u, pattern %u)",
+              EventRegistry::getName(m.eventId), m.channel, (uint8_t) m.pattern);
+
+        self->pressSwcAsync(m.channel, SWC_PAIRING_INTERVAL);
+
+        vTaskDelay(pdMS_TO_TICKS(SWC_PAIRING_INTERVAL + SWC_WAITING_PAIRING_INTERVAL));
+    }
+
+    NLOGI("MainNode SWC pairing finished");
+    // self->playTone(&Event::WARNING_SEVERITY_MEDIUM);
+    self->swcPairing = false;
+    self->_buzzer.playToneAsync(ToneType::WARNING);
+    vTaskDelete(nullptr);
 }

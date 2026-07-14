@@ -7,12 +7,12 @@ I2cNode::I2cNode(gpio_num_t sdaPin, gpio_num_t sclPin, uint32_t clockSpeedHz) {
     _clockSpeedHz = clockSpeedHz;
 
     initI2c();
-    // scanI2C();
+    // scanI2c();
 
     NLOGD("I2cNode::I2cNode end");
 }
 
-void I2cNode::scanI2C() {
+void I2cNode::scanI2c() {
     NLOGD("I2cNode::scanI2C start");
     for (uint8_t addr = 0x03; addr < 0x78; addr++) {
         i2c_dev_t dev = {};
@@ -24,7 +24,7 @@ void I2cNode::scanI2C() {
 
         esp_err_t res = i2c_dev_probe(&dev, I2C_DEV_WRITE);
         if (res == ESP_OK) {
-            NLOGD("Trovato device I2C a 0x%02X", addr);
+            NLOGI("Trovato device I2C a 0x%02X", addr);
         }
     }
     NLOGD("I2cNode::scanI2C end");
