@@ -16,6 +16,7 @@
 #include "NodeLog.h"
 #include "Definitions.h"
 #include "WebLogServer.h"
+#include "HeapMonitor.h"
 
 // --- CONFIGURAZIONE ---
 #define WIFI_CHANNEL            6
@@ -385,6 +386,8 @@ extern "C" void app_main(void) {
 
     // Avvio web log server (pagina HTML + SSE su http://192.168.4.1/)
     WebLogServer::init();
+
+    HeapMonitor::start(5000);
 
     // Creazione del task UDP dedicato
     xTaskCreatePinnedToCore(udp_server_task, "udp_log_server", 4096, NULL, 5, NULL, tskNO_AFFINITY);

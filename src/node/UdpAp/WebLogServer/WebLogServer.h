@@ -36,4 +36,6 @@ void pushLine(const char* line);
 // la dimensione di destinazione e' nota staticamente.
 void pushLineFormatted(const char* prefix, const char* msg);
 
+// static void setFilter(const char* text);
+
 } // namespace WebLogServer

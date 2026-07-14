@@ -26,6 +26,41 @@ static int s_clientFds[WEB_LOG_MAX_CLIENTS];
 static int s_clientCount = 0;
 static SemaphoreHandle_t s_clientsMutex = nullptr;
 
+// --- Filtro server-side: le righe che non combaciano NON entrano nel ring buffer ---
+#define WEB_LOG_FILTER_MAX 64
+static char s_filterText[WEB_LOG_FILTER_MAX] = "";
+static SemaphoreHandle_t s_filterMutex = nullptr;
+
+// Confronto case-insensitive "haystack contiene needle", senza allocazioni
+static bool containsCaseInsensitive(const char* haystack, const char* needle) {
+    if (needle[0] == '\0') return true; // filtro vuoto = passa tutto
+    size_t hn = strlen(haystack), nn = strlen(needle);
+    if (nn > hn) return false;
+    for (size_t i = 0; i + nn <= hn; i++) {
+        size_t j = 0;
+        for (; j < nn; j++) {
+            char a = haystack[i + j], b = needle[j];
+            if (a >= 'A' && a <= 'Z') a += 32;
+            if (b >= 'A' && b <= 'Z') b += 32;
+            if (a != b) break;
+        }
+        if (j == nn) return true;
+    }
+    return false;
+}
+
+// Ritorna true se la riga passa il filtro attualmente impostato
+static bool passesServerFilter(const char* line) {
+    xSemaphoreTake(s_filterMutex, portMAX_DELAY);
+    bool ok = containsCaseInsensitive(line, s_filterText);
+    xSemaphoreGive(s_filterMutex);
+    return ok;
+}
+
+// Forward declaration: la definizione sta più in basso nel file, ma serve
+// già qui perché usata da filterGetHandler
+static void setFilter(const char* text);
+
 static httpd_handle_t s_server = nullptr;
 static TaskHandle_t s_asyncWorkerTasks[WEB_LOG_ASYNC_WORKERS];
 
@@ -214,6 +249,56 @@ static esp_err_t indexGetHandler(httpd_req_t* req) {
     return httpd_resp_send(req, WEB_LOG_INDEX_HTML, HTTPD_RESP_USE_STRLEN);
 }
 
+// --- Download storico completo come file di testo (streaming a chunk) ---
+static esp_err_t downloadGetHandler(httpd_req_t* req) {
+    NLOGI("Richiesta GET su '/download' ricevuta, invio storico log completo");
+
+    httpd_resp_set_type(req, "text/plain");
+    httpd_resp_set_hdr(req, "Content-Disposition", "attachment; filename=\"carduino_log.txt\"");
+
+    xSemaphoreTake(s_ringMutex, portMAX_DELAY);
+    int count = s_ringCount;
+    int startIdx = (s_ringHead - count + WEB_LOG_RING_SIZE) % WEB_LOG_RING_SIZE;
+    xSemaphoreGive(s_ringMutex);
+
+    char lineBuf[WEB_LOG_LINE_MAX + 2]; // +2 per "\n"
+    for (int i = 0; i < count; i++) {
+        xSemaphoreTake(s_ringMutex, portMAX_DELAY);
+        int idx = (startIdx + i) % WEB_LOG_RING_SIZE;
+        int n = snprintf(lineBuf, sizeof(lineBuf), "%s\n", s_ring[idx]);
+        xSemaphoreGive(s_ringMutex);
+
+        if (httpd_resp_send_chunk(req, lineBuf, n) != ESP_OK) {
+            NLOGW("[Download] Client disconnesso durante l'invio, interruzione (linea %d/%d)", i, count);
+            httpd_resp_send_chunk(req, nullptr, 0);
+            return ESP_FAIL;
+        }
+    }
+
+    httpd_resp_send_chunk(req, nullptr, 0);
+    NLOGI("[Download] Storico inviato (%d linee)", count);
+    return ESP_OK;
+}
+
+static esp_err_t filterGetHandler(httpd_req_t* req) {
+    char query[128];
+    char textParam[WEB_LOG_FILTER_MAX] = "";
+
+    if (httpd_req_get_url_query_len(req) > 0 &&
+        httpd_req_get_url_query_str(req, query, sizeof(query)) == ESP_OK) {
+        httpd_query_key_value(query, "text", textParam, sizeof(textParam));
+    }
+    // URL-decode minimale: sostituisce '+' con spazio (i browser codificano cosi' gli spazi in querystring)
+    for (char* p = textParam; *p; p++) {
+        if (*p == '+') *p = ' ';
+    }
+
+    setFilter(textParam);
+
+    httpd_resp_set_type(req, "text/plain");
+    return httpd_resp_send(req, "OK", HTTPD_RESP_USE_STRLEN);
+}
+
 static esp_err_t eventsGetHandler(httpd_req_t* req) {
     NLOGI("Richiesta GET su '/events' (SSE) intercettata. Avvio logica asincrona");
     
@@ -244,6 +329,7 @@ static esp_err_t eventsGetHandler(httpd_req_t* req) {
 
 void pushLine(const char* line) {
     if (line == nullptr) return;
+    if (!passesServerFilter(line)) return; // scartata: non entra nel ring buffer
     ringPush(line);
     s_seq = s_seq + 1;
 }
@@ -253,15 +339,26 @@ void pushLineFormatted(const char* prefix, const char* msg) {
     if (msg == nullptr) msg = "";
     char line[WEB_LOG_LINE_MAX];
     snprintf(line, sizeof(line), "[%s]: %s", prefix, msg);
+    if (!passesServerFilter(line)) return; // scartata: non entra nel ring buffer
     ringPush(line);
     s_seq = s_seq + 1;
+}
+
+// --- Imposta il filtro attivo (chiamato dall'handler HTTP /filter) ---
+static void setFilter(const char* text) {
+    xSemaphoreTake(s_filterMutex, portMAX_DELAY);
+    strlcpy(s_filterText, text, WEB_LOG_FILTER_MAX);
+    xSemaphoreGive(s_filterMutex);
+    NLOGI("[Filter] Filtro server-side aggiornato: \"%s\"", text);
 }
 
 // CORREZIONE: Inizializzazione completa delle code e dei Task in background
 void init() {
     s_ringMutex = xSemaphoreCreateMutex();
     s_clientsMutex = xSemaphoreCreateMutex();
+    s_filterMutex = xSemaphoreCreateMutex();
     s_clientCount = 0;
+    s_filterText[0] = '\0';
 
     // Crea le risorse FreeRTOS per la gestione asincrona
     s_asyncEventsQueue = xQueueCreate(WEB_LOG_ASYNC_WORKERS, sizeof(AsyncEventsRequest));
@@ -296,6 +393,18 @@ void init() {
     eventsUri.method = HTTP_GET;
     eventsUri.handler = eventsGetHandler;
     httpd_register_uri_handler(s_server, &eventsUri);
+
+    httpd_uri_t downloadUri = {};
+    downloadUri.uri = "/download";
+    downloadUri.method = HTTP_GET;
+    downloadUri.handler = downloadGetHandler;
+    httpd_register_uri_handler(s_server, &downloadUri);
+
+    httpd_uri_t filterUri = {};
+    filterUri.uri = "/filter";
+    filterUri.method = HTTP_GET;
+    filterUri.handler = filterGetHandler;
+    httpd_register_uri_handler(s_server, &filterUri);
 
     NLOGI("Web log server avviato su http://192.168.4.1/ (max %d client SSE)", WEB_LOG_MAX_CLIENTS);
 }

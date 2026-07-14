@@ -113,6 +113,7 @@ static const char WEB_LOG_INDEX_HTML[] = R"HTML_PAGE(<!DOCTYPE html>
   <input id="filterInput" type="text" placeholder="Filtra per nodo o testo (es. Klein, ERR, batteria)...">
   <button id="pauseBtn">Pausa scroll</button>
   <button id="clearBtn">Pulisci</button>
+  <a id="downloadBtn" href="/download" download="carduino_log.txt"><button type="button">Scarica log</button></a>
   <span id="count">0 righe</span>
 </header>
 
@@ -129,8 +130,9 @@ static const char WEB_LOG_INDEX_HTML[] = R"HTML_PAGE(<!DOCTYPE html>
 
   const MAX_DOM_ROWS = 2000; // limite righe nel DOM per non appesantire il browser
   let autoScroll = true;
-  let filterText = '';
   let rowCount = 0;
+  let es = null;
+  let filterDebounceTimer = null;
 
   function classify(line) {
     if (/\berr(or)?\b/i.test(line)) return 'match-e';
@@ -138,16 +140,12 @@ static const char WEB_LOG_INDEX_HTML[] = R"HTML_PAGE(<!DOCTYPE html>
     return '';
   }
 
-  function passesFilter(line) {
-    if (!filterText) return true;
-    return line.toLowerCase().includes(filterText);
-  }
-
+  // NB: il filtro ora e' applicato lato server (prima del ring buffer),
+  // quindi ogni riga ricevuta qui e' gia' stata accettata dal firmware.
   function appendRow(text) {
     const div = document.createElement('div');
     div.className = 'row ' + classify(text);
     div.textContent = text;
-    if (!passesFilter(text)) div.classList.add('hidden');
     logEl.appendChild(div);
     rowCount++;
 
@@ -162,16 +160,32 @@ static const char WEB_LOG_INDEX_HTML[] = R"HTML_PAGE(<!DOCTYPE html>
     }
   }
 
-  function reapplyFilter() {
-    for (const row of logEl.children) {
-      row.classList.toggle('hidden', !passesFilter(row.textContent));
-    }
-    if (autoScroll) logEl.scrollTop = logEl.scrollHeight;
+  // Invia il nuovo filtro al firmware. Le righe scartate da questo momento
+  // in poi non verranno piu' salvate nel ring buffer lato ESP32.
+  function sendFilterToServer(text) {
+    fetch('/filter?text=' + encodeURIComponent(text)).catch(() => {
+      statusEl.textContent = 'errore invio filtro';
+    });
+  }
+
+  // Dopo un cambio filtro puliamo la vista e riapriamo la SSE: la history
+  // che arriva ora e' quella gia' filtrata dal server.
+  function resetAndReconnect() {
+    logEl.innerHTML = '';
+    rowCount = 0;
+    countEl.textContent = '0 righe';
+    if (es) es.close();
+    connect();
   }
 
   filterInput.addEventListener('input', () => {
-    filterText = filterInput.value.trim().toLowerCase();
-    reapplyFilter();
+    const text = filterInput.value.trim();
+    clearTimeout(filterDebounceTimer);
+    // Debounce per non spammare il server ad ogni tasto premuto
+    filterDebounceTimer = setTimeout(() => {
+      sendFilterToServer(text);
+      resetAndReconnect();
+    }, 400);
   });
 
   pauseBtn.addEventListener('click', () => {
@@ -188,7 +202,7 @@ static const char WEB_LOG_INDEX_HTML[] = R"HTML_PAGE(<!DOCTYPE html>
   });
 
   function connect() {
-    const es = new EventSource('/events');
+    es = new EventSource('/events');
 
     es.onopen = () => {
       statusEl.textContent = 'connesso';
