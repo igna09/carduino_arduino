@@ -6,13 +6,15 @@ MainNode::MainNode(): CarduinoNode(Node::MAIN.id, true), I2cNode() {
     _canExecutor.addExecutor(new BootExecutor());
     _canExecutor.addExecutor(new HelloTrackerExecutor());
     _canExecutor.addExecutor(new MainNodeCanEvent());
-
+    
     _serialExecutor.addExecutor(new SwcPairingEvent());
 
+    _buzzer.init(GPIO_NUM_2);
+    configTemt6000();
+    configAht();
+    configBmp();
     configSwc();
     configEncoder();
-
-    _buzzer.init(GPIO_NUM_2);
 
     // Chiamiamo l'inizializzazione dei dispositivi adesso che l'oggetto è pronto!
     initI2cDevices();

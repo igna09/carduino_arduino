@@ -111,6 +111,14 @@ public:
         }
     }
 
+   float getAsFloat() const override {
+        if constexpr (sizeof...(Types) > 0) {
+            return static_cast<float>(std::get<0>(values));
+        } else {
+            return 0.0f;
+        }
+    }
+
 private:
     // Serializzazione
     template<size_t... I>

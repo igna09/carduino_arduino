@@ -229,14 +229,7 @@ void KlineNode::dispatchMeasurement(ValueToRead *valueToRead, float value) {
             sendMessage(Message(Priority::L.id, Node::MAIN.id, ev));
     }
 
-    // Aggiorniamo la cache locale dell'ultimo valore letto, indipendentemente dal fatto che venga inviato sul CAN.
-    if (valueToRead->carstatus.type->id == MessageType::INT.id) {
-        valueToRead->lastReadValue.intValue = static_cast<int>(value);
-    } else if (valueToRead->carstatus.type->id == MessageType::FLOAT.id) {
-        valueToRead->lastReadValue.floatValue = value;
-    } else if (valueToRead->carstatus.type->id == MessageType::BOOL.id) {
-        valueToRead->lastReadValue.boolValue = (value == 1.0f);
-    }
+    _lastValues[valueToRead->id] = value;
 }
 
 // ─────────────────────────────────────────────
@@ -468,3 +461,8 @@ bool KlineNode::klineReceive(uint8_t *data, unsigned long timeout_ticks) {
     bytes_read = uart_read_bytes(_uart, data, 1, 0);
     return bytes_read == 1;
 };
+
+float KlineNode::getLastValue(uint8_t valueToReadId) const {
+    auto it = _lastValues.find(valueToReadId);
+    return it != _lastValues.end() ? it->second : 0.0f;
+}

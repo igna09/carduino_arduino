@@ -6,6 +6,7 @@
 #include <math.h>
 #include <tuple>
 #include <cmath>
+#include <unordered_map>
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -74,6 +75,8 @@ static constexpr uint32_t KLINE_BACKOFF_MS = 5000;
 class KlineNode : public CarduinoNode {
 public:
     KlineNode(gpio_num_t tx_pin, gpio_num_t rx_pin);
+
+    float getLastValue(uint8_t valueToReadId) const;
 private:
     /** Stato della connessione verso l'ECU corrente */
     enum class ConnState : uint8_t {
@@ -99,6 +102,7 @@ private:
     AfterReadExecutors _afterReadExecutors;
     QueueHandle_t _uart_queue;
     TaskHandle_t _uart_task_handle;
+    std::unordered_map<uint8_t, float> _lastValues;
 
     void uart_event_loop();
     void klineBegin(unsigned long baud);

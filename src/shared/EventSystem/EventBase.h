@@ -34,4 +34,5 @@ public:
     virtual void printValue(std::ostream& out, bool serialMode = false) const = 0;
 
     virtual void setFromFloat(float v) = 0;
+    virtual float getAsFloat() const = 0;
 };
