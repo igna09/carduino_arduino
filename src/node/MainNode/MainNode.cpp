@@ -85,7 +85,8 @@ void MainNode::configEncoder() {
     });
 
     _encoder.setOnLongPress([this]{
-        auto *ev = static_cast<EventMulti<uint16_t>*>(EventRegistry::createById(EV_LONG_PRESS));
+        auto *ev = static_cast<EventMulti<uint8_t>*>(EventRegistry::createById(EV_LONG_PRESS));
+        std::get<0>(ev->values) = 0;
         Message m = Message(Priority::L.id, Node::BROADCAST.id, ev);
         sendSerialMessage(m);
     });
