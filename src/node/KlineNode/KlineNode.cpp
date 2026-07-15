@@ -70,7 +70,7 @@ void KlineNode::configVoltageSensor() {
     }
     #endif
 
-    static constexpr float R1 = 6800.0f; // resistore partitore superiore
+    static constexpr float R1 = 10000.0f; // resistore partitore superiore
     static constexpr float R2 = 2000.0f;  // resistore partitore inferiore
 
     startRepeatingTask("voltage_read", 15000, [this, adc_handle, cali_handle, do_calibration]() {
@@ -136,14 +136,14 @@ void KlineNode::kline_poll_task_trampoline(void *arg) {
 void KlineNode::kline_poll_loop() {
     const TickType_t period = pdMS_TO_TICKS(KLINE_POLL_INTERVAL_MS);
     while (true) {
-        UBaseType_t freeStack = uxTaskGetStackHighWaterMark(NULL); // NULL = task corrente
-        NLOGI("before readValues()");
-        NLOGI("Stack libero: %u words (%u bytes)", freeStack, freeStack * sizeof(StackType_t));
-        NLOGI("Heap libero: %u bytes, min storico: %u", esp_get_free_heap_size(), esp_get_minimum_free_heap_size());
+        // UBaseType_t freeStack = uxTaskGetStackHighWaterMark(NULL); // NULL = task corrente
+        // NLOGI("before readValues()");
+        // NLOGI("Stack libero: %u words (%u bytes)", freeStack, freeStack * sizeof(StackType_t));
+        // NLOGI("Heap libero: %u bytes, min storico: %u", esp_get_free_heap_size(), esp_get_minimum_free_heap_size());
         readValues();
-        NLOGI("after readValues()");
-        NLOGI("Stack libero: %u words (%u bytes)", freeStack, freeStack * sizeof(StackType_t));
-        NLOGI("Heap libero: %u bytes, min storico: %u", esp_get_free_heap_size(), esp_get_minimum_free_heap_size());
+        // NLOGI("after readValues()");
+        // NLOGI("Stack libero: %u words (%u bytes)", freeStack, freeStack * sizeof(StackType_t));
+        // NLOGI("Heap libero: %u bytes, min storico: %u", esp_get_free_heap_size(), esp_get_minimum_free_heap_size());
         vTaskDelay(period);
     }
 }
