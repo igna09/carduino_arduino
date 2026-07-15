@@ -10,7 +10,7 @@ public:
     void init(WarnCallback cb) { _onWarn = std::move(cb); }
 
     void setLimit(uint8_t kmh) { _limitKmh = kmh; }
-    uint16_t getLimit() const { return _limitKmh; }
+    uint8_t getLimit() const { return _limitKmh; }
 
     void setEnabled(bool en) { _enabled = en; }
     bool isEnabled() const { return _enabled; }

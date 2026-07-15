@@ -44,11 +44,16 @@ void MainNode::configEncoder() {
         NLOGI("Speed limit set mode: %d", _speedLimitSetMode);
 
         if (_speedLimitSetMode) {
+            NLOGI("Speed limit: %d", _speedWarn.getLimit());
+            if(_speedWarn.getLimit() == 0) {
+                NLOGI("last speed: %d", lastSpeed);
+                _speedWarn.setLimit(lastSpeed);
+            }
             _buzzer.playToneAsync(ToneType::MODE_ENTER);
             if (_speedLimitEditTimer) xTimerStart(_speedLimitEditTimer, 0);
         } else {
-            _buzzer.playToneAsync(ToneType::MODE_EXIT);
             if (_speedLimitEditTimer) xTimerStop(_speedLimitEditTimer, 0);
+            exitSpeedLimitEditMode();
         }
 
         const SwcMapping *m = findSwcMapping(SwcPattern::TRIPLE_CLICK);
@@ -90,7 +95,9 @@ void MainNode::configEncoder() {
 
 void MainNode::configSpeedWarning() {
     _speedWarn.init([this]{ _buzzer.playToneAsync(1200, 150, 100, 3); });
-    // _speedWarn.setLimit(130);
+    _speedWarn.setEnabled(true);
+    _speedWarn.setRepeatIntervalMs(30000);
+    _speedWarn.setHysteresisKmh(10);
 }
 
 void MainNode::configSwc() {
@@ -271,7 +278,13 @@ void MainNode::enable() {
     sendMessage(Message(Priority::L.id, Node::BROADCAST.id, EventRegistry::createById(EV_GET_HELLOS)));
 
     // delayTask(5000, [this](){
-    //     startSwcPairing();
+    //     // startSwcPairing();
+    //     for(uint8_t i = 0; i <= 100; i = i + 10) {
+    //         lastSpeed = i;
+    //         _speedWarn.onSpeedUpdate(i);
+    //         NLOGI("Set speed to %i", i);
+    //         vTaskDelay(pdMS_TO_TICKS(5000));
+    //     }
     // });
 }
 
@@ -367,4 +380,9 @@ void MainNode::exitSpeedLimitEditMode() {
     if (!_speedLimitSetMode) return;
     _speedLimitSetMode = false;
     _buzzer.playToneAsync(ToneType::MODE_EXIT);
+
+    auto *ev = static_cast<EventMulti<uint8_t>*>(EventRegistry::createById(EV_SPEED_LIMIT_SET));
+    std::get<0>(ev->values) = _speedWarn.getLimit();
+    Message m = Message(Priority::L.id, Node::BROADCAST.id, ev);
+    sendSerialMessage(m);
 }

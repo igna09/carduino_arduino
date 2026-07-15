@@ -56,7 +56,8 @@ enum class ClickPending { NONE, SINGLE, DOUBLE };
 class MainNode : public CarduinoNode, public I2cNode {
 public:
     SpeedLimitWarning _speedWarn;
-    
+    uint8_t lastSpeed = 0;
+
     MainNode();
 
     bool isEnabled = true;

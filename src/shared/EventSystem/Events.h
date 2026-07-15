@@ -33,6 +33,7 @@ DECLARE_EVENT(GET_SETTINGS,             0x10, "GET_SETTINGS",             EventC
 DECLARE_EVENT(WARNING_SEVERITY_LOW,     0x11, "WARNING_SEVERITY_LOW",     EventCategory::CONTROL)
 DECLARE_EVENT(WARNING_SEVERITY_MEDIUM,  0x12, "WARNING_SEVERITY_MEDIUM",  EventCategory::CONTROL)
 DECLARE_EVENT(WARNING_SEVERITY_HIGH,    0x13, "WARNING_SEVERITY_HIGH",    EventCategory::CONTROL)
+DECLARE_EVENT(SPEED_LIMIT_SET,          0x2F, "SPEED_LIMIT_SET",          EventCategory::CONTROL, uint8_t)
 
 // --- Sensori ----------------------------------------------------------------
 DECLARE_EVENT(EXTERNAL_TEMPERATURE,             0x14, "EXTERNAL_TEMPERATURE",             EventCategory::SENSOR, float)
