@@ -328,16 +328,11 @@ uint32_t MainNode::syncedMillis() const {
     return localMillis();
 }
 
-static void pressTask(void* arg) {
-    PressParams* p = static_cast<PressParams*>(arg);
-    p->ctrl->pressOneShotAsync(p->channel, p->holdMs);
-    delete p;
-    vTaskDelete(NULL);
-}
-
 void MainNode::pressSwcAsync(uint8_t channel, uint32_t holdMs) {
-    auto* params = new PressParams{&_swc, channel, holdMs};
-    xTaskCreate(pressTask, "swc_press", configMINIMAL_STACK_SIZE * 2, params, 5, NULL);
+    esp_err_t err = _swc.pressOneShotAsync(channel, holdMs);
+    if (err != ESP_OK) {
+        NLOGD("SWC", "richiesta scartata: canale %d, busy=%d", channel, err);
+    }
 }
 
 void MainNode::startSwcPairing() {
