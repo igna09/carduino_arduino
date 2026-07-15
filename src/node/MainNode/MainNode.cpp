@@ -15,11 +15,82 @@ MainNode::MainNode(): CarduinoNode(Node::MAIN.id, true), I2cNode() {
     configBmp();
     configSwc();
     configEncoder();
+    configSpeedWarning();
 
     // Chiamiamo l'inizializzazione dei dispositivi adesso che l'oggetto è pronto!
     initI2cDevices();
 
     this->enable();
+}
+
+void MainNode::configEncoder() {
+    _speedLimitEditTimer = xTimerCreate("spdLimEdit",
+                                     pdMS_TO_TICKS(SPEED_LIMIT_EDIT_TIMEOUT_MS),
+                                     pdFALSE, this, &MainNode::speedLimitEditTimeoutCallback);
+    if (_speedLimitEditTimer == nullptr) {
+        NLOGE("speedLimitEditTimer xTimerCreate FAILED");
+    }
+
+    _encoder.setOnSingleClick([this]{
+        NLOGI("SWC SINGLE click");
+        pressSwcAsync(findSwcMapping(SwcPattern::SINGLE_CLICK)->channel, SWC_PRESS_INTERVAL);
+    });
+    _encoder.setOnDoubleClick([this]{
+        NLOGI("SWC DOUBLE click");
+        pressSwcAsync(findSwcMapping(SwcPattern::DOUBLE_CLICK)->channel, SWC_PRESS_INTERVAL);
+    });
+    _encoder.setOnTripleClick([this]{
+        _speedLimitSetMode = !_speedLimitSetMode;
+        NLOGI("Speed limit set mode: %d", _speedLimitSetMode);
+
+        if (_speedLimitSetMode) {
+            _buzzer.playToneAsync(ToneType::MODE_ENTER);
+            if (_speedLimitEditTimer) xTimerStart(_speedLimitEditTimer, 0);
+        } else {
+            _buzzer.playToneAsync(ToneType::MODE_EXIT);
+            if (_speedLimitEditTimer) xTimerStop(_speedLimitEditTimer, 0);
+        }
+
+        const SwcMapping *m = findSwcMapping(SwcPattern::TRIPLE_CLICK);
+        if (m) pressSwcAsync(m->channel, SWC_PRESS_INTERVAL);
+    });
+
+    _encoder.setOnRotate([this](int32_t diff){
+        if (_speedLimitSetMode) {
+            int32_t nl = (int32_t)_speedWarn.getLimit() + (diff > 0 ? 5 : -5);
+            _speedWarn.setLimit(nl < 0 ? 0 : nl);
+            NLOGI("Speed limit -> %u", _speedWarn.getLimit());
+            if (_speedLimitEditTimer) xTimerReset(_speedLimitEditTimer, 0); // riazzera countdown
+            return;
+        }
+        NLOGI("SWC ROTATE diff=%ld", (long)diff);
+        pressSwcAsync(findSwcMapping(diff > 0 ? SwcPattern::CW_ROTATION : SwcPattern::CCW_ROTATION)->channel,
+                    SWC_PRESS_INTERVAL);
+    });
+
+    _encoder.setOnRotateHeld([this](int32_t diff){
+        if (_speedLimitSetMode) {
+            int32_t nl = (int32_t)_speedWarn.getLimit() + (diff > 0 ? 20 : -20);
+            _speedWarn.setLimit(nl < 0 ? 0 : nl);
+            NLOGI("Speed limit (fast) -> %u", _speedWarn.getLimit());
+            if (_speedLimitEditTimer) xTimerReset(_speedLimitEditTimer, 0);
+            return;
+        }
+        NLOGI("SWC ROTATE+HOLD diff=%ld", (long)diff);
+    });
+
+    _encoder.setOnLongPress([this]{
+        auto *ev = static_cast<EventMulti<uint16_t>*>(EventRegistry::createById(EV_LONG_PRESS));
+        Message m = Message(Priority::L.id, Node::BROADCAST.id, ev);
+        sendSerialMessage(m);
+    });
+
+    _encoder.init(GPIO_ENCODER_A, GPIO_ENCODER_B, GPIO_BUTTON);
+}
+
+void MainNode::configSpeedWarning() {
+    _speedWarn.init([this]{ _buzzer.playToneAsync(1200, 150, 100, 3); });
+    // _speedWarn.setLimit(130);
 }
 
 void MainNode::configSwc() {
@@ -243,32 +314,6 @@ uint32_t MainNode::syncedMillis() const {
     return localMillis();
 }
 
-void MainNode::encoderEventHandler(const rotary_encoder_event_t *event, void *ctx) {
-    xQueueSendToBack((QueueHandle_t)ctx, event, 0);
-}
-
-void MainNode::configEncoder() {
-    event_queue = xQueueCreate(EV_QUEUE_LEN, sizeof(rotary_encoder_event_t));
-
-    rotary_encoder_config_t config = ROTARY_ENCODER_DEFAULT_CONFIG();
-    config.pin_a = GPIO_ENCODER_A;
-    config.pin_b = GPIO_ENCODER_B;
-    config.pin_btn = GPIO_BUTTON;
-    config.callback = encoderEventHandler;
-    config.callback_ctx = event_queue;
-
-    ESP_ERROR_CHECK(rotary_encoder_create(&config, &re));
-
-    xTaskCreate(encoderTask, "encoder_task", configMINIMAL_STACK_SIZE * 8, this, 5, NULL);
-
-    _clickTimer = xTimerCreate("clickTmr", pdMS_TO_TICKS(MULTI_CLICK_WINDOW_MS),
-                               pdFALSE, this, clickTimerCallback);
-
-    if (_clickTimer == nullptr) {
-        NLOGE("SWC xTimerCreate FAILED - click timer disabled");
-    }
-}
-
 static void pressTask(void* arg) {
     PressParams* p = static_cast<PressParams*>(arg);
     p->ctrl->pressOneShotAsync(p->channel, p->holdMs);
@@ -279,39 +324,6 @@ static void pressTask(void* arg) {
 void MainNode::pressSwcAsync(uint8_t channel, uint32_t holdMs) {
     auto* params = new PressParams{&_swc, channel, holdMs};
     xTaskCreate(pressTask, "swc_press", configMINIMAL_STACK_SIZE * 2, params, 5, NULL);
-}
-
-
-void MainNode::encoderTask(void *arg) {
-    MainNode *self = static_cast<MainNode*>(arg);
-    rotary_encoder_event_t e;
-
-    while (1) {
-        xQueueReceive(self->event_queue, &e, portMAX_DELAY);
-        switch (e.type) {
-            case RE_ET_BTN_PRESSED:
-                self->onButtonPressed();
-                break;
-            case RE_ET_BTN_RELEASED:
-                self->onButtonReleased();
-                break;
-            case RE_ET_CHANGED:
-                self->onRotation(e.diff);
-                break;
-            case RE_ET_BTN_LONG_PRESSED: {
-                if (self->_rotatedWhileHeld) {
-                    break;
-                }
-                self->_longPressFired = true;
-                auto *ev = static_cast<EventMulti<uint16_t> *>(EventRegistry::createById(EV_LONG_PRESS));
-                Message m = Message(Priority::L.id, Node::BROADCAST.id, ev);
-                self->sendSerialMessage(m);
-                break;
-            }
-            default:
-                break;
-        }
-    }
 }
 
 void MainNode::startSwcPairing() {
@@ -345,69 +357,14 @@ void MainNode::swcPairingTask(void* param) {
     vTaskDelete(nullptr);
 }
 
-void MainNode::clickTimerCallback(TimerHandle_t t) {
+void MainNode::speedLimitEditTimeoutCallback(TimerHandle_t t) {
     auto* self = static_cast<MainNode*>(pvTimerGetTimerID(t));
-    self->flushClicks();
+    NLOGI("Speed limit edit timeout -> exit");
+    self->exitSpeedLimitEditMode();
 }
 
-void MainNode::flushClicks() {
-    switch (_clickCount) {
-        case 1: 
-            NLOGI("SWC SINGLE click"); /* dispatch single */
-            pressSwcAsync(findSwcMapping(SwcPattern::SINGLE_CLICK)->channel, SWC_PRESS_INTERVAL);
-            break;
-        case 2:
-            NLOGI("SWC DOUBLE click"); /* dispatch single */
-            pressSwcAsync(findSwcMapping(SwcPattern::DOUBLE_CLICK)->channel, SWC_PRESS_INTERVAL);
-            break;
-        default: 
-            if (_clickCount >= 3) { 
-                NLOGI("SWC TRIPLE click"); /* dispatch single */
-                const SwcMapping *m = findSwcMapping(SwcPattern::TRIPLE_CLICK);
-                if(m == nullptr) break;
-                pressSwcAsync(m->channel, SWC_PRESS_INTERVAL);
-                break;
-            }
-            break;
-    }
-    _clickCount = 0;
-}
-
-void MainNode::onButtonPressed() {
-    _rotatedWhileHeld = false;
-    _btnHeld = true;
-}
-
-void MainNode::onButtonReleased() {
-    _btnHeld = false;
-
-    if (_longPressFired) {
-        _longPressFired = false;
-        return;
-    }
-    if (_rotatedWhileHeld) {
-        return;
-    }
-
-    _clickCount++;
-    if (_clickTimer == nullptr) return;
-    xTimerStop(_clickTimer, 0);
-    xTimerStart(_clickTimer, 0);
-}
-
-void MainNode::onRotation(int32_t diff) {
-    if (_btnHeld) {
-        _rotatedWhileHeld = true;
-        // rotazione durante pressione: azione diversa (es. cambio modalità/volume rapido)
-        NLOGI("SWC ROTATE+HOLD diff=%ld", (long)diff);
-        // dispatch evento dedicato, es. pressSwcAsync su canale diverso
-    } else {
-        // rotazione normale, comportamento esistente
-        NLOGI("SWC ROTATE diff=%ld", (long)diff);
-        if(diff > 0) {
-            pressSwcAsync(findSwcMapping(SwcPattern::CW_ROTATION)->channel, SWC_PRESS_INTERVAL);
-        } else {
-            pressSwcAsync(findSwcMapping(SwcPattern::CCW_ROTATION)->channel, SWC_PRESS_INTERVAL);
-        }
-    }
+void MainNode::exitSpeedLimitEditMode() {
+    if (!_speedLimitSetMode) return;
+    _speedLimitSetMode = false;
+    _buzzer.playToneAsync(ToneType::MODE_EXIT);
 }

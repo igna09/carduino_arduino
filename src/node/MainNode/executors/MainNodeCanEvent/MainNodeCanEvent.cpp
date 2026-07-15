@@ -7,6 +7,12 @@ void MainNodeCanEvent::execute(CarduinoNode *node, Message *message) {
 
     if(message->event->category == EventCategory::SENSOR ) {
         main->sendSerialMessage(*message);
+
+        if(message->event->id == EV_SPEED) {
+            auto* speedEv = static_cast<EventMulti<uint8_t>*>(message->event);
+            uint8_t speed = std::get<0>(speedEv->values);
+            main->_speedWarn.onSpeedUpdate(speed);
+        }
     }
 };
 

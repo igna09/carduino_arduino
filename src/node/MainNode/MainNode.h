@@ -33,6 +33,8 @@
 #include "BuzzerController.h"
 #include "Tone.h"
 #include "SwcPairingEvent.h"
+#include "EncoderController.h"
+#include "SpeedLimitWarning.h"
 
 // Configurazione ADC (Ad esempio usando il pin GPIO36 / ADC1 Canale 0) GPIO 0
 #define TEMT6000_ADC_CHANNEL    ADC_CHANNEL_0 
@@ -53,6 +55,8 @@ enum class ClickPending { NONE, SINGLE, DOUBLE };
 
 class MainNode : public CarduinoNode, public I2cNode {
 public:
+    SpeedLimitWarning _speedWarn;
+    
     MainNode();
 
     bool isEnabled = true;
@@ -85,17 +89,12 @@ private:
     aht_t aht_dev;
     bmp280_t bpm_dev;
     float temperature, humidity;
-    QueueHandle_t event_queue;
-    rotary_encoder_handle_t re;
     SwcController _swc;
     BuzzerController _buzzer;
-    static constexpr uint32_t MULTI_CLICK_WINDOW_MS = 300; // finestra tra click
-    bool _btnHeld = false;
-    bool _longPressFired = false;
-    bool _rotatedWhileHeld = false;
-    uint8_t _clickCount = 0;
-    uint32_t _lastClickMillis = 0;
-    TimerHandle_t _clickTimer = nullptr;
+    EncoderController _encoder;
+    bool _speedLimitSetMode = false;
+    static constexpr uint32_t SPEED_LIMIT_EDIT_TIMEOUT_MS = 5000;
+    TimerHandle_t _speedLimitEditTimer = nullptr;
 
     // id nodo -> timestamp (syncedMillis()) dell'ultimo EV_HELLO ricevuto.
     // Popolata da recordHello(), a sua volta chiamato da HelloTrackerExecutor
@@ -109,15 +108,11 @@ private:
     void configAht();
     void configBmp();
     void configSwc();
+    void configEncoder();
+    void configSpeedWarning();
     void startTimeSync() override;
     uint32_t syncedMillis() const override;
-    void configEncoder();
-    static void encoderEventHandler(const rotary_encoder_event_t *event, void *ctx);
-    static void encoderTask(void *arg);
     void pressSwcAsync(uint8_t channel, uint32_t holdMs);
-    static void clickTimerCallback(TimerHandle_t t);
-    void onButtonPressed();
-    void onButtonReleased();
-    void onRotation(int32_t diff); // diff = delta posizione
-    void flushClicks(); // emette SINGLE/DOUBLE/TRIPLE alla scadenza timer
+    static void speedLimitEditTimeoutCallback(TimerHandle_t t);
+    void exitSpeedLimitEditMode();
 };
