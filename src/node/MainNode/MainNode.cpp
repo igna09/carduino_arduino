@@ -260,6 +260,13 @@ void MainNode::configEncoder() {
     ESP_ERROR_CHECK(rotary_encoder_create(&config, &re));
 
     xTaskCreate(encoderTask, "encoder_task", configMINIMAL_STACK_SIZE * 8, this, 5, NULL);
+
+    _clickTimer = xTimerCreate("clickTmr", pdMS_TO_TICKS(MULTI_CLICK_WINDOW_MS),
+                               pdFALSE, this, clickTimerCallback);
+
+    if (_clickTimer == nullptr) {
+        NLOGE("SWC xTimerCreate FAILED - click timer disabled");
+    }
 }
 
 static void pressTask(void* arg) {
@@ -278,34 +285,29 @@ void MainNode::pressSwcAsync(uint8_t channel, uint32_t holdMs) {
 void MainNode::encoderTask(void *arg) {
     MainNode *self = static_cast<MainNode*>(arg);
     rotary_encoder_event_t e;
-    int32_t val = 0;
 
     while (1) {
         xQueueReceive(self->event_queue, &e, portMAX_DELAY);
         switch (e.type) {
             case RE_ET_BTN_PRESSED:
+                self->onButtonPressed();
                 break;
             case RE_ET_BTN_RELEASED:
+                self->onButtonReleased();
                 break;
-            case RE_ET_BTN_CLICKED:
-                self->pressSwcAsync(findSwcMapping(SwcPattern::SINGLE_CLICK)->channel, SWC_PRESS_INTERVAL);
-                // rotary_encoder_enable_acceleration(self->re, 100);
+            case RE_ET_CHANGED:
+                self->onRotation(e.diff);
                 break;
             case RE_ET_BTN_LONG_PRESSED: {
+                if (self->_rotatedWhileHeld) {
+                    break;
+                }
+                self->_longPressFired = true;
                 auto *ev = static_cast<EventMulti<uint16_t> *>(EventRegistry::createById(EV_LONG_PRESS));
                 Message m = Message(Priority::L.id, Node::BROADCAST.id, ev);
                 self->sendSerialMessage(m);
                 break;
             }
-            case RE_ET_CHANGED:
-                val += e.diff;
-
-                if(e.diff > 0) {
-                    self->pressSwcAsync(findSwcMapping(SwcPattern::CW_ROTATION)->channel, SWC_PRESS_INTERVAL);
-                } else {
-                    self->pressSwcAsync(findSwcMapping(SwcPattern::CCW_ROTATION)->channel, SWC_PRESS_INTERVAL);
-                }
-                break;
             default:
                 break;
         }
@@ -341,4 +343,71 @@ void MainNode::swcPairingTask(void* param) {
     self->swcPairing = false;
     self->_buzzer.playToneAsync(ToneType::WARNING);
     vTaskDelete(nullptr);
+}
+
+void MainNode::clickTimerCallback(TimerHandle_t t) {
+    auto* self = static_cast<MainNode*>(pvTimerGetTimerID(t));
+    self->flushClicks();
+}
+
+void MainNode::flushClicks() {
+    switch (_clickCount) {
+        case 1: 
+            NLOGI("SWC SINGLE click"); /* dispatch single */
+            pressSwcAsync(findSwcMapping(SwcPattern::SINGLE_CLICK)->channel, SWC_PRESS_INTERVAL);
+            break;
+        case 2:
+            NLOGI("SWC DOUBLE click"); /* dispatch single */
+            pressSwcAsync(findSwcMapping(SwcPattern::DOUBLE_CLICK)->channel, SWC_PRESS_INTERVAL);
+            break;
+        default: 
+            if (_clickCount >= 3) { 
+                NLOGI("SWC TRIPLE click"); /* dispatch single */
+                const SwcMapping *m = findSwcMapping(SwcPattern::TRIPLE_CLICK);
+                if(m == nullptr) break;
+                pressSwcAsync(m->channel, SWC_PRESS_INTERVAL);
+                break;
+            }
+            break;
+    }
+    _clickCount = 0;
+}
+
+void MainNode::onButtonPressed() {
+    _rotatedWhileHeld = false;
+    _btnHeld = true;
+}
+
+void MainNode::onButtonReleased() {
+    _btnHeld = false;
+
+    if (_longPressFired) {
+        _longPressFired = false;
+        return;
+    }
+    if (_rotatedWhileHeld) {
+        return;
+    }
+
+    _clickCount++;
+    if (_clickTimer == nullptr) return;
+    xTimerStop(_clickTimer, 0);
+    xTimerStart(_clickTimer, 0);
+}
+
+void MainNode::onRotation(int32_t diff) {
+    if (_btnHeld) {
+        _rotatedWhileHeld = true;
+        // rotazione durante pressione: azione diversa (es. cambio modalità/volume rapido)
+        NLOGI("SWC ROTATE+HOLD diff=%ld", (long)diff);
+        // dispatch evento dedicato, es. pressSwcAsync su canale diverso
+    } else {
+        // rotazione normale, comportamento esistente
+        NLOGI("SWC ROTATE diff=%ld", (long)diff);
+        if(diff > 0) {
+            pressSwcAsync(findSwcMapping(SwcPattern::CW_ROTATION)->channel, SWC_PRESS_INTERVAL);
+        } else {
+            pressSwcAsync(findSwcMapping(SwcPattern::CCW_ROTATION)->channel, SWC_PRESS_INTERVAL);
+        }
+    }
 }

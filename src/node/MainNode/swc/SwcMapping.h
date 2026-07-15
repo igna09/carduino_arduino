@@ -3,9 +3,12 @@
 enum class SwcPattern : uint8_t {
     SINGLE_CLICK,
     DOUBLE_CLICK,
+    TRIPLE_CLICK,
     LONG_PRESS,
     CW_ROTATION,
-    CCW_ROTATION
+    CCW_ROTATION,
+    CW_HELD_ROTATION,
+    CCW_HELD_ROTATION
 };
 
 struct SwcMapping {

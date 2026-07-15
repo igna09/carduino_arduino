@@ -49,6 +49,8 @@
 #define SWC_FIRST_WAITING_PAIRING_INTERVAL  5000
 #define SWC_FLAG_READY_TO_PAIR_RESET_INTERVAL 30000
 
+enum class ClickPending { NONE, SINGLE, DOUBLE };
+
 class MainNode : public CarduinoNode, public I2cNode {
 public:
     MainNode();
@@ -87,6 +89,13 @@ private:
     rotary_encoder_handle_t re;
     SwcController _swc;
     BuzzerController _buzzer;
+    static constexpr uint32_t MULTI_CLICK_WINDOW_MS = 300; // finestra tra click
+    bool _btnHeld = false;
+    bool _longPressFired = false;
+    bool _rotatedWhileHeld = false;
+    uint8_t _clickCount = 0;
+    uint32_t _lastClickMillis = 0;
+    TimerHandle_t _clickTimer = nullptr;
 
     // id nodo -> timestamp (syncedMillis()) dell'ultimo EV_HELLO ricevuto.
     // Popolata da recordHello(), a sua volta chiamato da HelloTrackerExecutor
@@ -106,4 +115,9 @@ private:
     static void encoderEventHandler(const rotary_encoder_event_t *event, void *ctx);
     static void encoderTask(void *arg);
     void pressSwcAsync(uint8_t channel, uint32_t holdMs);
+    static void clickTimerCallback(TimerHandle_t t);
+    void onButtonPressed();
+    void onButtonReleased();
+    void onRotation(int32_t diff); // diff = delta posizione
+    void flushClicks(); // emette SINGLE/DOUBLE/TRIPLE alla scadenza timer
 };
