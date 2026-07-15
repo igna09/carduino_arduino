@@ -7,9 +7,8 @@ MainNode::MainNode(): CarduinoNode(Node::MAIN.id, true), I2cNode() {
     _canExecutor.addExecutor(new HelloTrackerExecutor());
     _canExecutor.addExecutor(new MainNodeCanEvent());
 
-    configTemt6000();
-    configAht();
-    configBmp();
+    _serialExecutor.addExecutor(new SwcPairingEvent());
+
     configSwc();
     configEncoder();
 
@@ -283,27 +282,27 @@ void MainNode::encoderTask(void *arg) {
         xQueueReceive(self->event_queue, &e, portMAX_DELAY);
         switch (e.type) {
             case RE_ET_BTN_PRESSED:
-                NLOGI("Encoder Bottone premuto");
-                for(uint8_t i = 0; i < 8; i++) {
-                    self->pressSwcAsync(i, 9000);
-                    vTaskDelay(pdMS_TO_TICKS(10000));
-                }
                 break;
             case RE_ET_BTN_RELEASED:
-                NLOGI("Encoder Bottone rilasciato");
                 break;
             case RE_ET_BTN_CLICKED:
-                NLOGI("Encoder Click");
-                rotary_encoder_enable_acceleration(self->re, 100);
+                self->pressSwcAsync(findSwcMapping(SwcPattern::SINGLE_CLICK)->channel, SWC_PRESS_INTERVAL);
+                // rotary_encoder_enable_acceleration(self->re, 100);
                 break;
-            case RE_ET_BTN_LONG_PRESSED:
-                NLOGI("Encoder Pressione lunga");
-                rotary_encoder_disable_acceleration(self->re);
+            case RE_ET_BTN_LONG_PRESSED: {
+                auto *ev = static_cast<EventMulti<uint16_t> *>(EventRegistry::createById(EV_LONG_PRESS));
+                Message m = Message(Priority::L.id, Node::BROADCAST.id, ev);
+                self->sendSerialMessage(m);
                 break;
+            }
             case RE_ET_CHANGED:
                 val += e.diff;
-                NLOGI("Encoder Valore = %" PRIi32, val);
-                // TODO: dispatchare evento con val, se serve
+
+                if(e.diff > 0) {
+                    self->pressSwcAsync(findSwcMapping(SwcPattern::CW_ROTATION)->channel, SWC_PRESS_INTERVAL);
+                } else {
+                    self->pressSwcAsync(findSwcMapping(SwcPattern::CCW_ROTATION)->channel, SWC_PRESS_INTERVAL);
+                }
                 break;
             default:
                 break;

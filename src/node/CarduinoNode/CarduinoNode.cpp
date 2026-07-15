@@ -69,6 +69,8 @@ CarduinoNode::CarduinoNode(uint8_t id, bool isEnabled)
 
     enableUdpLog();
 
+    startSerialRxTask();
+
     NLOGD("CarduinoNode::CarduinoNode end");
 }
 
@@ -570,4 +572,63 @@ void CarduinoNode::addSyncedTask(const std::string& id, uint32_t periodMs, std::
 
 void CarduinoNode::removeSyncedTask(const std::string& id) {
     syncedTasks.removeTask(id);
+}
+
+void CarduinoNode::startSerialRxTask(uint32_t stackSize, UBaseType_t priority) {
+    xTaskCreate(serialRxTaskEntry, "serial_rx_task", stackSize, this, priority, &_serialRxTaskHdl);
+}
+
+void CarduinoNode::serialRxTaskEntry(void *pvParameters) {
+    CarduinoNode* self = static_cast<CarduinoNode*>(pvParameters);
+    char lineBuf[128];
+
+    while (true) {
+        int c = fgetc(stdin);
+        if (c == EOF) {
+            vTaskDelay(pdMS_TO_TICKS(5)); // niente dati, cedi la CPU
+            continue;
+        }
+
+        static std::string acc; // accumulator persistente tra iterazioni
+        if (c == '\n' || c == '\r') {
+            if (!acc.empty()) {
+                self->handleSerialLine(acc);
+                acc.clear();
+            }
+        } else {
+            acc += (char)c;
+            if (acc.size() >= sizeof(lineBuf) - 1) acc.clear(); // guardia overflow
+        }
+    }
+}
+
+void CarduinoNode::handleSerialLine(const std::string& line) {
+    size_t p1 = line.find(';');
+    if (p1 == std::string::npos) { NLOGD("Serial RX: riga malformata"); return; }
+
+    size_t p2 = line.find(';', p1 + 1);
+    std::string eventName = line.substr(p1 + 1,
+        p2 == std::string::npos ? std::string::npos : p2 - p1 - 1);
+
+    std::string valueStr;
+    if (p2 != std::string::npos) {
+        size_t p3 = line.find(';', p2 + 1);
+        valueStr = line.substr(p2 + 1,
+            p3 == std::string::npos ? std::string::npos : p3 - p2 - 1);
+    }
+
+    EventBase* ev = EventRegistry::createByName(eventName.c_str());
+    if (!ev) {
+        NLOGD("Serial RX: evento sconosciuto '%s'", eventName.c_str());
+        return;
+    }
+
+    if (!valueStr.empty()) {
+        const char* tokens[1] = { valueStr.c_str() };
+        ev->deserializeFromTokens(tokens, 1);
+    }
+
+    Message* msg = new Message(Priority::L.id, Node::BROADCAST.id, ev);
+    _serialExecutor.execute(this, msg);
+    delete msg;
 }

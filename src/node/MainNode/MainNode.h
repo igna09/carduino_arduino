@@ -32,6 +32,7 @@
 #include "SwcMapping.h"
 #include "BuzzerController.h"
 #include "Tone.h"
+#include "SwcPairingEvent.h"
 
 // Configurazione ADC (Ad esempio usando il pin GPIO36 / ADC1 Canale 0) GPIO 0
 #define TEMT6000_ADC_CHANNEL    ADC_CHANNEL_0 
@@ -42,11 +43,10 @@
 #define GPIO_ENCODER_B  GPIO_NUM_3   // DT
 #define GPIO_BUTTON     GPIO_NUM_10  // SW
 
-#define SWC_PRESS_INTERVAL  65
+#define SWC_PRESS_INTERVAL  150
 #define SWC_PAIRING_INTERVAL  5000
 #define SWC_WAITING_PAIRING_INTERVAL  1000
 #define SWC_FIRST_WAITING_PAIRING_INTERVAL  5000
-#define SWC_PIN_SIZE 8
 #define SWC_FLAG_READY_TO_PAIR_RESET_INTERVAL 30000
 
 class MainNode : public CarduinoNode, public I2cNode {
@@ -76,6 +76,7 @@ public:
 
     static void swcPairingTask(void* param);
     volatile bool swcPairing = false;
+    void startSwcPairing();
 
 
 private:
@@ -105,5 +106,4 @@ private:
     static void encoderEventHandler(const rotary_encoder_event_t *event, void *ctx);
     static void encoderTask(void *arg);
     void pressSwcAsync(uint8_t channel, uint32_t holdMs);
-    void startSwcPairing();
 };

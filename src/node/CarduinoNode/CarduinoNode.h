@@ -153,6 +153,8 @@ public:
                  uint32_t phaseMs = 0, uint32_t stackSize = 4096, UBaseType_t priority = 5);
     void removeSyncedTask(const std::string& id);
 
+    void startSerialRxTask(uint32_t stackSize = 4096, UBaseType_t priority = 5);
+
 private:
     twai_node_handle_t _twai_node = NULL;
     std::map<std::string, TaskEntry> tasks_;
@@ -176,6 +178,10 @@ private:
     uint32_t             _syncT1Ms = 0;            // timestamp locale di invio TIME_SYNC_REQUEST, in attesa di risposta
     std::atomic<bool>    _syncPending{false};      // true tra l'invio della request e la response (o il timeout)
     bool                 _unsyncedWarnLogged = false; // evita spam di log se syncedMillis() viene chiamato pre-sync
+
+    TaskHandle_t _serialRxTaskHdl = nullptr;
+    void handleSerialLine(const std::string& line);
+    static void serialRxTaskEntry(void *pvParameters);
 
     // --- Setup interno ---
     void setupRxPool();
