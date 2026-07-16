@@ -616,16 +616,30 @@ void CarduinoNode::handleSerialLine(const std::string& lineIn) {
         line.pop_back();
     }
 
-    // Trova il primo ';' che separa l'evento dai parametri
     size_t p2 = line.find(';');
-    
-    // Se p2 è npos, significa che non ci sono ';' e l'intera riga è il nome dell'evento.
-    // substr(0, p2) gestisce correttamente entrambi i casi.
-    std::string eventName = line.substr(0, p2);
+    std::string eventIdentifier = line.substr(0, p2);
 
-    EventBase* ev = EventRegistry::createByName(eventName.c_str());
+    EventBase* ev = nullptr;
+
+    // Controlliamo se l'identificatore è interamente numerico (ID)
+    bool isNumeric = !eventIdentifier.empty() && 
+                     std::all_of(eventIdentifier.begin(), eventIdentifier.end(), [](unsigned char c) {
+                         return std::isdigit(c);
+                     });
+
+    if (isNumeric) {
+        // Se è un numero, lo convertiamo e usiamo createById
+        // (Adatta eventualmente il cast statico al tipo esatto accettato da createById, es. uint16_t o uint32_t)
+        long eventId = std::strtol(eventIdentifier.c_str(), nullptr, 10);
+        ev = EventRegistry::createById(static_cast<int>(eventId));
+    } else {
+        // Altrimenti, lo trattiamo come testo e usiamo createByName
+        ev = EventRegistry::createByName(eventIdentifier.c_str());
+    }
+
+    // Se la creazione fallisce in entrambi i casi, usciamo
     if (!ev) {
-        NLOGD("Serial RX: evento sconosciuto '%s'", eventName.c_str());
+        NLOGI("Serial RX: evento sconosciuto '%s'", eventIdentifier.c_str());
         return;
     }
 

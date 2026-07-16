@@ -6,6 +6,9 @@
 #include <map>
 #include <atomic>
 #include <iostream>
+#include <algorithm> // Richiesto per std::all_of
+#include <cctype>    // Richiesto per std::isdigit
+#include <cstdlib>   // Richiesto per std::strtol
 #include "esp_twai.h"
 #include "esp_twai_onchip.h"
 #include "esp_timer.h"
