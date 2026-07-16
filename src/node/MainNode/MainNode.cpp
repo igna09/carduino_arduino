@@ -51,10 +51,10 @@ void MainNode::configEncoder() {
 
         if (_speedLimitSetMode) {
             NLOGI("Speed limit: %d", _speedWarn.getLimit());
-            if(_speedWarn.getLimit() == 0) {
-                NLOGI("last speed: %d", lastSpeed);
-                _speedWarn.setLimit(lastSpeed);
-            }
+            // if(_speedWarn.getLimit() == 0) {
+            //     _speedWarn.setLimit(lastSpeed);
+            // }
+            _speedWarn.setLimit(lastSpeed);
             _buzzer.playToneAsync(ToneType::MODE_ENTER);
             if (_speedLimitEditTimer) xTimerStart(_speedLimitEditTimer, 0);
         } else {
