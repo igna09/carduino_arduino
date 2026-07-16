@@ -1,7 +1,7 @@
 #include "CarduinoNodeExecutorInterface.h"
+#include "EventRegistry.h"
 
 CarduinoNodeExecutorInterface::CarduinoNodeExecutorInterface() {
-    // eventIds resta vuoto: nessun filtro.
 }
 
 CarduinoNodeExecutorInterface::CarduinoNodeExecutorInterface(uint8_t eventId) {
@@ -12,7 +12,14 @@ CarduinoNodeExecutorInterface::CarduinoNodeExecutorInterface(std::initializer_li
     : eventIds(eventIds) {
 }
 
+CarduinoNodeExecutorInterface::CarduinoNodeExecutorInterface(EventCategory category)
+    : category(category), hasCategory(true) {
+}
+
 bool CarduinoNodeExecutorInterface::matchesEvent(uint8_t eventId) const {
+    if (this->hasCategory) {
+        return EventRegistry::getCategory(eventId) == this->category;
+    }
     if (this->eventIds.empty()) {
         return true; // nessun filtro: passa sempre
     }
@@ -25,7 +32,5 @@ bool CarduinoNodeExecutorInterface::matchesEvent(uint8_t eventId) const {
 }
 
 bool CarduinoNodeExecutorInterface::canExecute(CarduinoNode *node, Message *message) {
-    // Default implementation: sempre true. Override in derived classes se
-    // serve logica più complessa.
     return true;
 }

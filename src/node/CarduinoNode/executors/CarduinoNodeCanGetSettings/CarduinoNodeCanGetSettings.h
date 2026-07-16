@@ -6,6 +6,7 @@
 #include "Setting.h"
 #include "EventMulti.h"
 #include "MessageType.h"
+#include "SendSettingsUpdate.h"
 
 class CarduinoNodeCanGetSettings : public CarduinoNodeExecutorInterface {
     public:

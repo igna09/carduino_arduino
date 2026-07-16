@@ -53,7 +53,6 @@ class KlineEcu : public Enum {
         };
 };
 
-//const Enum* Enum::values [] = {&Category::CAR_STATUS, &Category::READ_SETTINGS};
 inline const Enum* KlineEcu::values [KLINE_ECU_SIZE] = { 0 };
 inline uint8_t KlineEcu::index = 0;
 inline const KlineEcu KlineEcu::ENGINE = KlineEcu(0x00, "ENGINE", 0x01, 9600);

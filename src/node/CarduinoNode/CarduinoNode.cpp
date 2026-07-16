@@ -7,7 +7,7 @@ CarduinoNode::CarduinoNode(uint8_t id, bool isEnabled)
     _id = id;
     this->isEnabled = isEnabled;
 
-    addSetting(&Setting::OTA_MODE, false);
+    // addSetting(&Setting::OTA_MODE, false);
 
     // Registra gli executor PRIMA di abilitare il bus / avviare i task che
     // possono ricevere messaggi (rxTask) o generarne in uscita
@@ -16,8 +16,10 @@ CarduinoNode::CarduinoNode(uint8_t id, bool isEnabled)
     // passato a Executor::execute, ma _canExecutor.executors è ancora vuoto
     // -> il messaggio viene scartato silenziosamente (visto in pratica con
     // un ENABLE perso e un doppio giro di HELLO).
-    _serialExecutor.addExecutor(new CarduinoNodeSerialWriteSetting());
+    _serialExecutor.addExecutor(new CarduinoNodeSerialSettings());
     _canExecutor.addExecutor(new CarduinoNodeCanEvent());
+
+    setupBackupTask();
 
     // Configure TWAI node
     twai_onchip_node_config_t node_config = {
@@ -72,6 +74,12 @@ CarduinoNode::CarduinoNode(uint8_t id, bool isEnabled)
     startSerialRxTask();
 
     NLOGD("CarduinoNode::CarduinoNode end");
+}
+
+void CarduinoNode::setupBackupTask() {
+    startRepeatingTask(BACKUP_TASK_ID, BACKUP_PERIOD_MS, [this]() {
+        backupSettings();
+    });
 }
 
 std::string CarduinoNode::name() {
@@ -602,7 +610,12 @@ void CarduinoNode::serialRxTaskEntry(void *pvParameters) {
     }
 }
 
-void CarduinoNode::handleSerialLine(const std::string& line) {
+void CarduinoNode::handleSerialLine(const std::string& lineIn) {
+    std::string line = lineIn;
+    while (!line.empty() && (line.back() == '\n' || line.back() == '\r')) {
+        line.pop_back();
+    }
+
     size_t p1 = line.find(';');
     if (p1 == std::string::npos) { NLOGD("Serial RX: riga malformata"); return; }
 
@@ -610,22 +623,33 @@ void CarduinoNode::handleSerialLine(const std::string& line) {
     std::string eventName = line.substr(p1 + 1,
         p2 == std::string::npos ? std::string::npos : p2 - p1 - 1);
 
-    std::string valueStr;
-    if (p2 != std::string::npos) {
-        size_t p3 = line.find(';', p2 + 1);
-        valueStr = line.substr(p2 + 1,
-            p3 == std::string::npos ? std::string::npos : p3 - p2 - 1);
-    }
-
     EventBase* ev = EventRegistry::createByName(eventName.c_str());
     if (!ev) {
         NLOGD("Serial RX: evento sconosciuto '%s'", eventName.c_str());
         return;
     }
 
-    if (!valueStr.empty()) {
-        const char* tokens[1] = { valueStr.c_str() };
-        ev->deserializeFromTokens(tokens, 1);
+    static constexpr size_t MAX_TOKENS = 8;
+    std::string tokenStorage[MAX_TOKENS];
+    const char* tokens[MAX_TOKENS];
+    uint8_t count = 0;
+
+    size_t pos = (p2 == std::string::npos) ? std::string::npos : p2 + 1;
+    while (pos != std::string::npos && pos <= line.size() && count < MAX_TOKENS) {
+        size_t next = line.find(';', pos);
+        std::string tok = line.substr(pos,
+            next == std::string::npos ? std::string::npos : next - pos);
+        if (!tok.empty()) {
+            tokenStorage[count] = tok;
+            tokens[count] = tokenStorage[count].c_str();
+            count++;
+        }
+        if (next == std::string::npos) break;
+        pos = next + 1;
+    }
+
+    if (count > 0) {
+        ev->deserializeFromTokens(tokens, count);
     }
 
     Message* msg = new Message(Priority::L.id, Node::BROADCAST.id, ev);

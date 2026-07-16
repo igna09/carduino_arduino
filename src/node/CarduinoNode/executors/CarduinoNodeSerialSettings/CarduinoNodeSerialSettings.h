@@ -7,9 +7,15 @@
 #include "EventMulti.h"
 #include "MessageType.h"
 #include "EventRegistry.h"
+#include "SendSettingsUpdate.h"
 
-class CarduinoNodeSerialGetSettings : public CarduinoNodeExecutorInterface {
+class CarduinoNodeSerialSettings : public CarduinoNodeExecutorInterface {
     public:
-        CarduinoNodeSerialGetSettings();
+        CarduinoNodeSerialSettings();
         void execute(CarduinoNode *node, Message *message);
+    private:
+        CarduinoNode *node;
+        void getSettings();
+        void writeSetting(Message *m);
 };
+

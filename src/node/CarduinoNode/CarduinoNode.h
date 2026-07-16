@@ -18,7 +18,7 @@
 #include "UdpLogSender.h"
 #include "NodeLog.h"
 #include "Executor.h"
-#include "CarduinoNodeSerialWriteSetting.h"
+#include "CarduinoNodeSerialSettings.h"
 #include "EventMulti.h"
 #include "CarduinoNodeCanEvent.h"
 #include "SyncedTaskScheduler.h"
@@ -48,6 +48,9 @@
 #define LED_BLINK_TASK_ID        "led_blink_task"
 #define LED_BLINK_ON_MS          500     // durata accensione
 #define LED_BLINK_PERIOD_MS      2000    // ciclo completo (-> spento per 2000-500=1500ms)
+
+#define BACKUP_TASK_ID            "backup_task"
+#define BACKUP_PERIOD_MS          1000
 
 struct RepeatingTaskCtx {
     std::function<void()> fn;
@@ -92,6 +95,7 @@ public:
 
     CarduinoNode(uint8_t id, bool isEnabled = false);
     
+    void setupBackupTask();
     std::string name();
     void sendMessage(const Message& m);
     void sendSerialMessage(const Message& m);

@@ -3,6 +3,15 @@
 MainNode::MainNode(): CarduinoNode(Node::MAIN.id, true), I2cNode() {
     NLOGD("MainNode::MainNode called");
 
+    addSetting<int>(&Setting::TMP_SWC_PRESS_T, 150, nullptr, true);
+    restoreSettings();
+
+    // delayTask(10000, [this](){
+    //     auto *ev = static_cast<EventMulti<>*>(EventRegistry::createById(EV_GET_SETTINGS));
+    //     Message m = Message(Priority::L.id, Node::BROADCAST.id, ev);
+    //     _serialExecutor.execute(this, &m);
+    // });
+
     _canExecutor.addExecutor(new BootExecutor());
     _canExecutor.addExecutor(new HelloTrackerExecutor());
     _canExecutor.addExecutor(new MainNodeCanEvent());
@@ -343,7 +352,7 @@ void MainNode::swcPairingTask(void* param) {
         const SwcMapping& m = SWC_MAPPINGS[i];
 
         self->_buzzer.playToneAsync(ToneType::INFO);
-        NLOGI("MainNode SWC pairing: %s (channel %u, pattern %u)",
+        NLOGI("SWC pairing: %s (channel %u, pattern %u)",
               EventRegistry::getName(m.eventId), m.channel, (uint8_t) m.pattern);
 
         self->pressSwcAsync(m.channel, SWC_PAIRING_INTERVAL);
@@ -351,7 +360,7 @@ void MainNode::swcPairingTask(void* param) {
         vTaskDelay(pdMS_TO_TICKS(SWC_PAIRING_INTERVAL + SWC_WAITING_PAIRING_INTERVAL));
     }
 
-    NLOGI("MainNode SWC pairing finished");
+    NLOGI("SWC pairing finished");
     // self->playTone(&Event::WARNING_SEVERITY_MEDIUM);
     self->swcPairing = false;
     self->_buzzer.playToneAsync(ToneType::WARNING);
