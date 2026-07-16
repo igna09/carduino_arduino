@@ -45,7 +45,7 @@
 #define GPIO_ENCODER_B  GPIO_NUM_3   // DT
 #define GPIO_BUTTON     GPIO_NUM_10  // SW
 
-#define SWC_PRESS_INTERVAL  150
+#define SWC_PRESS_INTERVAL  75
 #define SWC_PAIRING_INTERVAL  5000
 #define SWC_WAITING_PAIRING_INTERVAL  1000
 #define SWC_FIRST_WAITING_PAIRING_INTERVAL  5000
@@ -105,7 +105,6 @@ private:
     std::map<uint8_t, uint32_t> _knownNodes;
 
     void configTemt6000();
-    void initI2cDevices() override;
     void configAht();
     void configBmp();
     void configSwc();

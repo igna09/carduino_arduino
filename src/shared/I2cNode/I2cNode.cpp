@@ -38,5 +38,5 @@ void I2cNode::initI2c() {
     i2cInitialized = true;
     NLOGD("I2cNode: I2C initialized successfully");
 
-    // NOTA: Rimosso initI2cDevices() da qui per evitare il crash sul metodo virtuale puro
+    initI2cDevices();
 }

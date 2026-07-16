@@ -17,9 +17,6 @@ MainNode::MainNode(): CarduinoNode(Node::MAIN.id, true), I2cNode() {
     configEncoder();
     configSpeedWarning();
 
-    // Chiamiamo l'inizializzazione dei dispositivi adesso che l'oggetto è pronto!
-    initI2cDevices();
-
     this->enable();
 }
 
@@ -258,11 +255,6 @@ void MainNode::configTemt6000() {
             NLOGD("TEMT6000: calibrazione non disponibile o lettura fallita");
         }
     });
-}
-
-void MainNode::initI2cDevices() {
-    // Inizializza eventuali dispositivi I2C aggiuntivi qui
-    NLOGD("MainNode: initI2cDevices called");
 }
 
 void MainNode::enable() {

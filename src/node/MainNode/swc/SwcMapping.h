@@ -19,10 +19,10 @@ struct SwcMapping {
 
 // Configurabile: modificabile senza toccare la logica di pairing/detection
 static constexpr SwcMapping SWC_MAPPINGS[] = {
-    { 0, SwcPattern::SINGLE_CLICK, EV_PLAY_PAUSE },
-    { 3, SwcPattern::DOUBLE_CLICK, EV_NEXT },
-    { 5, SwcPattern::CW_ROTATION,  EV_VOLUME_UP },
-    { 7, SwcPattern::CCW_ROTATION, EV_VOLUME_DOWN }
+    { 0, SwcPattern::CW_ROTATION,  EV_VOLUME_UP },
+    { 1, SwcPattern::CCW_ROTATION, EV_VOLUME_DOWN },
+    { 2, SwcPattern::SINGLE_CLICK, EV_PLAY_PAUSE },
+    { 3, SwcPattern::DOUBLE_CLICK, EV_NEXT }
 };
 static constexpr uint8_t SWC_MAPPINGS_SIZE = sizeof(SWC_MAPPINGS) / sizeof(SwcMapping);
 
