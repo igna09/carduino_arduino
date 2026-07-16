@@ -616,12 +616,12 @@ void CarduinoNode::handleSerialLine(const std::string& lineIn) {
         line.pop_back();
     }
 
-    size_t p1 = line.find(';');
-    if (p1 == std::string::npos) { NLOGD("Serial RX: riga malformata"); return; }
-
-    size_t p2 = line.find(';', p1 + 1);
-    std::string eventName = line.substr(p1 + 1,
-        p2 == std::string::npos ? std::string::npos : p2 - p1 - 1);
+    // Trova il primo ';' che separa l'evento dai parametri
+    size_t p2 = line.find(';');
+    
+    // Se p2 è npos, significa che non ci sono ';' e l'intera riga è il nome dell'evento.
+    // substr(0, p2) gestisce correttamente entrambi i casi.
+    std::string eventName = line.substr(0, p2);
 
     EventBase* ev = EventRegistry::createByName(eventName.c_str());
     if (!ev) {
