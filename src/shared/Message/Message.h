@@ -305,9 +305,10 @@ public:
             // out << ';';
             // out << (unsigned)destination;
             // out << ';';
-            out << eventCategoryToString(event->category);
-            out << ';';
-            out << event->name;
+            // out << eventCategoryToString(event->category);
+            // out << ';';
+            // out << event->name;
+            out << (int)event->id;
             out << ';';
             event->printValue(out, true);
         } else {
