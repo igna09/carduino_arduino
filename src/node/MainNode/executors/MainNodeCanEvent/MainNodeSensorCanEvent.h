@@ -7,9 +7,8 @@
 #include "MainNode.h"
 #include "EventCategory.h"
 
-class MainNodeCanEvent : public CarduinoNodeExecutorInterface {
+class MainNodeSensorCanEvent : public CarduinoNodeExecutorInterface {
 public:
-    MainNodeCanEvent();
+    MainNodeSensorCanEvent();
     void execute(CarduinoNode *node, Message *message);
-    bool canExecute(CarduinoNode *node, Message *message);
 };

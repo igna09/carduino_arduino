@@ -4,17 +4,12 @@ MainNode::MainNode(): CarduinoNode(Node::MAIN.id, true), I2cNode() {
     NLOGD("MainNode::MainNode called");
 
     addSetting<int>(&Setting::TMP_SWC_PRESS_T, 150, nullptr, true);
+    addSetting<bool>(&Setting::HANDLE_KLINE, true, nullptr, true);
     restoreSettings();
-
-    // delayTask(10000, [this](){
-    //     auto *ev = static_cast<EventMulti<>*>(EventRegistry::createById(EV_GET_SETTINGS));
-    //     Message m = Message(Priority::L.id, Node::BROADCAST.id, ev);
-    //     _serialExecutor.execute(this, &m);
-    // });
 
     _canExecutor.addExecutor(new BootExecutor());
     _canExecutor.addExecutor(new HelloTrackerExecutor());
-    _canExecutor.addExecutor(new MainNodeCanEvent());
+    _canExecutor.addExecutor(new MainNodeSensorCanEvent());
     
     _serialExecutor.addExecutor(new SwcPairingEvent());
 
@@ -94,6 +89,7 @@ void MainNode::configEncoder() {
         auto *ev = static_cast<EventMulti<>*>(EventRegistry::createById(EV_LONG_PRESS));
         Message m = Message(Priority::L.id, Node::BROADCAST.id, ev);
         sendSerialMessage(m);
+        sendMessage(m);
     });
 
     _encoder.init(GPIO_ENCODER_A, GPIO_ENCODER_B, GPIO_BUTTON);
@@ -381,4 +377,5 @@ void MainNode::exitSpeedLimitEditMode() {
     std::get<0>(ev->values) = _speedWarn.getLimit();
     Message m = Message(Priority::L.id, Node::BROADCAST.id, ev);
     sendSerialMessage(m);
+    sendMessage(m);
 }

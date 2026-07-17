@@ -17,6 +17,7 @@ CarduinoNode::CarduinoNode(uint8_t id, bool isEnabled)
     // -> il messaggio viene scartato silenziosamente (visto in pratica con
     // un ENABLE perso e un doppio giro di HELLO).
     _serialExecutor.addExecutor(new CarduinoNodeSerialSettings());
+    _serialExecutor.addExecutor(new CarduinoNodeSerialEvent());
     _canExecutor.addExecutor(new CarduinoNodeCanEvent());
 
     setupBackupTask();

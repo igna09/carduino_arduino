@@ -112,10 +112,17 @@ static const char WEB_LOG_INDEX_HTML[] = R"HTML_PAGE(<!DOCTYPE html>
     white-space: nowrap;
     color: var(--fg);
   }
-  .filterRow2 input[type=checkbox] {
+  .filterRow2 input[type=checkbox],
+  .filterRow2 input[type=radio] {
     accent-color: var(--accent);
     cursor: pointer;
     flex-shrink: 0;
+  }
+  .msgModeGroup {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
   }
   .nodesLabel {
     color: var(--fg-dim);
@@ -140,7 +147,7 @@ static const char WEB_LOG_INDEX_HTML[] = R"HTML_PAGE(<!DOCTYPE html>
     .filterRow2 {
       align-items: flex-start;
     }
-    .filterRow2 > label:first-child {
+    .filterRow2 > .msgModeGroup {
       flex: 1 1 100%;
     }
     .sep {
@@ -189,7 +196,10 @@ static const char WEB_LOG_INDEX_HTML[] = R"HTML_PAGE(<!DOCTYPE html>
 </header>
 
 <div class="filterRow2">
-  <label><input type="checkbox" id="msgOnlyChk"> Solo messaggi ricevuti/inviati</label>
+  <div class="msgModeGroup">
+    <label><input type="radio" name="msgMode" id="msgModeAll" value="all" checked> Tutti i messaggi</label>
+    <label><input type="radio" name="msgMode" id="msgModeOnly" value="only"> Solo messaggi ricevuti/inviati</label>
+  </div>
   <div class="sep"></div>
   <div class="nodesGroup">
     <span class="nodesLabel">Nodi:</span>
@@ -204,7 +214,8 @@ static const char WEB_LOG_INDEX_HTML[] = R"HTML_PAGE(<!DOCTYPE html>
   const logEl = document.getElementById('log');
   const statusEl = document.getElementById('status');
   const filterInput = document.getElementById('filterInput');
-  const msgOnlyChk = document.getElementById('msgOnlyChk');
+  const msgModeAll = document.getElementById('msgModeAll');
+  const msgModeOnly = document.getElementById('msgModeOnly');
   const nodeChecksEl = document.getElementById('nodeChecks');
   const pauseBtn = document.getElementById('pauseBtn');
   const clearBtn = document.getElementById('clearBtn');
@@ -260,7 +271,7 @@ static const char WEB_LOG_INDEX_HTML[] = R"HTML_PAGE(<!DOCTYPE html>
   // momento in poi non verranno piu' salvate nel ring buffer lato ESP32.
   function sendFilterToServer() {
     const text = encodeURIComponent(filterInput.value.trim());
-    const msgonly = msgOnlyChk.checked ? 1 : 0;
+    const msgonly = msgModeOnly.checked ? 1 : 0;
     const nodes = encodeURIComponent(buildNodesParam());
     return fetch(`/filter?text=${text}&msgonly=${msgonly}&nodes=${nodes}`).catch(() => {
       statusEl.textContent = 'errore invio filtro';
@@ -371,6 +382,10 @@ static const char WEB_LOG_INDEX_HTML[] = R"HTML_PAGE(<!DOCTYPE html>
     };
   }
 
+  // All'avvio: leggo lo stato del filtro gia' impostato lato firmware (es.
+  // rimasto da una sessione precedente) e prevalorizzo i controlli, poi
+  // carico la lista nodi noti e infine mi connetto alla SSE per ricevere
+  // la history gia' coerente con quel filtro.
   applyingFromServer = true;
   fetch('/filter')
     .then(r => r.ok ? r.json() : {})
