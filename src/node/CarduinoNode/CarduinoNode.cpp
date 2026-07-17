@@ -564,6 +564,7 @@ void CarduinoNode::disableInterrupt() {
 
 void CarduinoNode::restart() {
     NLOGD("CarduinoNode::restart called");
+    esp_restart();
 }
 
 void CarduinoNode::heartbeatReceived() {
