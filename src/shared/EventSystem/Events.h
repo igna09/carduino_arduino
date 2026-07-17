@@ -60,8 +60,7 @@ DECLARE_EVENT(VOLUME_UP,    0x25, "VOLUME_UP",   EventCategory::MEDIA)
 DECLARE_EVENT(VOLUME_DOWN,  0x26, "VOLUME_DOWN", EventCategory::MEDIA)
 DECLARE_EVENT(PLAY_PAUSE,   0x27, "PLAY_PAUSE",  EventCategory::MEDIA)
 DECLARE_EVENT(NEXT,         0x28, "NEXT",        EventCategory::MEDIA)
-// DECLARE_EVENT(LONG_PRESS,   0x29, "LONG_PRESS",  EventCategory::MEDIA)
-DECLARE_EVENT(LONG_PRESS,   0x29, "LONG_PRESS",  EventCategory::MEDIA, uint8_t)
+DECLARE_EVENT(LONG_PRESS,   0x29, "LONG_PRESS",  EventCategory::MEDIA)
 
 // --- Sincronizzazione tempo -------------------------------------------------
 // Payload TIME_SYNC_REQUEST: [source node id (1B)]
