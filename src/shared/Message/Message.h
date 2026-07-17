@@ -238,7 +238,6 @@ public:
     }
 
     // -----------------------------------------------------------------------
-    // fromString
     //   Parsa la stringa e costruisce il messaggio.
     //   Ritorna nullptr se il formato è invalido o l'evento non è registrato.
     // -----------------------------------------------------------------------
@@ -260,9 +259,6 @@ public:
 
         if (tokenCount < 3) return nullptr;
 
-        // Accetta sia il valore numerico ("0", "1") sia il token simbolico
-        // ("L"/"H" per la priorità;
-        //  "BROADCAST", "MAIN", … per la destinazione).
         // const char* priority    = tokens[0];
         // const char* destination = tokens[1];
         const char* eventName   = tokens[2];
@@ -275,15 +271,38 @@ public:
         const char** valueTokens = tokens;
         uint8_t      valueCount  = tokenCount;
 
-        // Pre-processa i value token: sostituisce simboli noti con la loro
-        // rappresentazione numerica. I token già numerici passano invariati.
-        // outBufs fornisce lo spazio temporaneo per le sostituzioni: ogni
-        // slot è grande abbastanza per un uint8_t in decimale (max "255\0").
         char        outBufs[CANBUSM_MAX_TOKENS][4];
         const char* resolved[CANBUSM_MAX_TOKENS];
+
+        // Lambda ausiliaria per il confronto case-insensitive (funziona ovunque senza includere header extra)
+        auto safeStrCaseEq = [](const char* s, const char* lowerTarget) {
+            while (*s && *lowerTarget) {
+                char c = (*s >= 'A' && *s <= 'Z') ? (*s + ('a' - 'A')) : *s;
+                if (c != *lowerTarget) return false;
+                s++;
+                lowerTarget++;
+            }
+            return *s == *lowerTarget;
+        };
+
         for (uint8_t i = 0; i < valueCount; i++) {
-            resolved[i] = CanSymbol::resolveValueToken(
+            // Prima lasciamo che il risolutore standard faccia il suo lavoro
+            const char* token = CanSymbol::resolveValueToken(
                 valueTokens[i], outBufs[i], sizeof(outBufs[i]));
+
+            // Intercettiamo e traduciamo true/false case-insensitive
+            if (safeStrCaseEq(token, "true")) {
+                outBufs[i][0] = '1';
+                outBufs[i][1] = '\0';
+                resolved[i] = outBufs[i];
+            } else if (safeStrCaseEq(token, "false")) {
+                outBufs[i][0] = '0';
+                outBufs[i][1] = '\0';
+                resolved[i] = outBufs[i];
+            } else {
+                // Se non è un booleano, manteniamo il token originale/risolto
+                resolved[i] = token;
+            }
         }
 
         if (!ev->deserializeFromTokens(resolved, valueCount)) {

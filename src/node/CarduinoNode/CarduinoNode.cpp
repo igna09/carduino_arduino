@@ -630,7 +630,6 @@ void CarduinoNode::handleSerialLine(const std::string& lineIn) {
 
     if (isNumeric) {
         // Se è un numero, lo convertiamo e usiamo createById
-        // (Adatta eventualmente il cast statico al tipo esatto accettato da createById, es. uint16_t o uint32_t)
         long eventId = std::strtol(eventIdentifier.c_str(), nullptr, 10);
         ev = EventRegistry::createById(static_cast<int>(eventId));
     } else {
@@ -649,12 +648,31 @@ void CarduinoNode::handleSerialLine(const std::string& lineIn) {
     const char* tokens[MAX_TOKENS];
     uint8_t count = 0;
 
+    // Lambda ausiliaria per il confronto case-insensitive su std::string
+    auto safeStrCaseEq = [](const std::string& s, const char* lowerTarget) {
+        size_t i = 0;
+        while (i < s.size() && lowerTarget[i] != '\0') {
+            char c = (s[i] >= 'A' && s[i] <= 'Z') ? (s[i] + ('a' - 'A')) : s[i];
+            if (c != lowerTarget[i]) return false;
+            i++;
+        }
+        return i == s.size() && lowerTarget[i] == '\0';
+    };
+
     size_t pos = (p2 == std::string::npos) ? std::string::npos : p2 + 1;
     while (pos != std::string::npos && pos <= line.size() && count < MAX_TOKENS) {
         size_t next = line.find(';', pos);
         std::string tok = line.substr(pos,
             next == std::string::npos ? std::string::npos : next - pos);
+        
         if (!tok.empty()) {
+            // Traduzione al volo di true/false case-insensitive in 1/0
+            if (safeStrCaseEq(tok, "true")) {
+                tok = "1";
+            } else if (safeStrCaseEq(tok, "false")) {
+                tok = "0";
+            }
+
             tokenStorage[count] = tok;
             tokens[count] = tokenStorage[count].c_str();
             count++;
