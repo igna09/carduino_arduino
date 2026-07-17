@@ -3,12 +3,13 @@
 #include "TypedEnum.h"
 #include "MessageType.h"
 
-#define SETTING_SIZE 2
+#define SETTING_SIZE 3
 
 class Setting : public TypedEnum {
     public:
         static const Setting TMP_SWC_PRESS_T;
         static const Setting HANDLE_KLINE;
+        static const Setting SPEED_LIMIT_ALARM;
         // static const Setting AUTO_CLOSE_REARVIEW_MIRRORS;
         // static const Setting OTA_MODE;
         // static const Setting ON_REVERSE_LOWER_MIRRORS;
@@ -66,3 +67,4 @@ inline uint8_t Setting::index = 0;
 // inline const Setting Setting::LOG_ON_SERVER = Setting(0x09, "LOG_ON_SERVER", &MessageType::BOOL);
 inline const Setting Setting::TMP_SWC_PRESS_T = Setting(0x00, "TMP_SWC_PRESS_T", &MessageType::INT);
 inline const Setting Setting::HANDLE_KLINE = Setting(0x01, "HANDLE_KLINE", &MessageType::BOOL);
+inline const Setting Setting::SPEED_LIMIT_ALARM = Setting(0x02, "SPEED_LIMIT_ALARM", &MessageType::BOOL);

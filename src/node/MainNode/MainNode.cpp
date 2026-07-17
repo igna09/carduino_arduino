@@ -5,6 +5,7 @@ MainNode::MainNode(): CarduinoNode(Node::MAIN.id, true), I2cNode() {
 
     addSetting<int>(&Setting::TMP_SWC_PRESS_T, 150, nullptr, true);
     addSetting<bool>(&Setting::HANDLE_KLINE, true, nullptr, true);
+    addSetting<bool>(&Setting::SPEED_LIMIT_ALARM, true, nullptr, true);
     restoreSettings();
 
     _canExecutor.addExecutor(new BootExecutor());
