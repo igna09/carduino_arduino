@@ -28,8 +28,31 @@ static SemaphoreHandle_t s_clientsMutex = nullptr;
 
 // --- Filtro server-side: le righe che non combaciano NON entrano nel ring buffer ---
 #define WEB_LOG_FILTER_MAX 64
+
+// --- Filtro server-side esteso: testo + solo msg TX/RX + lista nodi ---
 static char s_filterText[WEB_LOG_FILTER_MAX] = "";
+static bool s_filterMsgOnly = false;                 // checkbox "solo messaggi ricevuti/inviati"
+static char s_filterNodesList[WEB_LOG_FILTER_MAX] = ""; // "MainNode,KlineNode" vuoto = tutti
 static SemaphoreHandle_t s_filterMutex = nullptr;
+
+// Nodi noti, popolati automaticamente dai prefissi [NodeName] visti
+#define WEB_LOG_MAX_KNOWN_NODES 16
+#define WEB_LOG_NODE_NAME_MAX   32
+static char s_knownNodes[WEB_LOG_MAX_KNOWN_NODES][WEB_LOG_NODE_NAME_MAX];
+static int s_knownNodeCount = 0;
+static SemaphoreHandle_t s_nodesMutex = nullptr;
+
+static void registerKnownNode(const char* name) {
+    if (name == nullptr || name[0] == '\0') return;
+    xSemaphoreTake(s_nodesMutex, portMAX_DELAY);
+    for (int i = 0; i < s_knownNodeCount; i++) {
+        if (strcmp(s_knownNodes[i], name) == 0) { xSemaphoreGive(s_nodesMutex); return; }
+    }
+    if (s_knownNodeCount < WEB_LOG_MAX_KNOWN_NODES) {
+        strlcpy(s_knownNodes[s_knownNodeCount++], name, WEB_LOG_NODE_NAME_MAX);
+    }
+    xSemaphoreGive(s_nodesMutex);
+}
 
 // Confronto case-insensitive "haystack contiene needle", senza allocazioni
 static bool containsCaseInsensitive(const char* haystack, const char* needle) {
@@ -49,17 +72,41 @@ static bool containsCaseInsensitive(const char* haystack, const char* needle) {
     return false;
 }
 
-// Ritorna true se la riga passa il filtro attualmente impostato
-static bool passesServerFilter(const char* line) {
+static bool passesServerFilter(const char* nodeName, const char* msg, const char* fullLine) {
     xSemaphoreTake(s_filterMutex, portMAX_DELAY);
-    bool ok = containsCaseInsensitive(line, s_filterText);
+
+    bool textOk = containsCaseInsensitive(fullLine, s_filterText);
+
+    bool msgOnlyOk = true;
+    if (s_filterMsgOnly) {
+        msgOnlyOk = containsCaseInsensitive(msg, "received message") ||
+                    containsCaseInsensitive(msg, "sent message");
+    }
+
+    bool nodeOk = true;
+    if (s_filterNodesList[0] != '\0') {
+        nodeOk = false;
+        char tmp[WEB_LOG_FILTER_MAX];
+        strlcpy(tmp, s_filterNodesList, sizeof(tmp));
+        char* tok = strtok(tmp, ",");
+        while (tok != nullptr) {
+            if (nodeName != nullptr && strcasecmp(tok, nodeName) == 0) { nodeOk = true; break; }
+            tok = strtok(nullptr, ",");
+        }
+    }
+
     xSemaphoreGive(s_filterMutex);
-    return ok;
+    return textOk && msgOnlyOk && nodeOk;
 }
 
-// Forward declaration: la definizione sta più in basso nel file, ma serve
-// già qui perché usata da filterGetHandler
-static void setFilter(const char* text);
+static void setFilter(const char* text, bool msgOnly, const char* nodesList) {
+    xSemaphoreTake(s_filterMutex, portMAX_DELAY);
+    strlcpy(s_filterText, text, WEB_LOG_FILTER_MAX);
+    s_filterMsgOnly = msgOnly;
+    strlcpy(s_filterNodesList, nodesList, WEB_LOG_FILTER_MAX);
+    xSemaphoreGive(s_filterMutex);
+    NLOGI("[Filter] text=\"%s\" msgOnly=%d nodes=\"%s\"", text, msgOnly, nodesList);
+}
 
 static httpd_handle_t s_server = nullptr;
 static TaskHandle_t s_asyncWorkerTasks[WEB_LOG_ASYNC_WORKERS];
@@ -281,32 +328,55 @@ static esp_err_t downloadGetHandler(httpd_req_t* req) {
 }
 
 static esp_err_t filterGetHandler(httpd_req_t* req) {
-    char query[128];
+    char query[192];
     bool hasQuery = (httpd_req_get_url_query_len(req) > 0 &&
                       httpd_req_get_url_query_str(req, query, sizeof(query)) == ESP_OK);
 
     if (!hasQuery) {
-        // Nessuna query: e' una lettura, ritorna il filtro attualmente impostato
-        char current[WEB_LOG_FILTER_MAX];
+        char text[WEB_LOG_FILTER_MAX], nodes[WEB_LOG_FILTER_MAX];
+        bool msgOnly;
         xSemaphoreTake(s_filterMutex, portMAX_DELAY);
-        strlcpy(current, s_filterText, sizeof(current));
+        strlcpy(text, s_filterText, sizeof(text));
+        strlcpy(nodes, s_filterNodesList, sizeof(nodes));
+        msgOnly = s_filterMsgOnly;
         xSemaphoreGive(s_filterMutex);
 
-        httpd_resp_set_type(req, "text/plain");
-        return httpd_resp_send(req, current, HTTPD_RESP_USE_STRLEN);
+        char resp[400];
+        snprintf(resp, sizeof(resp), "{\"text\":\"%s\",\"msgonly\":%d,\"nodes\":\"%s\"}",
+                 text, msgOnly ? 1 : 0, nodes);
+        httpd_resp_set_type(req, "application/json");
+        return httpd_resp_send(req, resp, HTTPD_RESP_USE_STRLEN);
     }
 
     char textParam[WEB_LOG_FILTER_MAX] = "";
+    char nodesParam[WEB_LOG_FILTER_MAX] = "";
+    char msgOnlyParam[4] = "0";
     httpd_query_key_value(query, "text", textParam, sizeof(textParam));
-    // URL-decode minimale: sostituisce '+' con spazio (i browser codificano cosi' gli spazi in querystring)
-    for (char* p = textParam; *p; p++) {
-        if (*p == '+') *p = ' ';
-    }
+    httpd_query_key_value(query, "nodes", nodesParam, sizeof(nodesParam));
+    httpd_query_key_value(query, "msgonly", msgOnlyParam, sizeof(msgOnlyParam));
 
-    setFilter(textParam);
+    for (char* p = textParam; *p; p++) if (*p == '+') *p = ' ';
+
+    setFilter(textParam, atoi(msgOnlyParam) != 0, nodesParam);
 
     httpd_resp_set_type(req, "text/plain");
     return httpd_resp_send(req, "OK", HTTPD_RESP_USE_STRLEN);
+}
+
+static esp_err_t nodesGetHandler(httpd_req_t* req) {
+    char resp[WEB_LOG_MAX_KNOWN_NODES * (WEB_LOG_NODE_NAME_MAX + 3) + 8] = "[";
+    xSemaphoreTake(s_nodesMutex, portMAX_DELAY);
+    for (int i = 0; i < s_knownNodeCount; i++) {
+        strlcat(resp, "\"", sizeof(resp));
+        strlcat(resp, s_knownNodes[i], sizeof(resp));
+        strlcat(resp, "\"", sizeof(resp));
+        if (i < s_knownNodeCount - 1) strlcat(resp, ",", sizeof(resp));
+    }
+    xSemaphoreGive(s_nodesMutex);
+    strlcat(resp, "]", sizeof(resp));
+
+    httpd_resp_set_type(req, "application/json");
+    return httpd_resp_send(req, resp, HTTPD_RESP_USE_STRLEN);
 }
 
 static esp_err_t eventsGetHandler(httpd_req_t* req) {
@@ -339,7 +409,24 @@ static esp_err_t eventsGetHandler(httpd_req_t* req) {
 
 void pushLine(const char* line) {
     if (line == nullptr) return;
-    if (!passesServerFilter(line)) return; // scartata: non entra nel ring buffer
+
+    // Estrae il nodeName da "[Node]: msg" se presente, per coerenza col filtro nodi
+    const char* nodeName = nullptr;
+    const char* msg = line;
+    char nodeBuf[WEB_LOG_NODE_NAME_MAX];
+    if (line[0] == '[') {
+        const char* close = strchr(line, ']');
+        if (close != nullptr) {
+            size_t nlen = MIN((size_t)(close - line - 1), sizeof(nodeBuf) - 1);
+            memcpy(nodeBuf, line + 1, nlen);
+            nodeBuf[nlen] = 0;
+            nodeName = nodeBuf;
+            msg = (close[1] == ':' && close[2] == ' ') ? close + 3 : close + 1;
+        }
+    }
+
+    if (nodeName != nullptr) registerKnownNode(nodeName);
+    if (!passesServerFilter(nodeName, msg, line)) return;
     ringPush(line);
     s_seq = s_seq + 1;
 }
@@ -347,23 +434,22 @@ void pushLine(const char* line) {
 void pushLineFormatted(const char* prefix, const char* msg) {
     if (prefix == nullptr) prefix = "";
     if (msg == nullptr) msg = "";
+
+    registerKnownNode(prefix);
+
     char line[WEB_LOG_LINE_MAX];
     snprintf(line, sizeof(line), "[%s]: %s", prefix, msg);
-    if (!passesServerFilter(line)) return; // scartata: non entra nel ring buffer
+
+    if (!passesServerFilter(prefix, msg, line)) return;
     ringPush(line);
     s_seq = s_seq + 1;
 }
 
-// --- Imposta il filtro attivo (chiamato dall'handler HTTP /filter) ---
-static void setFilter(const char* text) {
-    xSemaphoreTake(s_filterMutex, portMAX_DELAY);
-    strlcpy(s_filterText, text, WEB_LOG_FILTER_MAX);
-    xSemaphoreGive(s_filterMutex);
-    NLOGI("[Filter] Filtro server-side aggiornato: \"%s\"", text);
-}
-
 // CORREZIONE: Inizializzazione completa delle code e dei Task in background
 void init() {
+    s_nodesMutex = xSemaphoreCreateMutex();
+    s_filterMsgOnly = false;
+    s_filterNodesList[0] = '\0';
     s_ringMutex = xSemaphoreCreateMutex();
     s_clientsMutex = xSemaphoreCreateMutex();
     s_filterMutex = xSemaphoreCreateMutex();
@@ -415,6 +501,12 @@ void init() {
     filterUri.method = HTTP_GET;
     filterUri.handler = filterGetHandler;
     httpd_register_uri_handler(s_server, &filterUri);
+
+    httpd_uri_t nodesUri = {};
+    nodesUri.uri = "/nodes";
+    nodesUri.method = HTTP_GET;
+    nodesUri.handler = nodesGetHandler;
+    httpd_register_uri_handler(s_server, &nodesUri);
 
     NLOGI("Web log server avviato su http://192.168.4.1/ (max %d client SSE)", WEB_LOG_MAX_CLIENTS);
 }
