@@ -102,9 +102,13 @@ void MainNode::configSpeedWarning() {
     _speedWarn.setHysteresisKmh(10);
 }
 
-void MainNode::configSwc() {
-    // stesso bus I2C già usato da AHT/BMP280 (I2cNode)
-    ESP_ERROR_CHECK(_swc.init(I2C_NUM_0, 0x21, DEFAULT_I2C_SDA_PIN, DEFAULT_I2C_SCL_PIN)); // adatta SDA/SCL ai tuoi già usati
+void MainNode::configSwc() {    
+    if(_swc.init(I2C_NUM_0, 0x21, DEFAULT_I2C_SDA_PIN, DEFAULT_I2C_SCL_PIN) != ESP_OK) {
+        NLOGE("_swc.init failed");
+        return;
+    }
+
+    NLOGI("SWC inizializzato.");
 }
 
 
@@ -113,10 +117,17 @@ void MainNode::configBmp() {
     bmp280_init_default_params(&params);
     memset(&bpm_dev, 0, sizeof(bmp280_t));
 
-    ESP_ERROR_CHECK(bmp280_init_desc(&bpm_dev, BMP280_I2C_ADDRESS_1, I2C_NUM_0, DEFAULT_I2C_SDA_PIN, DEFAULT_I2C_SCL_PIN));
-    ESP_ERROR_CHECK(bmp280_init(&bpm_dev, &params));
+    if(bmp280_init_desc(&bpm_dev, BMP280_I2C_ADDRESS_1, I2C_NUM_0, DEFAULT_I2C_SDA_PIN, DEFAULT_I2C_SCL_PIN) != ESP_OK) {
+        NLOGE("bmp280_init_desc failed");
+        return;
+    }
+    
+    if(bmp280_init(&bpm_dev, &params) != ESP_OK) {
+        NLOGE("bmp280_init failed");
+        return;
+    }
 
-    NLOGD("Sensore BMP inizializzato.");
+    NLOGI("Sensore BMP inizializzato.");
 
     startRepeatingTask("bmp280_read", 15000, [this]() {
         float temperature;
@@ -150,12 +161,17 @@ void MainNode::configAht() {
     aht_dev.type = AHT_TYPE_AHT20;
 
     // Ora i2cdev troverà il puntatore del mutex a NULL e lo allocherà correttamente in RAM
-    ESP_ERROR_CHECK(aht_init_desc(&aht_dev, AHT_I2C_ADDRESS_GND, I2C_NUM_0, DEFAULT_I2C_SDA_PIN, DEFAULT_I2C_SCL_PIN));
-    ESP_ERROR_CHECK(aht_init(&aht_dev));
+    if(aht_init_desc(&aht_dev, AHT_I2C_ADDRESS_GND, I2C_NUM_0, DEFAULT_I2C_SDA_PIN, DEFAULT_I2C_SCL_PIN) != ESP_OK) {
+        NLOGE("aht_init_desc failed");
+        return;
+    }
+    if(aht_init(&aht_dev) != ESP_OK) {
+        NLOGE("aht_init failed");
+        return;
+    }
 
-    NLOGD("Sensore AHT inizializzato.");
+    NLOGI("Sensore AHT inizializzato.");
     
-
     startRepeatingTask("aht20_read", 15000, [this]() {
         float temperature;
         float humidity;
@@ -183,14 +199,20 @@ void MainNode::configTemt6000() {
     adc_oneshot_unit_init_cfg_t init_config = {
         .unit_id = TEMT6000_ADC_UNIT,
     };
-    ESP_ERROR_CHECK(adc_oneshot_new_unit(&init_config, &adc_handle));
+    if(adc_oneshot_new_unit(&init_config, &adc_handle) != ESP_OK) {
+        NLOGE("adc_oneshot_new_unit failed");
+        return;
+    }
 
     // 2. Configurazione del Canale ADC
     adc_oneshot_chan_cfg_t config = {
         .atten = ADC_ATTEN_DB_12,
         .bitwidth = ADC_BITWIDTH_DEFAULT,
     };
-    ESP_ERROR_CHECK(adc_oneshot_config_channel(adc_handle, TEMT6000_ADC_CHANNEL, &config));
+    if(adc_oneshot_config_channel(adc_handle, TEMT6000_ADC_CHANNEL, &config) != ESP_OK) {
+        NLOGE("adc_oneshot_config_channel failed");
+        return;
+    }
 
     // 3. Configurazione della Calibrazione
     adc_cali_handle_t cali_handle = NULL;
@@ -211,6 +233,8 @@ void MainNode::configTemt6000() {
     static constexpr int   SAMPLES_NUM  = 10;     // n. campioni per media
     static constexpr float LOAD_OHM     = 10000.0f; // resistore di carico (10kΩ)
     static constexpr float UA_PER_LUX   = 2.0f;    // datasheet: 2µA -> 1 lux
+
+    NLOGI("Sensore luminosità inizializzato.");
 
     startRepeatingTask("temt6000_read", 1000, [this, adc_handle, cali_handle, do_calibration]() {
         int adc_raw = 0;
