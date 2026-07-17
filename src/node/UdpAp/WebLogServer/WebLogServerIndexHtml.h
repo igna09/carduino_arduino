@@ -6,13 +6,21 @@
 // Logica:
 //  - alla connessione apre /events (SSE) e riceve prima la history (righe
 //    pregresse), poi il live stream
-//  - i filtri (testo, solo messaggi TX/RX, lista nodi) sono applicati lato
-//    server, prima del ring buffer: cambiare filtro pulisce la vista e
-//    riapre la SSE per ricevere una history coerente col nuovo filtro
-//  - lo stato del filtro (testo/msgonly/nodi) e' letto da GET /filter
+//  - i filtri (testo, modalita' messaggi TX/RX a 3 stati, lista nodi) sono
+//    applicati lato server, prima del ring buffer: cambiare filtro pulisce
+//    la vista e riapre la SSE per ricevere una history coerente col nuovo
+//    filtro
+//  - modalita' messaggi: tutti / solo TX/RX / tutto tranne TX/RX (msgmode
+//    0/1/2 inviato a /filter)
+//  - filtro nodi: nessuna checkbox nodo selezionata significa "non
+//    registrare nulla" (nodes=__NONE__ inviato al server); tutte
+//    selezionate significa nessuna restrizione (nodes='')
+//  - lo stato del filtro (testo/msgmode/nodi) e' letto da GET /filter
 //    all'avvio per prevalorizzare i controlli
 //  - la lista dei nodi noti e' letta da GET /nodes e ripopolata
 //    periodicamente man mano che il firmware scopre nuovi nodi dai log
+//  - il pulsante "Pulisci" svuota sia la vista locale sia il ring buffer
+//    lato firmware (GET /clear)
 //  - auto-scroll con possibilita' di "congelare" lo scroll
 static const char WEB_LOG_INDEX_HTML[] = R"HTML_PAGE(<!DOCTYPE html>
 <html lang="it">
@@ -199,6 +207,7 @@ static const char WEB_LOG_INDEX_HTML[] = R"HTML_PAGE(<!DOCTYPE html>
   <div class="msgModeGroup">
     <label><input type="radio" name="msgMode" id="msgModeAll" value="all" checked> Tutti i messaggi</label>
     <label><input type="radio" name="msgMode" id="msgModeOnly" value="only"> Solo messaggi ricevuti/inviati</label>
+    <label><input type="radio" name="msgMode" id="msgModeExclude" value="exclude"> Tutto tranne messaggi ricevuti/inviati</label>
   </div>
   <div class="sep"></div>
   <div class="nodesGroup">
@@ -216,6 +225,7 @@ static const char WEB_LOG_INDEX_HTML[] = R"HTML_PAGE(<!DOCTYPE html>
   const filterInput = document.getElementById('filterInput');
   const msgModeAll = document.getElementById('msgModeAll');
   const msgModeOnly = document.getElementById('msgModeOnly');
+  const msgModeExclude = document.getElementById('msgModeExclude');
   const nodeChecksEl = document.getElementById('nodeChecks');
   const pauseBtn = document.getElementById('pauseBtn');
   const clearBtn = document.getElementById('clearBtn');
@@ -227,8 +237,12 @@ static const char WEB_LOG_INDEX_HTML[] = R"HTML_PAGE(<!DOCTYPE html>
   let es = null;
   let filterDebounceTimer = null;
 
-  // Nodi selezionati dall'ultimo stato noto (letto da /filter). Insieme
-  // vuoto = "tutti i nodi" (nessun filtro nodo attivo).
+  // Stato del filtro nodi:
+  //  - 'all'  -> nessuna restrizione, il server accetta log da qualsiasi nodo
+  //              (anche quelli non ancora scoperti); e' lo stato di default.
+  //  - 'none' -> NESSUN nodo selezionato: il server non deve registrare nulla.
+  //  - 'list' -> solo i nodi in selectedNodes.
+  let nodeFilterMode = 'all';
   let selectedNodes = new Set();
   let knownNodes = [];
   let applyingFromServer = false; // evita reconnect ricorsivi durante il caricamento iniziale
@@ -259,11 +273,13 @@ static const char WEB_LOG_INDEX_HTML[] = R"HTML_PAGE(<!DOCTYPE html>
     }
   }
 
-  // Costruisce la stringa nodi da inviare al server: vuota se tutti i nodi
-  // noti sono selezionati (equivale a "nessun filtro nodo").
+  // Costruisce la stringa nodi da inviare al server:
+  //  - '' (vuota) quando nodeFilterMode === 'all' -> nessuna restrizione
+  //  - '__NONE__' quando nodeFilterMode === 'none' -> blocca tutto
+  //  - lista CSV quando nodeFilterMode === 'list'
   function buildNodesParam() {
-    if (knownNodes.length === 0) return '';
-    if (selectedNodes.size === knownNodes.length) return '';
+    if (nodeFilterMode === 'all') return '';
+    if (nodeFilterMode === 'none') return '__NONE__';
     return Array.from(selectedNodes).join(',');
   }
 
@@ -271,9 +287,11 @@ static const char WEB_LOG_INDEX_HTML[] = R"HTML_PAGE(<!DOCTYPE html>
   // momento in poi non verranno piu' salvate nel ring buffer lato ESP32.
   function sendFilterToServer() {
     const text = encodeURIComponent(filterInput.value.trim());
-    const msgonly = msgModeOnly.checked ? 1 : 0;
+    let msgmode = 0; // 0=tutti, 1=solo TX/RX, 2=tutto tranne TX/RX
+    if (msgModeOnly.checked) msgmode = 1;
+    else if (msgModeExclude.checked) msgmode = 2;
     const nodes = encodeURIComponent(buildNodesParam());
-    return fetch(`/filter?text=${text}&msgonly=${msgonly}&nodes=${nodes}`).catch(() => {
+    return fetch(`/filter?text=${text}&msgmode=${msgmode}&nodes=${nodes}`).catch(() => {
       statusEl.textContent = 'errore invio filtro';
     });
   }
@@ -299,6 +317,7 @@ static const char WEB_LOG_INDEX_HTML[] = R"HTML_PAGE(<!DOCTYPE html>
   filterInput.addEventListener('input', onFilterControlChanged);
   msgModeAll.addEventListener('change', onFilterControlChanged);
   msgModeOnly.addEventListener('change', onFilterControlChanged);
+  msgModeExclude.addEventListener('change', onFilterControlChanged);
 
   // Ridisegna le checkbox dei nodi mantenendo lo stato di selezione corrente.
   function renderNodeCheckboxes() {
@@ -319,6 +338,14 @@ static const char WEB_LOG_INDEX_HTML[] = R"HTML_PAGE(<!DOCTYPE html>
       cb.addEventListener('change', () => {
         if (cb.checked) selectedNodes.add(name);
         else selectedNodes.delete(name);
+
+        if (selectedNodes.size === 0) {
+          nodeFilterMode = 'none';
+        } else if (selectedNodes.size === knownNodes.length) {
+          nodeFilterMode = 'all';
+        } else {
+          nodeFilterMode = 'list';
+        }
         onFilterControlChanged();
       });
       label.appendChild(cb);
@@ -327,24 +354,20 @@ static const char WEB_LOG_INDEX_HTML[] = R"HTML_PAGE(<!DOCTYPE html>
     });
   }
 
-  // Interroga /nodes per scoprire nuovi nodi apparsi nei log. I nodi gia'
-  // noti mantengono lo stato di selezione; i nodi nuovi vengono aggiunti
-  // come selezionati SOLO se al momento non c'e' un filtro nodi attivo
-  // (selectedNodes vuoto = "tutti"), altrimenti restano deselezionati per
-  // non alterare un filtro esplicito gia' impostato dall'utente.
+  // Interroga /nodes per scoprire nuovi nodi apparsi nei log. I nuovi nodi
+  // vengono aggiunti a selectedNodes SOLO se il filtro nodi corrente e'
+  // 'all' (nessuna restrizione esplicita); se e' 'none' o 'list' i nuovi
+  // nodi restano deselezionati, per non alterare una scelta esplicita
+  // dell'utente (incluso il caso "nessun nodo selezionato = non loggare").
   function refreshNodeCheckboxes() {
     fetch('/nodes')
       .then(r => r.ok ? r.json() : [])
       .then(nodes => {
         if (!Array.isArray(nodes)) return;
-        const noFilterActive = knownNodes.length === 0 && selectedNodes.size === 0;
-        const isNewNode = (n) => !knownNodes.includes(n);
 
-        nodes.forEach(n => {
-          if (isNewNode(n) && (noFilterActive || selectedNodes.size === 0)) {
-            selectedNodes.add(n);
-          }
-        });
+        if (nodeFilterMode === 'all') {
+          nodes.forEach(n => selectedNodes.add(n));
+        }
 
         knownNodes = nodes;
         renderNodeCheckboxes();
@@ -363,6 +386,11 @@ static const char WEB_LOG_INDEX_HTML[] = R"HTML_PAGE(<!DOCTYPE html>
     logEl.innerHTML = '';
     rowCount = 0;
     countEl.textContent = '0 righe';
+    // Svuota anche il ring buffer lato firmware: senza questa chiamata la
+    // history verrebbe ri-mostrata alla prossima riconnessione SSE.
+    fetch('/clear').catch(() => {
+      statusEl.textContent = 'errore svuotamento buffer';
+    });
   });
 
   function connect() {
@@ -392,19 +420,31 @@ static const char WEB_LOG_INDEX_HTML[] = R"HTML_PAGE(<!DOCTYPE html>
     .then(r => r.ok ? r.json() : {})
     .then(state => {
       filterInput.value = state.text || '';
-      const isMsgOnly = !!state.msgonly;
-      msgModeOnly.checked = isMsgOnly;
-      msgModeAll.checked = !isMsgOnly;
+      const mode = state.msgmode || 0;
+      msgModeAll.checked = (mode === 0);
+      msgModeOnly.checked = (mode === 1);
+      msgModeExclude.checked = (mode === 2);
+
       const nodesStr = (state.nodes || '').trim();
-      selectedNodes = new Set(nodesStr ? nodesStr.split(',').filter(Boolean) : []);
+      if (nodesStr === '') {
+        nodeFilterMode = 'all';
+        selectedNodes = new Set();
+      } else if (nodesStr === '__NONE__') {
+        nodeFilterMode = 'none';
+        selectedNodes = new Set();
+      } else {
+        nodeFilterMode = 'list';
+        selectedNodes = new Set(nodesStr.split(',').filter(Boolean));
+      }
     })
     .catch(() => { /* firmware non raggiungibile per la lettura, procedo comunque */ })
     .then(() => fetch('/nodes').then(r => r.ok ? r.json() : []).catch(() => []))
     .then(nodes => {
       knownNodes = Array.isArray(nodes) ? nodes : [];
-      // Se non c'era alcun filtro nodi salvato, considero tutti i nodi noti selezionati
-      if (selectedNodes.size === 0) {
-        knownNodes.forEach(n => selectedNodes.add(n));
+      // Se il filtro nodi e' 'all' (nessuna restrizione salvata), tutti i
+      // nodi noti risultano selezionati nella UI, come richiesto.
+      if (nodeFilterMode === 'all') {
+        selectedNodes = new Set(knownNodes);
       }
       renderNodeCheckboxes();
     })
