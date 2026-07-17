@@ -297,7 +297,8 @@ static const char WEB_LOG_INDEX_HTML[] = R"HTML_PAGE(<!DOCTYPE html>
   }
 
   filterInput.addEventListener('input', onFilterControlChanged);
-  msgOnlyChk.addEventListener('change', onFilterControlChanged);
+  msgModeAll.addEventListener('change', onFilterControlChanged);
+  msgModeOnly.addEventListener('change', onFilterControlChanged);
 
   // Ridisegna le checkbox dei nodi mantenendo lo stato di selezione corrente.
   function renderNodeCheckboxes() {
@@ -391,7 +392,9 @@ static const char WEB_LOG_INDEX_HTML[] = R"HTML_PAGE(<!DOCTYPE html>
     .then(r => r.ok ? r.json() : {})
     .then(state => {
       filterInput.value = state.text || '';
-      msgOnlyChk.checked = !!state.msgonly;
+      const isMsgOnly = !!state.msgonly;
+      msgModeOnly.checked = isMsgOnly;
+      msgModeAll.checked = !isMsgOnly;
       const nodesStr = (state.nodes || '').trim();
       selectedNodes = new Set(nodesStr ? nodesStr.split(',').filter(Boolean) : []);
     })
