@@ -7,7 +7,8 @@ CarduinoNode::CarduinoNode(uint8_t id, bool isEnabled)
     _id = id;
     this->isEnabled = isEnabled;
 
-    // addSetting(&Setting::OTA_MODE, false);
+    addSetting(&Setting::LOG_SND_RCV_MSG, false, true);
+    restoreSettings();
 
     // Registra gli executor PRIMA di abilitare il bus / avviare i task che
     // possono ricevere messaggi (rxTask) o generarne in uscita
@@ -16,8 +17,11 @@ CarduinoNode::CarduinoNode(uint8_t id, bool isEnabled)
     // passato a Executor::execute, ma _canExecutor.executors è ancora vuoto
     // -> il messaggio viene scartato silenziosamente (visto in pratica con
     // un ENABLE perso e un doppio giro di HELLO).
+    _serialExecutor.addExecutor(new CarduinoLogReceivedMessage("serial"));
     _serialExecutor.addExecutor(new CarduinoNodeSerialSettings());
     _serialExecutor.addExecutor(new CarduinoNodeSerialEvent());
+
+    _canExecutor.addExecutor(new CarduinoLogReceivedMessage("can"));
     _canExecutor.addExecutor(new CarduinoNodeCanEvent());
 
     setupBackupTask();
@@ -339,7 +343,10 @@ void CarduinoNode::sendMessage(const Message& m) {
 
     sendByte(m.canId(), dlc, payload);
 
-    NLOGI("Sent message %s", m.toString().c_str());
+    auto settingPtr = getSetting<bool>(&Setting::LOG_SND_RCV_MSG);
+    if (settingPtr != nullptr && settingPtr->value) {
+        NLOGI("Sent can message %s", m.toString().c_str());
+    }
 }
 
 void CarduinoNode::sendSerialMessage(const Message& m) {

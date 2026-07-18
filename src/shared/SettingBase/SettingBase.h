@@ -28,16 +28,21 @@ public:
     }
 
     template<typename T>
-    SettingInfo<T>* getSetting(const Setting *setting) {
-        auto it = settings.find(setting->id);
-        if (it == settings.end()) return nullptr;
-        return static_cast<SettingInfo<T>*>(it->second.get());
+    void addSetting(const Setting *setting, T value, bool doBackup = false) {
+        settings[setting->id] = std::make_unique<SettingInfo<T>>(setting, value, nullptr, doBackup);
     }
 
     template<typename T>
     void putSettingValue(const Setting *setting, T value) {
         SettingInfo<T>* info = getSetting<T>(setting);
         if (info && info->set(value)) settingsChanged = true;
+    }
+
+    template<typename T>
+    SettingInfo<T>* getSetting(const Setting *setting) {
+        auto it = settings.find(setting->id);
+        if (it == settings.end()) return nullptr;
+        return static_cast<SettingInfo<T>*>(it->second.get());
     }
 
     void backupSettings() {

@@ -23,6 +23,7 @@
 #include "Executor.h"
 #include "CarduinoNodeSerialSettings.h"
 #include "CarduinoNodeSerialEvent.h"
+#include "CarduinoLogReceivedMessage.h"
 #include "EventMulti.h"
 #include "CarduinoNodeCanEvent.h"
 #include "SyncedTaskScheduler.h"
