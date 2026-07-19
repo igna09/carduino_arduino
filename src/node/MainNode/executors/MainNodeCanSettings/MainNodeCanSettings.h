@@ -6,10 +6,15 @@
 #include "Setting.h"
 #include "EventMulti.h"
 #include "MessageType.h"
+#include "EventRegistry.h"
 #include "SendSettingsUpdate.h"
 
-class CarduinoNodeCanGetSettings : public CarduinoNodeExecutorInterface {
+class MainNodeCanSettings : public CarduinoNodeExecutorInterface {
     public:
-        CarduinoNodeCanGetSettings();
+        MainNodeCanSettings();
         void execute(CarduinoNode *node, Message *message);
+    private:
+        CarduinoNode *node;
+        void readSetting(Message *message);
 };
+

@@ -31,6 +31,7 @@ CarduinoNode::CarduinoNode(uint8_t id, bool isEnabled)
 
     _canExecutor.addExecutor(new CarduinoLogReceivedMessage("can"));
     _canExecutor.addExecutor(new CarduinoNodeCanEvent());
+    _canExecutor.addExecutor(new CarduinoNodeCanSettings());
 
     setupBackupTask();
 
