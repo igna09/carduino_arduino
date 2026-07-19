@@ -5,14 +5,7 @@ MainNodeSensorCanEvent::MainNodeSensorCanEvent() : CarduinoNodeExecutorInterface
 void MainNodeSensorCanEvent::execute(CarduinoNode *node, Message *message) {
     auto *main = static_cast<MainNode*>(node);
 
-    bool handleKline = true;
-
-    auto settingPtr = main->getSetting<bool>(&Setting::HANDLE_KLINE);
-    if (settingPtr != nullptr) {
-        handleKline = settingPtr->value;
-    }
-
-    if(message->event->category == EventCategory::SENSOR && handleKline) {
+    if(message->event->category == EventCategory::SENSOR) {
         main->sendSerialMessage(*message);
 
         if(message->event->id == EV_SPEED) {

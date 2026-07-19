@@ -4,7 +4,6 @@ MainNode::MainNode(): CarduinoNode(Node::MAIN.id, true), I2cNode() {
     NLOGD("MainNode::MainNode called");
 
     addSetting<int>(&Setting::TMP_SWC_PRESS_T, 150, true);
-    addSetting<bool>(&Setting::HANDLE_KLINE, true, true);
     addSetting<bool>(&Setting::SPD_LMT_LRM, true, true);
     //TODO: move this function in addSetting?
     restoreSettings();
