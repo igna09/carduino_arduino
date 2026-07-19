@@ -28,10 +28,6 @@
 #include "AfterReadExecutors.h"
 #include "FuelConsumptionExecutor.h"
 
-// Configurazione ADC (Ad esempio usando il pin GPIO36 / ADC1 Canale 0) GPIO 0
-#define VOLTAGE_ADC_CHANNEL    ADC_CHANNEL_0 
-#define VOLTAGE_ADC_UNIT       ADC_UNIT_1
-
 // ─────────────────────────────────────────────
 //  Configurazione — modifica questi valori
 // ─────────────────────────────────────────────
@@ -126,6 +122,4 @@ private:
 
     // Instrada una misura già calcolata sul CAN bus e aggiorna lastReadValue
     void dispatchMeasurement(ValueToRead *valueToRead, float value);
-
-    void configVoltageSensor();
 };
