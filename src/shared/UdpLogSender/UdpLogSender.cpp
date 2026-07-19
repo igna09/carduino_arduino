@@ -66,7 +66,9 @@ void UdpLogSender::udp_log_sender_init() {
 
     esp_netif_init();
     esp_event_loop_create_default();
+    // Inizializza ENTRAMBI i netif qui, prima di esp_wifi_init!
     esp_netif_create_default_wifi_sta();
+    esp_netif_create_default_wifi_ap();
 
     NLOGD("UdpLogSender::udp_log_sender_init mode set");
 

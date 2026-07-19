@@ -24,7 +24,9 @@ CONFIG_PM_ENABLE=n
 CONFIG_TWAI_ISR_IN_IRAM=y
 
 # Abilita la tabella delle partizioni predefinita a livello di configurazione
-CONFIG_PARTITION_TABLE_SINGLE_APP=y
+#CONFIG_PARTITION_TABLE_SINGLE_APP=y
+CONFIG_PARTITION_TABLE_TWO_OTA_LARGE=y
+CONFIG_PARTITION_TABLE_FILENAME="partitions_two_ota_large.csv"
 
 # Specifica all'SDK la dimensione reale della Flash (2MB)
 #CONFIG_ESPTOOLPY_FLASHSIZE_2MB=y

@@ -13,6 +13,8 @@
 #include "esp_twai_onchip.h"
 #include "esp_timer.h"
 #include "driver/gpio.h"
+#include "esp_http_server.h"
+#include "esp_ota_ops.h"
 
 #include "SettingBase.h"
 #include "Message.h"
@@ -76,6 +78,25 @@ struct CanRxSlot {
     uint8_t data[TWAI_FRAME_MAX_LEN];
 };
 
+// Handler GET "/" - pagina minimale di upload OTA
+static const char OTA_UPLOAD_HTML[] =
+"<!DOCTYPE html><html><body> \
+<h3>Carduino OTA</h3> \
+<input type='file' id='f'> \
+<button onclick='up()'>Upload</button> \
+<p id='s'></p> \
+<script> \
+function up(){ \
+  var file = document.getElementById('f').files[0]; \
+  var s = document.getElementById('s'); \
+  s.innerText = 'Uploading...'; \
+  fetch('/update-firmware', {method:'POST', body: file}) \
+    .then(r => r.text()).then(t => s.innerText = t) \
+    .catch(e => s.innerText = 'Error: ' + e); \
+} \
+</script> \
+</body></html>";
+
 class CarduinoNode: public SettingBase, public UdpLogSender {
 public:
     uint8_t _id;
@@ -115,6 +136,8 @@ public:
     void disableInterrupt();
     void restart();
     void heartbeatReceived();
+    void otaStartup();
+    void otaShutdown();
     void test();
 
     // -------------------------------------------------------------------
@@ -192,6 +215,8 @@ private:
     void handleSerialLine(const std::string& line);
     static void serialRxTaskEntry(void *pvParameters);
 
+    httpd_handle_t _otaServer = nullptr;
+
     // --- Setup interno ---
     void setupRxPool();
     void registerTwaiCallbacks();
@@ -212,4 +237,9 @@ private:
     // --- Task entry-point statici (FreeRTOS richiede puntatori a funzione liberi) ---
     static void recoveryTaskEntry(void *pvParameters);
     static void rxTaskEntry(void *pvParameters);
+    
+    static esp_err_t otaUploadHandlerTrampoline(httpd_req_t *req);
+    esp_err_t otaUploadHandler(httpd_req_t *req);
+    static esp_err_t otaIndexHandlerTrampoline(httpd_req_t *req);
+    esp_err_t otaIndexHandler(httpd_req_t *req);
 };

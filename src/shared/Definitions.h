@@ -8,3 +8,4 @@
 #define UDP_LOG_PORT            3333
 #define UDP_LOG_WIFI_SSID       "CARDUINO_DEBUG_NET"
 #define UDP_LOG_WIFI_PASSWORD   "AutomotiveSec2026"
+#define OTA_WIFI_PASSWORD       "AutomotiveSec2026"

@@ -8,6 +8,13 @@ CarduinoNode::CarduinoNode(uint8_t id, bool isEnabled)
     this->isEnabled = isEnabled;
 
     addSetting(&Setting::LOG_SND_RCV_MSG, false, true);
+    addSetting(&Setting::OTA_MODE, false, [&](SettingInfo<bool> *settingInfo){  
+        if(settingInfo->value) {
+            this->otaStartup(); 
+        } else {             
+            this->otaShutdown();
+        }                    
+    }, false);
     //TODO: move this function in addSetting?
     restoreSettings();
 
@@ -697,4 +704,125 @@ void CarduinoNode::handleSerialLine(const std::string& lineIn) {
     Message* msg = new Message(Priority::L.id, Node::BROADCAST.id, ev);
     _serialExecutor.execute(this, msg);
     delete msg;
+}
+
+void CarduinoNode::otaStartup() {
+    NLOGI("CarduinoNode::otaStartup");
+
+    // RIMOSSO il blocco esp_netif_create_default_wifi_ap() da qui!
+
+    wifi_config_t apCfg = {};
+    strncpy((char*)apCfg.ap.ssid, this->name().c_str(), sizeof(apCfg.ap.ssid) - 1);
+    apCfg.ap.ssid_len = strlen(this->name().c_str());
+    strncpy((char*)apCfg.ap.password, OTA_WIFI_PASSWORD, sizeof(apCfg.ap.password) - 1);
+    
+    // Metti 0 così l'AP userà lo stesso canale della STA connessa
+    apCfg.ap.channel = 0; 
+    apCfg.ap.max_connection = 2;
+    apCfg.ap.authmode = strlen(OTA_WIFI_PASSWORD) ? WIFI_AUTH_WPA2_PSK : WIFI_AUTH_OPEN;
+
+    // Cambia il modo in APSTA
+    esp_wifi_set_mode(WIFI_MODE_APSTA);
+    esp_err_t cfgErr = esp_wifi_set_config(WIFI_IF_AP, &apCfg);
+    NLOGI("AP set_config result: %d, ssid=%s len=%d", cfgErr, apCfg.ap.ssid, apCfg.ap.ssid_len);
+
+    // Recupera il netif (ora correttamente agganciato a livello hardware)
+    esp_netif_t *ap_netif = esp_netif_get_handle_from_ifkey("WIFI_AP_DEF");
+    if (ap_netif == nullptr) {
+        NLOGW("AP netif non trovato!");
+    }
+    
+    // Configurazione IP statica per l'AP
+    esp_netif_dhcps_stop(ap_netif);
+    esp_netif_ip_info_t ipInfo = {};
+    IP4_ADDR(&ipInfo.ip, 10, 10, 10, 10);
+    IP4_ADDR(&ipInfo.gw, 10, 10, 10, 10);
+    IP4_ADDR(&ipInfo.netmask, 255, 255, 255, 0);
+    esp_netif_set_ip_info(ap_netif, &ipInfo);
+    esp_netif_dhcps_start(ap_netif);
+
+    // Avvia il server HTTP
+    httpd_config_t httpCfg = HTTPD_DEFAULT_CONFIG();
+    httpd_start(&this->_otaServer, &httpCfg);
+
+    httpd_uri_t updateUri = {
+        .uri = "/update-firmware", .method = HTTP_POST,
+        .handler = &CarduinoNode::otaUploadHandlerTrampoline, .user_ctx = this
+    };
+    httpd_register_uri_handler(this->_otaServer, &updateUri);
+
+    httpd_uri_t indexUri = {
+        .uri = "/", .method = HTTP_GET,
+        .handler = &CarduinoNode::otaIndexHandlerTrampoline, .user_ctx = this
+    };
+    httpd_register_uri_handler(this->_otaServer, &indexUri);
+
+    this->putSettingValue<bool>(&Setting::OTA_MODE, true);
+}
+
+void CarduinoNode::otaShutdown() {
+    if (this->_otaServer) {
+        httpd_stop(this->_otaServer);
+        this->_otaServer = nullptr;
+    }
+    // Torna a STA-only, NON esp_wifi_stop() (spegnerebbe anche UdpLogSender)
+    esp_wifi_set_mode(WIFI_MODE_STA);
+    this->putSettingValue<bool>(&Setting::OTA_MODE, false);
+}
+
+esp_err_t CarduinoNode::otaUploadHandlerTrampoline(httpd_req_t *req) {
+    return static_cast<CarduinoNode*>(req->user_ctx)->otaUploadHandler(req);
+}
+
+esp_err_t CarduinoNode::otaUploadHandler(httpd_req_t *req) {
+    esp_ota_handle_t otaHandle = 0;
+    const esp_partition_t *otaPartition = esp_ota_get_next_update_partition(NULL);
+    if (!otaPartition) {
+        httpd_resp_send_500(req);
+        return ESP_FAIL;
+    }
+
+    esp_err_t err = esp_ota_begin(otaPartition, OTA_SIZE_UNKNOWN, &otaHandle);
+    if (err != ESP_OK) {
+        httpd_resp_send_500(req);
+        return ESP_FAIL;
+    }
+
+    char buf[1024];
+    int remaining = req->content_len;
+    while (remaining > 0) {
+        int recvLen = httpd_req_recv(req, buf, std::min((int)sizeof(buf), remaining));
+        if (recvLen <= 0) {
+            esp_ota_abort(otaHandle);
+            httpd_resp_send_500(req);
+            return ESP_FAIL;
+        }
+        if (esp_ota_write(otaHandle, buf, recvLen) != ESP_OK) {
+            esp_ota_abort(otaHandle);
+            httpd_resp_send_500(req);
+            return ESP_FAIL;
+        }
+        remaining -= recvLen;
+    }
+
+    if (esp_ota_end(otaHandle) != ESP_OK ||
+        esp_ota_set_boot_partition(otaPartition) != ESP_OK) {
+        httpd_resp_send_500(req);
+        return ESP_FAIL;
+    }
+
+    httpd_resp_send(req, "OK", 2);
+    vTaskDelay(pdMS_TO_TICKS(200));
+    esp_restart();
+    return ESP_OK;
+}
+
+esp_err_t CarduinoNode::otaIndexHandlerTrampoline(httpd_req_t *req) {
+    return static_cast<CarduinoNode*>(req->user_ctx)->otaIndexHandler(req);
+}
+
+esp_err_t CarduinoNode::otaIndexHandler(httpd_req_t *req) {
+    httpd_resp_set_type(req, "text/html");
+    httpd_resp_send(req, OTA_UPLOAD_HTML, HTTPD_RESP_USE_STRLEN);
+    return ESP_OK;
 }

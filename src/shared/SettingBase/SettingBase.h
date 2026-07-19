@@ -6,6 +6,9 @@
 #include "SettingInfo.h"
 #include "NodeLog.h"
 
+template<typename T>
+struct identity { using type = T; };
+
 class SettingBase {
 public:
     bool settingsChanged = false;
@@ -22,7 +25,7 @@ public:
 
     template<typename T>
     void addSetting(const Setting *setting, T value,
-                     std::function<void(SettingInfo<T>*)> onChange = nullptr,
+                     std::function<void(SettingInfo<typename identity<T>::type>*)> onChange = nullptr,
                      bool doBackup = false) {
         settings[setting->id] = std::make_unique<SettingInfo<T>>(setting, value, onChange, doBackup);
     }
