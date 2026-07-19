@@ -7,7 +7,7 @@
 
 // TODO: add unit of measurement (even if not used)
 
-#define CARSTATUS_SIZE 17
+#define CARSTATUS_SIZE 19
 
 class Carstatus : public TypedEnum {
     public:
@@ -28,9 +28,10 @@ class Carstatus : public TypedEnum {
         static const Carstatus INJECTED_QUANTITY;
         static const Carstatus FUEL_CONSUMPTION;
         static const Carstatus BATTERY_VOLTAGE;
-        // static const Carstatus BATTERY_VOLTAGE_2;
         static const Carstatus IS_REVERSE;
         static const Carstatus IS_KEY_ON;
+        static const Carstatus CRUISE_BITS;
+        static const Carstatus PEDALS;
 
         Carstatus() : TypedEnum() {};
 
@@ -98,6 +99,7 @@ inline const Carstatus Carstatus::TRIP_MAX_SPEED = Carstatus(0x0B, "TRIP_MAX_SPE
 inline const Carstatus Carstatus::INJECTED_QUANTITY = Carstatus(0x0C, "INJECTED_QUANTITY", &MessageType::FLOAT);
 inline const Carstatus Carstatus::FUEL_CONSUMPTION = Carstatus(0x0D, "FUEL_CONSUMPTION", &MessageType::FLOAT);
 inline const Carstatus Carstatus::BATTERY_VOLTAGE = Carstatus(0x0E, "BATTERY_VOLTAGE", &MessageType::FLOAT);
-// inline const Carstatus Carstatus::BATTERY_VOLTAGE_2 = Carstatus(0x0F, "BATTERY_VOLTAGE_2", &MessageType::FLOAT);
-inline const Carstatus Carstatus::IS_REVERSE = Carstatus(0x10, "IS_REVERSE", &MessageType::BOOL);
-inline const Carstatus Carstatus::IS_KEY_ON = Carstatus(0x11, "IS_KEY_ON", &MessageType::BOOL);
+inline const Carstatus Carstatus::IS_REVERSE = Carstatus(0x0F, "IS_REVERSE", &MessageType::BOOL);
+inline const Carstatus Carstatus::IS_KEY_ON = Carstatus(0x10, "IS_KEY_ON", &MessageType::BOOL);
+inline const Carstatus Carstatus::CRUISE_BITS = Carstatus(0x11, "CRUISE_BITS", &MessageType::INT);
+inline const Carstatus Carstatus::PEDALS = Carstatus(0x12, "PEDALS", &MessageType::INT);

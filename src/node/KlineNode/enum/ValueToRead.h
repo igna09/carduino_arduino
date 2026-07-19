@@ -5,7 +5,7 @@
 #include "KlineEcu.h"
 #include "ValueType.h"
 
-#define VALUE_TO_READ_SIZE 6
+#define VALUE_TO_READ_SIZE 8
 
 enum BlockToRead {
     FIRST = 0,
@@ -16,17 +16,14 @@ enum BlockToRead {
 
 class ValueToRead : public Enum {
     public:
-        static const ValueToRead INJECTED_QUANTITY;
         static const ValueToRead ENGINE_RPM;
         static const ValueToRead ENGINE_WATER_COOLING_TEMPERATURE;
         static const ValueToRead SPEED;
-        static const ValueToRead AMBIENT_TEMPERATURE;
-        static const ValueToRead AMBIENT_TEMPERATURE_2;
-        static const ValueToRead AMBIENT_TEMPERATURE_3;
         static const ValueToRead INTAKE_PRESSURE;
         static const ValueToRead FUEL_CONSUMPTION;
         static const ValueToRead BATTERY_VOLTAGE;
-        static const ValueToRead BATTERY_VOLTAGE_2;
+        static const ValueToRead PEDALS;
+        static const ValueToRead CRUISE_BITS;
         
         KlineEcu klineEcu;
         uint8_t group;
@@ -220,14 +217,11 @@ class ValueToRead : public Enum {
 
 inline const Enum* ValueToRead::values[VALUE_TO_READ_SIZE] = { 0 };
 inline uint8_t ValueToRead::index = 0;
-//inline const ValueToRead ValueToRead::INJECTED_QUANTITY = ValueToRead(0x00, "INJECTED_QUANTITY", KlineEcu::ENGINE, 15, BlockToRead::SECOND, Carstatus::INJECTED_QUANTITY, true);
-inline const ValueToRead ValueToRead::ENGINE_RPM = ValueToRead(0x01, "ENGINE_RPM", KlineEcu::ENGINE, 1, BlockToRead::FIRST, Carstatus::ENGINE_RPM, true);
-inline const ValueToRead ValueToRead::ENGINE_WATER_COOLING_TEMPERATURE = ValueToRead(0x02, "ENGINE_WATER_COOLING_TEMPERATURE", KlineEcu::ENGINE, 2, BlockToRead::FOURTH, Carstatus::ENGINE_WATER_COOLING_TEMPERATURE, true);
-inline const ValueToRead ValueToRead::SPEED = ValueToRead(0x03, "SPEED", KlineEcu::ENGINE, 6, BlockToRead::FIRST, Carstatus::SPEED, true);
-// inline const ValueToRead ValueToRead::AMBIENT_TEMPERATURE = ValueToRead(0x04, "AMBIENT_TEMPERATURE", KlineEcu::ENGINE, 7, BlockToRead::FIRST, Carstatus::EXTERNAL_TEMPERATURE, true); // fuel temp
-// inline const ValueToRead ValueToRead::AMBIENT_TEMPERATURE_2 = ValueToRead(0x09, "AMBIENT_TEMPERATURE_2", KlineEcu::ENGINE, 7, BlockToRead::FIRST, Carstatus::EXTERNAL_TEMPERATURE_2, true); // fuel temp
-// inline const ValueToRead ValueToRead::AMBIENT_TEMPERATURE_3 = ValueToRead(0x0A, "AMBIENT_TEMPERATURE_3", KlineEcu::ENGINE, 7, BlockToRead::FIRST, Carstatus::EXTERNAL_TEMPERATURE_3, true); // fuel temp
-inline const ValueToRead ValueToRead::INTAKE_PRESSURE = ValueToRead(0x05, "INTAKE_PRESSURE", KlineEcu::ENGINE, 11, BlockToRead::THIRD, Carstatus::ENGINE_INTAKE_MANIFOLD_PRESSURE, true);
-inline const ValueToRead ValueToRead::FUEL_CONSUMPTION = ValueToRead(0x06, "FUEL_CONSUMPTION", KlineEcu::ENGINE, 15, BlockToRead::THIRD, Carstatus::FUEL_CONSUMPTION, false);
-inline const ValueToRead ValueToRead::BATTERY_VOLTAGE = ValueToRead(0x07, "BATTERY_VOLTAGE", KlineEcu::ENGINE, 12, BlockToRead::THIRD, Carstatus::BATTERY_VOLTAGE, true);
-// inline const ValueToRead ValueToRead::BATTERY_VOLTAGE_2 = ValueToRead(0x08, "BATTERY_VOLTAGE_2", KlineEcu::ENGINE, 16, BlockToRead::FOURTH, Carstatus::BATTERY_VOLTAGE_2, true);
+inline const ValueToRead ValueToRead::ENGINE_RPM = ValueToRead(0x00, "ENGINE_RPM", KlineEcu::ENGINE, 1, BlockToRead::FIRST, Carstatus::ENGINE_RPM, true);
+inline const ValueToRead ValueToRead::ENGINE_WATER_COOLING_TEMPERATURE = ValueToRead(0x01, "ENGINE_WATER_COOLING_TEMPERATURE", KlineEcu::ENGINE, 2, BlockToRead::FOURTH, Carstatus::ENGINE_WATER_COOLING_TEMPERATURE, true);
+inline const ValueToRead ValueToRead::SPEED = ValueToRead(0x02, "SPEED", KlineEcu::ENGINE, 6, BlockToRead::FIRST, Carstatus::SPEED, true);
+inline const ValueToRead ValueToRead::INTAKE_PRESSURE = ValueToRead(0x03, "INTAKE_PRESSURE", KlineEcu::ENGINE, 11, BlockToRead::THIRD, Carstatus::ENGINE_INTAKE_MANIFOLD_PRESSURE, true);
+inline const ValueToRead ValueToRead::FUEL_CONSUMPTION = ValueToRead(0x04, "FUEL_CONSUMPTION", KlineEcu::ENGINE, 15, BlockToRead::THIRD, Carstatus::FUEL_CONSUMPTION, false);
+inline const ValueToRead ValueToRead::BATTERY_VOLTAGE = ValueToRead(0x05, "BATTERY_VOLTAGE", KlineEcu::ENGINE, 12, BlockToRead::THIRD, Carstatus::BATTERY_VOLTAGE, true);
+inline const ValueToRead ValueToRead::PEDALS = ValueToRead(0x06, "PEDALS", KlineEcu::ENGINE, 6, BlockToRead::SECOND, Carstatus::PEDALS, false);
+inline const ValueToRead ValueToRead::CRUISE_BITS = ValueToRead(0x07, "CRUISE_BITS", KlineEcu::ENGINE, 22, BlockToRead::SECOND, Carstatus::CRUISE_BITS, false);

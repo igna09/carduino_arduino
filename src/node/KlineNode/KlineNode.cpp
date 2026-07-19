@@ -38,6 +38,7 @@ KlineNode::KlineNode(gpio_num_t tx_pin, gpio_num_t rx_pin): CarduinoNode(Node::K
     NLOGD("created task");
 
     this->_afterReadExecutors.addExecutor(std::make_shared<FuelConsumptionExecutor>());
+    this->_afterReadExecutors.addExecutor(std::make_shared<CruiseExecutor>());
 
     NLOGD("KlineNode::KlineNode end");
 }
@@ -77,7 +78,7 @@ void KlineNode::kline_poll_loop() {
         // NLOGI("before readValues()");
         // NLOGI("Stack libero: %u words (%u bytes)", freeStack, freeStack * sizeof(StackType_t));
         // NLOGI("Heap libero: %u bytes, min storico: %u", esp_get_free_heap_size(), esp_get_minimum_free_heap_size());
-        auto settingPtr = main->getSetting<bool>(&Setting::HANDLE_KLINE);
+        auto settingPtr = getSetting<bool>(&Setting::HANDLE_KLINE);
         if (settingPtr != nullptr && settingPtr->value) {
             readValues();
         }
@@ -161,15 +162,27 @@ void KlineNode::dispatchMeasurement(ValueToRead *valueToRead, float value) {
         EventBase *ev = EventRegistry::createByName(valueToRead->carstatus.name);
         ev->setFromFloat(value);
 
-            std::ostringstream ss;
-            ev->printValue(ss, false);            
+        std::ostringstream ss;
+        ev->printValue(ss, false);            
         NLOGI("dispatchMeasurement: %s, float: %.2f, event: %s",
             valueToRead->name, value, ss.str().c_str());
 
-            sendMessage(Message(Priority::L.id, Node::MAIN.id, ev));
+        sendMessage(Message(Priority::L.id, Node::MAIN.id, ev));
     }
 
-    _lastValues[valueToRead->id] = value;
+    // Salvataggio nel variant in base al tipo specificato in carstatus
+    if (valueToRead->carstatus.type->id == MessageType::BOOL.id) {
+        // Se è un booleano, qualsiasi valore diverso da 0 diventa true
+        _lastValues[valueToRead->id] = (value != 0.0f);
+    } 
+    else if (valueToRead->carstatus.type->id == MessageType::INT.id) { 
+        // Se è un intero (es. i tuoi bitfield), facciamo il cast a int per non perdere i bit
+        _lastValues[valueToRead->id] = static_cast<int>(value);
+    } 
+    else {
+        // Di default (o se è MessageType::FLOAT.id), lo salviamo come float standard
+        _lastValues[valueToRead->id] = value;
+    }
 }
 
 // ─────────────────────────────────────────────
@@ -401,8 +414,3 @@ bool KlineNode::klineReceive(uint8_t *data, unsigned long timeout_ticks) {
     bytes_read = uart_read_bytes(_uart, data, 1, 0);
     return bytes_read == 1;
 };
-
-float KlineNode::getLastValue(uint8_t valueToReadId) const {
-    auto it = _lastValues.find(valueToReadId);
-    return it != _lastValues.end() ? it->second : 0.0f;
-}
