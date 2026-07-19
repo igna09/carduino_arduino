@@ -103,93 +103,112 @@ void MainNode::configSpeedWarning() {
     _speedWarn.setHysteresisKmh(10);
 }
 
-void MainNode::configSwc() {    
-    if(_swc.init(I2C_NUM_0, 0x21, DEFAULT_I2C_SDA_PIN, DEFAULT_I2C_SCL_PIN) != ESP_OK) {
-        NLOGE("_swc.init failed");
-        return;
-    }
+void MainNode::configSwc() {
+    xTaskCreate([](void* param) {
+        auto* self = static_cast<MainNode*>(param);
 
-    NLOGI("SWC inizializzato.");
-}
-
-
-void MainNode::configBmp() {
-    bmp280_params_t params;
-    bmp280_init_default_params(&params);
-    memset(&bpm_dev, 0, sizeof(bmp280_t));
-
-    if(bmp280_init_desc(&bpm_dev, BMP280_I2C_ADDRESS_1, I2C_NUM_0, DEFAULT_I2C_SDA_PIN, DEFAULT_I2C_SCL_PIN) != ESP_OK) {
-        NLOGE("bmp280_init_desc failed");
-        return;
-    }
-    
-    if(bmp280_init(&bpm_dev, &params) != ESP_OK) {
-        NLOGE("bmp280_init failed");
-        return;
-    }
-
-    NLOGI("Sensore BMP inizializzato.");
-
-    startRepeatingTask("bmp280_read", 15000, [this]() {
-        float temperature;
-        float pressure;
-        float humidity;
-
-        if (bmp280_read_float(&bpm_dev, &temperature, &pressure, &humidity) != ESP_OK)
-        {
-            NLOGI("Temperature/pressure reading failed");
-            return;
+        while (self->_swc.init(I2C_NUM_0, 0x21, DEFAULT_I2C_SDA_PIN, DEFAULT_I2C_SCL_PIN) != ESP_OK) {
+            NLOGE("_swc.init failed, retry...");
+            vTaskDelay(pdMS_TO_TICKS(2000));
         }
 
-        uint16_t pressure_int = (uint16_t)(pressure / 100);
+        NLOGI("SWC inizializzato.");
+        vTaskDelete(NULL);
+    }, "cfg_swc", 4096, this, 5, NULL);
+}
 
-        
-        auto *ev = static_cast<EventMulti<uint16_t> *>(EventRegistry::createById(EV_INTERNAL_PRESSURE));
-        std::get<0>(ev->values) = pressure_int;
-        Message m = Message(Priority::L.id, Node::BROADCAST.id, ev);
+void MainNode::configBmp() {
+    xTaskCreate([](void* param) {
+        auto* self = static_cast<MainNode*>(param);
+        bmp280_params_t params;
+        bmp280_init_default_params(&params);
 
-        sendMessage(m);
-        sendSerialMessage(m);
-    });
+        for (;;) {
+            memset(&self->bpm_dev, 0, sizeof(bmp280_t));
+
+            if (bmp280_init_desc(&self->bpm_dev, BMP280_I2C_ADDRESS_1, I2C_NUM_0, DEFAULT_I2C_SDA_PIN, DEFAULT_I2C_SCL_PIN) != ESP_OK) {
+                NLOGE("bmp280_init_desc failed, retry...");
+                vTaskDelay(pdMS_TO_TICKS(2000));
+                continue;
+            }
+
+            if (bmp280_init(&self->bpm_dev, &params) != ESP_OK) {
+                NLOGE("bmp280_init failed, retry...");
+                vTaskDelay(pdMS_TO_TICKS(2000));
+                continue;
+            }
+
+            break;
+        }
+
+        NLOGI("Sensore BMP inizializzato.");
+
+        self->startRepeatingTask("bmp280_read", 15000, [self]() {
+            float temperature, pressure, humidity;
+
+            if (bmp280_read_float(&self->bpm_dev, &temperature, &pressure, &humidity) != ESP_OK) {
+                NLOGI("Temperature/pressure reading failed");
+                return;
+            }
+
+            uint16_t pressure_int = (uint16_t)(pressure / 100);
+
+            auto *ev = static_cast<EventMulti<uint16_t> *>(EventRegistry::createById(EV_INTERNAL_PRESSURE));
+            std::get<0>(ev->values) = pressure_int;
+            Message m = Message(Priority::L.id, Node::BROADCAST.id, ev);
+
+            self->sendMessage(m);
+            self->sendSerialMessage(m);
+        });
+
+        vTaskDelete(NULL);
+    }, "cfg_bmp", 4096, this, 5, NULL);
 }
 
 void MainNode::configAht() {
-    // Azzera completamente la struttura per ripulire la memoria da valori residui/spazzatura
-    memset(&aht_dev, 0, sizeof(aht_dev));
+    xTaskCreate([](void* param) {
+        auto* self = static_cast<MainNode*>(param);
 
-    // --- Configurazione del sensore AHT ---
-    aht_dev.mode = AHT_MODE_NORMAL;
-    aht_dev.type = AHT_TYPE_AHT20;
+        for (;;) {
+            memset(&self->aht_dev, 0, sizeof(self->aht_dev));
+            self->aht_dev.mode = AHT_MODE_NORMAL;
+            self->aht_dev.type = AHT_TYPE_AHT20;
 
-    // Ora i2cdev troverà il puntatore del mutex a NULL e lo allocherà correttamente in RAM
-    if(aht_init_desc(&aht_dev, AHT_I2C_ADDRESS_GND, I2C_NUM_0, DEFAULT_I2C_SDA_PIN, DEFAULT_I2C_SCL_PIN) != ESP_OK) {
-        NLOGE("aht_init_desc failed");
-        return;
-    }
-    if(aht_init(&aht_dev) != ESP_OK) {
-        NLOGE("aht_init failed");
-        return;
-    }
+            if (aht_init_desc(&self->aht_dev, AHT_I2C_ADDRESS_GND, I2C_NUM_0, DEFAULT_I2C_SDA_PIN, DEFAULT_I2C_SCL_PIN) != ESP_OK) {
+                NLOGE("aht_init_desc failed, retry...");
+                vTaskDelay(pdMS_TO_TICKS(2000));
+                continue;
+            }
 
-    NLOGI("Sensore AHT inizializzato.");
-    
-    startRepeatingTask("aht20_read", 15000, [this]() {
-        float temperature;
-        float humidity;
+            if (aht_init(&self->aht_dev) != ESP_OK) {
+                NLOGE("aht_init failed, retry...");
+                vTaskDelay(pdMS_TO_TICKS(2000));
+                continue;
+            }
 
-        if (aht_get_data(&aht_dev, &temperature, &humidity) != ESP_OK)
-        {
-            NLOGI("Temperature/humidity reading failed");
-            return;
+            break;
         }
-        
-        auto *ev = static_cast<EventMulti<float> *>(EventRegistry::createById(EV_INTERNAL_TEMPERATURE));
-        std::get<0>(ev->values) = temperature;
-        Message m = Message(Priority::L.id, Node::BROADCAST.id, ev);
 
-        sendMessage(m);
-        sendSerialMessage(m);
-    });
+        NLOGI("Sensore AHT inizializzato.");
+
+        self->startRepeatingTask("aht20_read", 15000, [self]() {
+            float temperature, humidity;
+
+            if (aht_get_data(&self->aht_dev, &temperature, &humidity) != ESP_OK) {
+                NLOGI("Temperature/humidity reading failed");
+                return;
+            }
+
+            auto *ev = static_cast<EventMulti<float> *>(EventRegistry::createById(EV_INTERNAL_TEMPERATURE));
+            std::get<0>(ev->values) = temperature;
+            Message m = Message(Priority::L.id, Node::BROADCAST.id, ev);
+
+            self->sendMessage(m);
+            self->sendSerialMessage(m);
+        });
+
+        vTaskDelete(NULL);
+    }, "cfg_aht", 4096, this, 5, NULL);
 }
 
 void MainNode::configTemt6000() {
