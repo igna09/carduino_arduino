@@ -8,6 +8,7 @@ CarduinoNode::CarduinoNode(uint8_t id, bool isEnabled)
     this->isEnabled = isEnabled;
 
     addSetting(&Setting::LOG_SND_RCV_MSG, false, true);
+    //TODO: move this function in addSetting?
     restoreSettings();
 
     // Registra gli executor PRIMA di abilitare il bus / avviare i task che

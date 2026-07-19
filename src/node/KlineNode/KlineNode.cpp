@@ -2,6 +2,10 @@
 
 KlineNode::KlineNode(gpio_num_t tx_pin, gpio_num_t rx_pin): CarduinoNode(Node::KLINE.id) {
     NLOGD("KlineNode::KlineNode start");
+    
+    addSetting<bool>(&Setting::HANDLE_KLINE, true, true);
+    //TODO: move this function in addSetting?
+    restoreSettings();
 
     _tx_pin = tx_pin;
     _rx_pin = rx_pin;
@@ -140,7 +144,10 @@ void KlineNode::kline_poll_loop() {
         // NLOGI("before readValues()");
         // NLOGI("Stack libero: %u words (%u bytes)", freeStack, freeStack * sizeof(StackType_t));
         // NLOGI("Heap libero: %u bytes, min storico: %u", esp_get_free_heap_size(), esp_get_minimum_free_heap_size());
-        readValues();
+        auto settingPtr = main->getSetting<bool>(&Setting::HANDLE_KLINE);
+        if (settingPtr != nullptr && settingPtr->value) {
+            readValues();
+        }
         // NLOGI("after readValues()");
         // NLOGI("Stack libero: %u words (%u bytes)", freeStack, freeStack * sizeof(StackType_t));
         // NLOGI("Heap libero: %u bytes, min storico: %u", esp_get_free_heap_size(), esp_get_minimum_free_heap_size());
