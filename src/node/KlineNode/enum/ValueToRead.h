@@ -5,7 +5,7 @@
 #include "KlineEcu.h"
 #include "ValueType.h"
 
-#define VALUE_TO_READ_SIZE 5
+#define VALUE_TO_READ_SIZE 6
 
 enum BlockToRead {
     FIRST = 0,
@@ -229,5 +229,5 @@ inline const ValueToRead ValueToRead::SPEED = ValueToRead(0x03, "SPEED", KlineEc
 // inline const ValueToRead ValueToRead::AMBIENT_TEMPERATURE_3 = ValueToRead(0x0A, "AMBIENT_TEMPERATURE_3", KlineEcu::ENGINE, 7, BlockToRead::FIRST, Carstatus::EXTERNAL_TEMPERATURE_3, true); // fuel temp
 inline const ValueToRead ValueToRead::INTAKE_PRESSURE = ValueToRead(0x05, "INTAKE_PRESSURE", KlineEcu::ENGINE, 11, BlockToRead::THIRD, Carstatus::ENGINE_INTAKE_MANIFOLD_PRESSURE, true);
 inline const ValueToRead ValueToRead::FUEL_CONSUMPTION = ValueToRead(0x06, "FUEL_CONSUMPTION", KlineEcu::ENGINE, 15, BlockToRead::THIRD, Carstatus::FUEL_CONSUMPTION, false);
-// inline const ValueToRead ValueToRead::BATTERY_VOLTAGE = ValueToRead(0x07, "BATTERY_VOLTAGE", KlineEcu::ENGINE, 12, BlockToRead::THIRD, Carstatus::BATTERY_VOLTAGE, true);
+inline const ValueToRead ValueToRead::BATTERY_VOLTAGE = ValueToRead(0x07, "BATTERY_VOLTAGE", KlineEcu::ENGINE, 12, BlockToRead::THIRD, Carstatus::BATTERY_VOLTAGE, true);
 // inline const ValueToRead ValueToRead::BATTERY_VOLTAGE_2 = ValueToRead(0x08, "BATTERY_VOLTAGE_2", KlineEcu::ENGINE, 16, BlockToRead::FOURTH, Carstatus::BATTERY_VOLTAGE_2, true);

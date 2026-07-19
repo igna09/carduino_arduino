@@ -39,74 +39,7 @@ KlineNode::KlineNode(gpio_num_t tx_pin, gpio_num_t rx_pin): CarduinoNode(Node::K
 
     this->_afterReadExecutors.addExecutor(std::make_shared<FuelConsumptionExecutor>());
 
-    configVoltageSensor();
-
     NLOGD("KlineNode::KlineNode end");
-}
-
-void KlineNode::configVoltageSensor() {
-    NLOGD("MainNode::configVoltageSensor called");
-
-    adc_oneshot_unit_handle_t adc_handle;
-    adc_oneshot_unit_init_cfg_t init_config = {
-        .unit_id = VOLTAGE_ADC_UNIT,
-    };
-    ESP_ERROR_CHECK(adc_oneshot_new_unit(&init_config, &adc_handle));
-
-    adc_oneshot_chan_cfg_t config = {
-        .atten = ADC_ATTEN_DB_12,
-        .bitwidth = ADC_BITWIDTH_DEFAULT,
-    };
-    ESP_ERROR_CHECK(adc_oneshot_config_channel(adc_handle, VOLTAGE_ADC_CHANNEL, &config));
-
-    adc_cali_handle_t cali_handle = NULL;
-    bool do_calibration = false;
-
-    #if ADC_CALI_SCHEME_CURVE_FITTING_SUPPORTED
-    adc_cali_curve_fitting_config_t cali_config = {
-        .unit_id = VOLTAGE_ADC_UNIT,
-        .chan = VOLTAGE_ADC_CHANNEL,
-        .atten = ADC_ATTEN_DB_12,
-        .bitwidth = ADC_BITWIDTH_DEFAULT,
-    };
-    if (adc_cali_create_scheme_curve_fitting(&cali_config, &cali_handle) == ESP_OK) {
-        do_calibration = true;
-    }
-    #endif
-
-    static constexpr float R1 = 10000.0f; // resistore partitore superiore
-    static constexpr float R2 = 2000.0f;  // resistore partitore inferiore
-
-    startRepeatingTask("voltage_read", 15000, [this, adc_handle, cali_handle, do_calibration]() {
-        int adc_raw = 0;
-
-        if (adc_oneshot_read(adc_handle, VOLTAGE_ADC_CHANNEL, &adc_raw) != ESP_OK) {
-            NLOGI("adc_oneshot_read error");
-            return;
-        }
-
-        if (!do_calibration) {
-            NLOGD("VOLTAGE: calibrazione non disponibile");
-            return;
-        }
-
-        int voltage_mv = 0;
-        if (adc_cali_raw_to_voltage(cali_handle, adc_raw, &voltage_mv) != ESP_OK) {
-            NLOGD("VOLTAGE: lettura fallita");
-            return;
-        }
-
-        float voltageOut = voltage_mv / 1000.0f; // V misurati sul pin
-        float voltageIn = voltageOut * (R1 + R2) / R2; // V reali tramite partitore
-
-        NLOGD("VOLTAGE: raw=%d, out=%.3fV, in=%.3fV", adc_raw, voltageOut, voltageIn);
-
-        auto *ev = static_cast<EventMulti<float> *>(EventRegistry::createById(EV_BATTERY_VOLTAGE));
-        std::get<0>(ev->values) = voltageIn;
-        Message m = Message(Priority::L.id, Node::BROADCAST.id, ev);
-
-        sendMessage(m);
-    }, 4096, 1);
 }
 
 void KlineNode::uart_event_loop() {
