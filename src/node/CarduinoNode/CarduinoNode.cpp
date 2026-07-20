@@ -779,12 +779,14 @@ esp_err_t CarduinoNode::otaUploadHandler(httpd_req_t *req) {
     esp_ota_handle_t otaHandle = 0;
     const esp_partition_t *otaPartition = esp_ota_get_next_update_partition(NULL);
     if (!otaPartition) {
+        NLOGI("No ota partition");
         httpd_resp_send_500(req);
         return ESP_FAIL;
     }
 
     esp_err_t err = esp_ota_begin(otaPartition, OTA_SIZE_UNKNOWN, &otaHandle);
     if (err != ESP_OK) {
+        NLOGI("error ota begin");
         httpd_resp_send_500(req);
         return ESP_FAIL;
     }
@@ -794,11 +796,13 @@ esp_err_t CarduinoNode::otaUploadHandler(httpd_req_t *req) {
     while (remaining > 0) {
         int recvLen = httpd_req_recv(req, buf, std::min((int)sizeof(buf), remaining));
         if (recvLen <= 0) {
+            NLOGI("error ota receive length");
             esp_ota_abort(otaHandle);
             httpd_resp_send_500(req);
             return ESP_FAIL;
         }
         if (esp_ota_write(otaHandle, buf, recvLen) != ESP_OK) {
+            NLOGI("error ota write");
             esp_ota_abort(otaHandle);
             httpd_resp_send_500(req);
             return ESP_FAIL;
@@ -806,8 +810,14 @@ esp_err_t CarduinoNode::otaUploadHandler(httpd_req_t *req) {
         remaining -= recvLen;
     }
 
-    if (esp_ota_end(otaHandle) != ESP_OK ||
-        esp_ota_set_boot_partition(otaPartition) != ESP_OK) {
+    if (esp_ota_end(otaHandle) != ESP_OK) {
+        NLOGI("error ota end");
+        httpd_resp_send_500(req);
+        return ESP_FAIL;
+    }
+
+    if(esp_ota_set_boot_partition(otaPartition) != ESP_OK) {
+        NLOGI("error ota set boot partition");
         httpd_resp_send_500(req);
         return ESP_FAIL;
     }
