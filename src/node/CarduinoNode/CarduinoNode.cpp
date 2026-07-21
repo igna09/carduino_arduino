@@ -801,15 +801,28 @@ esp_err_t CarduinoNode::otaUploadHandlerTrampoline(httpd_req_t *req) {
 }
 
 esp_err_t CarduinoNode::otaUploadHandler(httpd_req_t *req) {
+    if (req->content_len <= 0) {
+        NLOGI("ota: empty body");
+        httpd_resp_send_500(req);
+        return ESP_FAIL;
+    }
+
     esp_ota_handle_t otaHandle = 0;
     const esp_partition_t *otaPartition = esp_ota_get_next_update_partition(NULL);
+
     if (!otaPartition) {
         NLOGI("No ota partition");
         httpd_resp_send_500(req);
         return ESP_FAIL;
     }
 
-    esp_err_t err = esp_ota_begin(otaPartition, OTA_SIZE_UNKNOWN, &otaHandle);
+    if ((size_t)req->content_len > otaPartition->size) {
+        NLOGI("ota: image too big for partition");
+        httpd_resp_send_500(req);
+        return ESP_FAIL;
+    }
+
+    esp_err_t err = esp_ota_begin(otaPartition, req->content_len, &otaHandle);
     if (err != ESP_OK) {
         NLOGI("error ota begin");
         httpd_resp_send_500(req);
@@ -820,6 +833,9 @@ esp_err_t CarduinoNode::otaUploadHandler(httpd_req_t *req) {
     int remaining = req->content_len;
     while (remaining > 0) {
         int recvLen = httpd_req_recv(req, buf, std::min((int)sizeof(buf), remaining));
+        if (recvLen == HTTPD_SOCK_ERR_TIMEOUT) {
+            continue; // ritenta, non è un errore fatale
+        }
         if (recvLen <= 0) {
             NLOGI("error ota receive length");
             esp_ota_abort(otaHandle);
@@ -835,13 +851,14 @@ esp_err_t CarduinoNode::otaUploadHandler(httpd_req_t *req) {
         remaining -= recvLen;
     }
 
-    if (esp_ota_end(otaHandle) != ESP_OK) {
-        NLOGI("error ota end");
+    err = esp_ota_end(otaHandle);
+    if (err != ESP_OK) {
+        NLOGI("error ota end: %s", esp_err_to_name(err));
         httpd_resp_send_500(req);
         return ESP_FAIL;
     }
 
-    if(esp_ota_set_boot_partition(otaPartition) != ESP_OK) {
+    if (esp_ota_set_boot_partition(otaPartition) != ESP_OK) {
         NLOGI("error ota set boot partition");
         httpd_resp_send_500(req);
         return ESP_FAIL;

@@ -82,7 +82,6 @@ struct CanRxSlot {
     uint8_t data[TWAI_FRAME_MAX_LEN];
 };
 
-// Handler GET "/" - pagina minimale di upload OTA
 static const char OTA_UPLOAD_HTML[] =
 "<!DOCTYPE html><html><body> \
 <h3>Carduino OTA</h3> \
@@ -93,10 +92,17 @@ static const char OTA_UPLOAD_HTML[] =
 function up(){ \
   var file = document.getElementById('f').files[0]; \
   var s = document.getElementById('s'); \
-  s.innerText = 'Uploading...'; \
-  fetch('/update-firmware', {method:'POST', body: file}) \
-    .then(r => r.text()).then(t => s.innerText = t) \
-    .catch(e => s.innerText = 'Error: ' + e); \
+  if(!file){ s.innerText = 'Select a file'; return; } \
+  var x = new XMLHttpRequest(); \
+  x.open('POST', '/update-firmware'); \
+  x.upload.onprogress = function(e){ \
+    if(e.lengthComputable){ \
+      s.innerText = 'Uploading... ' + Math.round(e.loaded/e.total*100) + '%'; \
+    } \
+  }; \
+  x.onload = function(){ s.innerText = x.responseText; }; \
+  x.onerror = function(){ s.innerText = 'Error uploading'; }; \
+  x.send(file); \
 } \
 </script> \
 </body></html>";
