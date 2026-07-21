@@ -27,7 +27,6 @@
 #include "I2CNode.h"
 #include "BootExecutor.h"
 #include "HelloTrackerExecutor.h"
-#include "MainNodeCanSettings.h"
 #include "MainNodeSensorCanEvent.h"
 #include "SwcController.h"
 #include "SwcMapping.h"

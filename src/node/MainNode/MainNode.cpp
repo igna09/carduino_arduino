@@ -11,7 +11,6 @@ MainNode::MainNode(): CarduinoNode(Node::MAIN.id, true), I2cNode() {
     _canExecutor.addExecutor(new BootExecutor());
     _canExecutor.addExecutor(new HelloTrackerExecutor());
     _canExecutor.addExecutor(new MainNodeSensorCanEvent());
-    _canExecutor.addExecutor(new MainNodeCanSettings());
     
     _serialExecutor.addExecutor(new SwcPairingEvent());
 

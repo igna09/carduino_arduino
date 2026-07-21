@@ -40,6 +40,9 @@
 #define CAN_RECOVERY_STEP_MS     50
 #define CAN_RECOVERY_SAFETY_MS   500     // wake periodico di sicurezza del recovery task
 
+// --- configurazione TX pool
+#define TX_POOL_SIZE 16
+
 // --- Time sync (ping-pong stile NTP, single-shot all'avvio/enable) ---------
 #define TIME_SYNC_TIMEOUT_MS     2000    // se non arriva la response entro questo tempo, sync considerato fallito (loggato una volta)
 
@@ -205,6 +208,11 @@ private:
     int                _rxReadIdx = 0;
     TaskHandle_t       _rxTaskHdl = nullptr;
 
+    // --- TX pool ---
+    uint8_t **_txBufPool;
+    twai_frame_t *_txFramePool;
+    std::atomic<size_t> _txBufIdx{0};
+
     // --- Time sync (per-nodo) ---
     std::atomic<bool>    _timeSynced{false};
     int32_t              _timeOffsetMs = 0;       // syncedMillis() = localMillis() + offset
@@ -220,6 +228,7 @@ private:
 
     // --- Setup interno ---
     void setupRxPool();
+    void setupTxPool();
     void registerTwaiCallbacks();
     void startRecoveryTask();
     void startRxTask();

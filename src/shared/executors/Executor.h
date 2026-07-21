@@ -26,4 +26,5 @@ class Executor {
 
         void addExecutor(CarduinoNodeExecutorInterface* e);
         void execute(CarduinoNode *node, Message *message);
+        bool willExecute(CarduinoNode *node, Message *message);
 };

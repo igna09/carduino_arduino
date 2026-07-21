@@ -17,5 +17,6 @@ class CarduinoNodeCanSettings : public CarduinoNodeExecutorInterface {
         CarduinoNode *node;
         void readSetting(Message *message);
         void getSettings();
+        void writeSetting(Message *message);
 };
 

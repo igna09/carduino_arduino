@@ -10,5 +10,7 @@ void CarduinoLogReceivedMessage::execute(CarduinoNode *node, Message *message) {
 
 bool CarduinoLogReceivedMessage::canExecute(CarduinoNode *node, Message *message) {
     auto settingPtr = node->getSetting<bool>(&Setting::LOG_SND_RCV_MSG);
-    return settingPtr != nullptr && settingPtr->value;
+    bool logReceivedMessage = settingPtr != nullptr && settingPtr->value;
+    bool willExecute = node->_canExecutor.willExecute(node, message);
+    return logReceivedMessage && willExecute;
 }

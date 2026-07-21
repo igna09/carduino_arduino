@@ -56,6 +56,7 @@ CarduinoNode::CarduinoNode(uint8_t id, bool isEnabled)
     // Pool RX e semafori, creati prima di registrare i callback (l'ISR potrebbe
     // scattare subito dopo twai_node_enable, quindi tutto deve essere pronto).
     setupRxPool();
+    setupTxPool();
 
     // Registra i callback ISR (rx_done / state_change / error) passando 'this'
     // come user_ctx, così i metodi statici possono risalire all'istanza.
@@ -119,6 +120,23 @@ void CarduinoNode::setupRxPool() {
     }
 
     NLOGD("RX pool inizializzato: %d slot", CAN_RX_POOL_DEPTH);
+}
+
+void CarduinoNode::setupTxPool() {
+    _txBufPool = static_cast<uint8_t**>(calloc(TX_POOL_SIZE, sizeof(uint8_t*)));
+    assert(_txBufPool != nullptr);
+    for (int i = 0; i < TX_POOL_SIZE; i++) {
+        _txBufPool[i] = static_cast<uint8_t*>(calloc(8, sizeof(uint8_t))); // max 8 byte CAN
+    }
+
+    _txFramePool = static_cast<twai_frame_t*>(calloc(TX_POOL_SIZE, sizeof(twai_frame_t)));
+    assert(_txFramePool != nullptr);
+
+    for (int i = 0; i < TX_POOL_SIZE; i++) {
+        _txFramePool[i] = {};
+    }
+
+    NLOGD("TX pool inizializzato: %d slot", TX_POOL_SIZE);
 }
 
 void CarduinoNode::registerTwaiCallbacks() {
@@ -250,6 +268,8 @@ bool IRAM_ATTR CarduinoNode::onRxDoneCallback(twai_node_handle_t handle,
     if (twai_node_receive_from_isr(handle, &self->_rxPool[self->_rxWriteIdx].frame) == ESP_OK) {
         self->_rxWriteIdx = (self->_rxWriteIdx + 1) % CAN_RX_POOL_DEPTH;
         xSemaphoreGiveFromISR(self->_rxResultSemaphore, &woken);
+    } else {
+        xSemaphoreGiveFromISR(self->_freePoolSemaphore, &woken);
     }
     return (woken == pdTRUE);
 }
@@ -350,7 +370,7 @@ void CarduinoNode::sendMessage(const Message& m) {
     uint8_t payload[8];
     uint8_t dlc = m.toCanFrame(id, payload, sizeof(payload));
 
-    sendByte(m.canId(), dlc, payload);
+    sendByte(id, dlc, payload);
 
     auto settingPtr = getSetting<bool>(&Setting::LOG_SND_RCV_MSG);
     if (settingPtr != nullptr && settingPtr->value) {
@@ -364,26 +384,31 @@ void CarduinoNode::sendSerialMessage(const Message& m) {
 }
 
 void CarduinoNode::sendByte(uint16_t messageId, int len, uint8_t *buf) {
-    // Se il bus è in bus_off, il recovery task per questo nodo se ne sta già
-    // occupando in background: non blocchiamo qui, scartiamo il frame.
     if (_busOff.load(std::memory_order_relaxed)) {
         NLOGW("sendByte: bus in BUS_OFF, frame id=0x%x scartato", messageId);
         return;
     }
 
-    twai_frame_t tx_frame = {
-        .header = {
-            .id = messageId,
-        },
-        .buffer = buf,
-        .buffer_len = static_cast<size_t>(len),
-    };
+    size_t safe_len = (len > 8) ? 8 : (len < 0 ? 0 : len);
 
-    esp_err_t err = twai_node_transmit(_twai_node, &tx_frame, pdMS_TO_TICKS(50));
+    size_t idx = _txBufIdx.fetch_add(1, std::memory_order_relaxed) % TX_POOL_SIZE;
+    uint8_t* tx_buf = _txBufPool[idx];
+    if (buf && safe_len > 0) {
+        memcpy(tx_buf, buf, safe_len);
+    }
+
+    // Frame stesso preso dal pool, non più locale/stack
+    twai_frame_t* tx_frame = &_txFramePool[idx];
+    tx_frame->header.id  = messageId;
+    tx_frame->header.dlc = static_cast<uint8_t>(safe_len);
+    tx_frame->buffer      = (safe_len > 0) ? tx_buf : nullptr;
+    tx_frame->buffer_len  = safe_len;
+
+    esp_err_t err = twai_node_transmit(_twai_node, tx_frame, pdMS_TO_TICKS(50));
     if (err != ESP_OK) {
         NLOGE("twai_node_transmit() fallita per id=0x%x: %s", messageId, esp_err_to_name(err));
     }
-};
+}
 
 void CarduinoNode::sendHello() {
     NLOGD("CarduinoNode::sendHello called");

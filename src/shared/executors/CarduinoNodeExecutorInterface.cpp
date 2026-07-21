@@ -4,12 +4,12 @@
 CarduinoNodeExecutorInterface::CarduinoNodeExecutorInterface() {
 }
 
-CarduinoNodeExecutorInterface::CarduinoNodeExecutorInterface(uint8_t eventId) {
+CarduinoNodeExecutorInterface::CarduinoNodeExecutorInterface(uint8_t eventId): hasEvents(true) {
     this->eventIds.push_back(eventId);
 }
 
 CarduinoNodeExecutorInterface::CarduinoNodeExecutorInterface(std::initializer_list<uint8_t> eventIds)
-    : eventIds(eventIds) {
+    : eventIds(eventIds), hasEvents(true) {
 }
 
 CarduinoNodeExecutorInterface::CarduinoNodeExecutorInterface(EventCategory category)
@@ -33,4 +33,8 @@ bool CarduinoNodeExecutorInterface::matchesEvent(uint8_t eventId) const {
 
 bool CarduinoNodeExecutorInterface::canExecute(CarduinoNode *node, Message *message) {
     return true;
+}
+
+bool CarduinoNodeExecutorInterface::isGeneric() {
+    return !hasCategory && !hasEvents;
 }

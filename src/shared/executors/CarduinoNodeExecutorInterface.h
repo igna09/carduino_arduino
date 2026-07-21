@@ -12,6 +12,7 @@ class CarduinoNode;
 class CarduinoNodeExecutorInterface {
     public:
         std::vector<uint8_t> eventIds;
+        bool hasEvents = false;
 
         // Filtro per categoria (alternativo a eventIds). Se hasCategory è
         // true, matchesEvent ignora eventIds e confronta solo la categoria
@@ -43,4 +44,6 @@ class CarduinoNodeExecutorInterface {
 
         virtual void execute(CarduinoNode *node, Message *message) = 0;
         virtual bool canExecute(CarduinoNode *node, Message *message);
+
+        bool isGeneric();
 };

@@ -11,3 +11,12 @@ void Executor::execute(CarduinoNode *node, Message *message) {
         }
     }
 }
+
+bool Executor::willExecute(CarduinoNode *node, Message *message) {
+    for (CarduinoNodeExecutorInterface *executor : this->executors) {
+        if (!executor->isGeneric() && executor->matchesEvent(message->event->id)) {
+            return true;
+        }
+    }
+    return false;
+}
