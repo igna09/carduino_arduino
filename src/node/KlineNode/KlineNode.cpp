@@ -164,8 +164,8 @@ void KlineNode::dispatchMeasurement(ValueToRead *valueToRead, float value) {
 
         std::ostringstream ss;
         ev->printValue(ss, false);            
-        NLOGI("dispatchMeasurement: %s, float: %.2f, event: %s",
-            valueToRead->name, value, ss.str().c_str());
+        // NLOGI("dispatchMeasurement: %s, float: %.2f, event: %s",
+        //     valueToRead->name, value, ss.str().c_str());
 
         sendMessage(Message(Priority::L.id, Node::MAIN.id, ev));
     }
@@ -182,6 +182,24 @@ void KlineNode::dispatchMeasurement(ValueToRead *valueToRead, float value) {
     else {
         // Di default (o se è MessageType::FLOAT.id), lo salviamo come float standard
         _lastValues[valueToRead->id] = value;
+    }
+}
+
+void KlineNode::dispatchMeasurement(ValueToRead *valueToRead, std::string value) {
+    // if (valueToRead->send) {
+    //     EventBase *ev = EventRegistry::createByName(valueToRead->carstatus.name);
+    //     ev->setFromFloat(value);
+
+    //     std::ostringstream ss;
+    //     ev->printValue(ss, false);            
+    //     // NLOGI("dispatchMeasurement: %s, float: %.2f, event: %s",
+    //     //     valueToRead->name, value, ss.str().c_str());
+
+    //     sendMessage(Message(Priority::L.id, Node::MAIN.id, ev));
+    // }
+
+    if (valueToRead->carstatus.type->id == MessageType::TEXT.id) {
+        _lastValues[valueToRead->id] = std::move(value); // finisce nel variant come std::string
     }
 }
 
@@ -237,8 +255,6 @@ bool KlineNode::readBlock(KlineEcu *ecu, uint8_t block) {
                             break; // non chiamare dispatchMeasurement con NaN
                         }
 
-                        NLOGI("KlineNode: letto %s = %.2f", valueToRead->name, value);
-
                         dispatchMeasurement(valueToRead, value);
                         break;
                     }
@@ -247,7 +263,8 @@ bool KlineNode::readBlock(KlineEcu *ecu, uint8_t block) {
                         char text_string[16];
                         KLineKWP1281Lib::getMeasurementText(valueToRead->groupIndex, amount_of_measurements,
                             measurements, sizeof(measurements), text_string, sizeof(text_string));
-                        NLOGI("KlineNode: misura testuale: %s", text_string);
+                        // NLOGI("KlineNode: misura testuale: %s", text_string);
+                        dispatchMeasurement(valueToRead, std::string(text_string));
                         break;
                     }
 

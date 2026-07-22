@@ -44,13 +44,18 @@ public:
     T getLastValue(uint8_t valueToReadId) const {
         auto it = _lastValues.find(valueToReadId);
         if (it != _lastValues.end()) {
-            // std::visit prende il valore dentro il variant (qualsiasi esso sia)
-            // e lo converte in modo sicuro nel tipo T richiesto
             return std::visit([](auto&& arg) -> T {
-                return static_cast<T>(arg);
+                using ArgT = std::decay_t<decltype(arg)>;
+                if constexpr (std::is_same_v<ArgT, T>) {
+                    return arg;
+                } else if constexpr (std::is_arithmetic_v<ArgT> && std::is_arithmetic_v<T>) {
+                    return static_cast<T>(arg);
+                } else {
+                    return T{};
+                }
             }, it->second);
         }
-        return T{}; 
+        return T{};
     }
 
 private:
@@ -73,7 +78,7 @@ private:
     QueueHandle_t _uart_queue;
     TaskHandle_t _uart_task_handle;
 
-    std::unordered_map<uint8_t, std::variant<int, float, bool>> _lastValues;
+    std::unordered_map<uint8_t, std::variant<int, float, bool, std::string>> _lastValues;
 
     void uart_event_loop();
     void klineBegin(unsigned long baud);
@@ -86,4 +91,5 @@ private:
     bool ensureConnected(KlineEcu *ecu);
     bool readBlock(KlineEcu *ecu, uint8_t block);
     void dispatchMeasurement(ValueToRead *valueToRead, float value); 
+    void dispatchMeasurement(ValueToRead *valueToRead, std::string value); 
 };

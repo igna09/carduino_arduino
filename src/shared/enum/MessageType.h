@@ -10,7 +10,7 @@ class MessageType : public Enum {
     public:
         static const MessageType INT;
         static const MessageType FLOAT;
-        static const MessageType STRING;
+        static const MessageType TEXT;
         static const MessageType BOOL;
         static const MessageType BYTE;
 
@@ -56,6 +56,6 @@ inline const Enum* MessageType::values [MESSAGE_TYPE_SIZE] = { 0 };
 inline uint8_t MessageType::index = 0;
 inline const MessageType MessageType::INT = MessageType(0x00, "INT");
 inline const MessageType MessageType::FLOAT = MessageType(0x01, "FLOAT");
-inline const MessageType MessageType::STRING = MessageType(0x02, "STRING");
+inline const MessageType MessageType::TEXT = MessageType(0x02, "TEXT");
 inline const MessageType MessageType::BOOL = MessageType(0x03, "BOOL");
 inline const MessageType MessageType::BYTE = MessageType(0x04, "BYTE");
