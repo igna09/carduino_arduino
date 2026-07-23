@@ -2,7 +2,7 @@
 
 AfterReadExecutors::AfterReadExecutors() {}
 
-void AfterReadExecutors::addExecutor(std::shared_ptr<AfterReadExecutorInterface> executor) {
+void AfterReadExecutors::addExecutor(AfterReadExecutorInterface *executor) {
     this->executors.push_back(executor);
 };
 

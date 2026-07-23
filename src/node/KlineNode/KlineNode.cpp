@@ -4,6 +4,7 @@ KlineNode::KlineNode(gpio_num_t tx_pin, gpio_num_t rx_pin): CarduinoNode(Node::K
     NLOGD("KlineNode::KlineNode start");
     
     addSetting<bool>(&Setting::HANDLE_KLINE, true, true);
+    addSetting<bool>(&Setting::CRUISE_DBG, false, false);
     //TODO: move this function in addSetting?
     restoreSettings();
 
@@ -37,8 +38,8 @@ KlineNode::KlineNode(gpio_num_t tx_pin, gpio_num_t rx_pin): CarduinoNode(Node::K
 
     NLOGD("created task");
 
-    this->_afterReadExecutors.addExecutor(std::make_shared<FuelConsumptionExecutor>());
-    this->_afterReadExecutors.addExecutor(std::make_shared<CruiseExecutor>());
+    this->_afterReadExecutors.addExecutor(new FuelConsumptionExecutor());
+    this->_afterReadExecutors.addExecutor(new CruiseExecutor());
 
     NLOGD("KlineNode::KlineNode end");
 }
@@ -74,14 +75,15 @@ void KlineNode::kline_poll_task_trampoline(void *arg) {
 void KlineNode::kline_poll_loop() {
     const TickType_t period = pdMS_TO_TICKS(KLINE_POLL_INTERVAL_MS);
     while (true) {
-        // UBaseType_t freeStack = uxTaskGetStackHighWaterMark(NULL); // NULL = task corrente
-        // NLOGI("before readValues()");
-        // NLOGI("Stack libero: %u words (%u bytes)", freeStack, freeStack * sizeof(StackType_t));
-        // NLOGI("Heap libero: %u bytes, min storico: %u", esp_get_free_heap_size(), esp_get_minimum_free_heap_size());
-        auto settingPtr = getSetting<bool>(&Setting::HANDLE_KLINE);
-        if (settingPtr != nullptr && settingPtr->value) {
+        auto handleKlineSetting = getSetting<bool>(&Setting::HANDLE_KLINE);
+        auto cruiseDebugSetting = getSetting<bool>(&Setting::CRUISE_DBG);
+        if(cruiseDebugSetting != nullptr && cruiseDebugSetting->value) {
+            readBlock((KlineEcu*)&((ValueToRead::CRUISE_BITS).klineEcu), ValueToRead::CRUISE_BITS.group);
+            readBlock((KlineEcu*)&((ValueToRead::PEDALS).klineEcu), ValueToRead::PEDALS.group);
+            _afterReadExecutors.execute(this);
+        } else if (handleKlineSetting != nullptr && handleKlineSetting->value) {
             readValues();
-        }
+        } 
         // NLOGI("after readValues()");
         // NLOGI("Stack libero: %u words (%u bytes)", freeStack, freeStack * sizeof(StackType_t));
         // NLOGI("Heap libero: %u bytes, min storico: %u", esp_get_free_heap_size(), esp_get_minimum_free_heap_size());

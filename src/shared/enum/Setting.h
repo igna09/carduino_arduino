@@ -11,9 +11,10 @@ class Setting : public TypedEnum {
         static const Setting HANDLE_KLINE;
         static const Setting SPD_LMT_LRM;
         static const Setting LOG_SND_RCV_MSG;
-        static const Setting LOG_HEAP_STS;
-        // static const Setting AUTO_CLOSE_REARVIEW_MIRRORS;
         static const Setting OTA_MODE;
+        static const Setting LOG_HEAP_STS;
+        static const Setting CRUISE_DBG;
+        // static const Setting AUTO_CLOSE_REARVIEW_MIRRORS;
         // static const Setting ON_REVERSE_LOWER_MIRRORS;
         // static const Setting BLE_PAIRING;
         // static const Setting BLE_UNLOCKING;
@@ -58,7 +59,6 @@ class Setting : public TypedEnum {
 inline const TypedEnum* Setting::values [SETTING_SIZE] = { 0 };
 inline uint8_t Setting::index = 0;
 // inline const Setting Setting::AUTO_CLOSE_REARVIEW_MIRRORS = Setting(0x00, "AUTO_CLOSE_REARVIEW_MIRRORS", &MessageType::BOOL);
-inline const Setting Setting::OTA_MODE = Setting(0x04, "OTA_MODE", &MessageType::BOOL);
 // inline const Setting Setting::ON_REVERSE_LOWER_MIRRORS = Setting(0x04, "ON_REVERSE_LOWER_MIRRORS", &MessageType::BOOL);
 // inline const Setting Setting::BLE_PAIRING = Setting(0x05, "BLE_PAIRING", &MessageType::BOOL);
 // inline const Setting Setting::BLE_UNLOCKING = Setting(0x06, "BLE_UNLOCKING", &MessageType::BOOL);
@@ -67,4 +67,6 @@ inline const Setting Setting::TMP_SWC_PRESS_T = Setting(0x00, "TMP_SWC_PRESS_T",
 inline const Setting Setting::HANDLE_KLINE = Setting(0x01, "HANDLE_KLINE", &MessageType::BOOL);
 inline const Setting Setting::SPD_LMT_LRM = Setting(0x02, "SPD_LMT_LRM", &MessageType::BOOL);
 inline const Setting Setting::LOG_SND_RCV_MSG = Setting(0x03, "LOG_SND_RCV_MSG", &MessageType::BOOL);
+inline const Setting Setting::OTA_MODE = Setting(0x04, "OTA_MODE", &MessageType::BOOL);
 inline const Setting Setting::LOG_HEAP_STS = Setting(0x05, "LOG_HEAP_STS", &MessageType::BOOL);
+inline const Setting Setting::CRUISE_DBG = Setting(0x06, "CRUISE_DBG", &MessageType::BOOL);

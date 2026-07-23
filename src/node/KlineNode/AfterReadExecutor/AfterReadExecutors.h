@@ -10,10 +10,10 @@
 
 class AfterReadExecutors {
     public:
-        std::vector<std::shared_ptr<AfterReadExecutorInterface>> executors;
+        std::vector<AfterReadExecutorInterface*> executors;
 
         AfterReadExecutors();
 
-        void addExecutor(std::shared_ptr<AfterReadExecutorInterface> executor);
+        void addExecutor(AfterReadExecutorInterface *executor);
         void execute(CarduinoNode *node);
 };
