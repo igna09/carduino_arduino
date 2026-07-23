@@ -352,8 +352,7 @@ void MainNode::handleTimeSyncRequest(uint8_t requesterId) {
     // elaborazione incluso per errore nella stima.
     uint32_t t2 = localMillis();
 
-    Message resp(Priority::H.id, requesterId,
-                 new EventMulti<uint32_t, uint32_t>(EV_TIME_SYNC_RESPONSE, "TIME_SYNC_RESPONSE"));
+    Message resp(Priority::H.id, requesterId, EventRegistry::createById(EV_TIME_SYNC_RESPONSE));
     std::get<0>(static_cast<EventMulti<uint32_t,uint32_t>*>(resp.event)->values) = t2;
     
     uint32_t t3 = localMillis();

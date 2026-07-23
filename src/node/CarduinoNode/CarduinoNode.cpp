@@ -537,8 +537,7 @@ void CarduinoNode::startTimeSync() {
     _syncT1Ms = localMillis();
     NLOGD("Time sync: invio TIME_SYNC_REQUEST a MAIN (T1=%u ms)", static_cast<unsigned>(_syncT1Ms));
 
-    Message req(Priority::H.id, Node::MAIN.id,
-                new EventMulti<uint8_t>(EV_TIME_SYNC_REQUEST, "TIME_SYNC_REQUEST"));
+    Message req(Priority::H.id, Node::MAIN.id, EventRegistry::createById(EV_TIME_SYNC_REQUEST));
     std::get<0>(static_cast<EventMulti<uint8_t>*>(req.event)->values) = _id;
 
     sendMessage(req);
@@ -734,9 +733,8 @@ void CarduinoNode::handleSerialLine(const std::string& lineIn) {
         ev->deserializeFromTokens(tokens, count);
     }
 
-    Message* msg = new Message(Priority::L.id, Node::BROADCAST.id, ev);
-    _serialExecutor.execute(this, msg);
-    delete msg;
+    Message msg(Priority::L.id, Node::BROADCAST.id, ev);
+    _serialExecutor.execute(this, &msg);
 }
 
 void CarduinoNode::otaStartup() {
