@@ -68,6 +68,7 @@ void MainNode::configEncoder() {
             _speedWarn.setLimit(nl < 0 ? 0 : nl);
             NLOGI("Speed limit -> %u", _speedWarn.getLimit());
             if (_speedLimitEditTimer) xTimerReset(_speedLimitEditTimer, 0); // riazzera countdown
+            sendSpeedLimitSetMessage(_speedWarn.getLimit());
             return;
         }
         NLOGI("SWC ROTATE diff=%ld", (long)diff);
@@ -81,6 +82,7 @@ void MainNode::configEncoder() {
             _speedWarn.setLimit(nl < 0 ? 0 : nl);
             NLOGI("Speed limit (fast) -> %u", _speedWarn.getLimit());
             if (_speedLimitEditTimer) xTimerReset(_speedLimitEditTimer, 0);
+            sendSpeedLimitSetMessage(_speedWarn.getLimit());
             return;
         }
         NLOGI("SWC ROTATE+HOLD diff=%ld", (long)diff);
@@ -416,9 +418,11 @@ void MainNode::exitSpeedLimitEditMode() {
     if (!_speedLimitSetMode) return;
     _speedLimitSetMode = false;
     _buzzer.playToneAsync(ToneType::MODE_EXIT);
+}
 
+void MainNode::sendSpeedLimitSetMessage(uint8_t speedLimit) {
     auto *ev = static_cast<EventMulti<uint8_t>*>(EventRegistry::createById(EV_SPEED_LIMIT_SET));
-    std::get<0>(ev->values) = _speedWarn.getLimit();
+    std::get<0>(ev->values) = speedLimit;
     Message m = Message(Priority::L.id, Node::BROADCAST.id, ev);
     sendSerialMessage(m);
     sendMessage(m);

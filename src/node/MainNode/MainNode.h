@@ -115,4 +115,5 @@ private:
     void pressSwcAsync(uint8_t channel, uint32_t holdMs);
     static void speedLimitEditTimeoutCallback(TimerHandle_t t);
     void exitSpeedLimitEditMode();
+    void sendSpeedLimitSetMessage(uint8_t speedLimit);
 };
