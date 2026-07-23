@@ -24,6 +24,7 @@ class ValueToRead : public Enum {
         static const ValueToRead BATTERY_VOLTAGE;
         static const ValueToRead PEDALS;
         static const ValueToRead CRUISE_BITS;
+        static const ValueToRead CRUISE_SYSTEM;
         
         KlineEcu klineEcu;
         uint8_t group;
@@ -225,3 +226,4 @@ inline const ValueToRead ValueToRead::FUEL_CONSUMPTION = ValueToRead(0x04, "FUEL
 inline const ValueToRead ValueToRead::BATTERY_VOLTAGE = ValueToRead(0x05, "BATTERY_VOLTAGE", KlineEcu::ENGINE, 12, BlockToRead::THIRD, Carstatus::BATTERY_VOLTAGE, true);
 inline const ValueToRead ValueToRead::PEDALS = ValueToRead(0x06, "PEDALS", KlineEcu::ENGINE, 6, BlockToRead::SECOND, Carstatus::PEDALS, false);
 inline const ValueToRead ValueToRead::CRUISE_BITS = ValueToRead(0x07, "CRUISE_BITS", KlineEcu::ENGINE, 22, BlockToRead::SECOND, Carstatus::CRUISE_BITS, false);
+inline const ValueToRead ValueToRead::CRUISE_SYSTEM = ValueToRead(0x08, "CRUISE_SYSTEM", KlineEcu::ENGINE, 6, BlockToRead::FOURTH, Carstatus::CRUISE_SYSTEM, false);

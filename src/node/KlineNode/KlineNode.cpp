@@ -78,15 +78,18 @@ void KlineNode::kline_poll_loop() {
         auto handleKlineSetting = getSetting<bool>(&Setting::HANDLE_KLINE);
         auto cruiseDebugSetting = getSetting<bool>(&Setting::CRUISE_DBG);
         if(cruiseDebugSetting != nullptr && cruiseDebugSetting->value) {
+            if (!this->isEnabled) {
+                continue;
+            }
+            if (!ensureConnected((KlineEcu*)&((ValueToRead::CRUISE_BITS).klineEcu))) {
+                continue;
+            }
             readBlock((KlineEcu*)&((ValueToRead::CRUISE_BITS).klineEcu), ValueToRead::CRUISE_BITS.group);
             readBlock((KlineEcu*)&((ValueToRead::PEDALS).klineEcu), ValueToRead::PEDALS.group);
             _afterReadExecutors.execute(this);
         } else if (handleKlineSetting != nullptr && handleKlineSetting->value) {
             readValues();
-        } 
-        // NLOGI("after readValues()");
-        // NLOGI("Stack libero: %u words (%u bytes)", freeStack, freeStack * sizeof(StackType_t));
-        // NLOGI("Heap libero: %u bytes, min storico: %u", esp_get_free_heap_size(), esp_get_minimum_free_heap_size());
+        }
         vTaskDelay(period);
     }
 }

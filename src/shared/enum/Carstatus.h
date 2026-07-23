@@ -32,6 +32,7 @@ class Carstatus : public TypedEnum {
         static const Carstatus IS_KEY_ON;
         static const Carstatus CRUISE_BITS;
         static const Carstatus PEDALS;
+        static const Carstatus CRUISE_SYSTEM;
 
         Carstatus() : TypedEnum() {};
 
@@ -103,3 +104,4 @@ inline const Carstatus Carstatus::IS_REVERSE = Carstatus(0x0F, "IS_REVERSE", &Me
 inline const Carstatus Carstatus::IS_KEY_ON = Carstatus(0x10, "IS_KEY_ON", &MessageType::BOOL);
 inline const Carstatus Carstatus::CRUISE_BITS = Carstatus(0x11, "CRUISE_BITS", &MessageType::TEXT);
 inline const Carstatus Carstatus::PEDALS = Carstatus(0x12, "PEDALS", &MessageType::TEXT);
+inline const Carstatus Carstatus::CRUISE_SYSTEM = Carstatus(0x13, "CRUISE_SYSTEM", &MessageType::FLOAT);

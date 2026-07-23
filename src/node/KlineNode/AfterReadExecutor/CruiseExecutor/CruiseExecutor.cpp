@@ -24,66 +24,84 @@ static const char* PEDAL_NAMES[] = {
 };
 
 void CruiseExecutor::execute(CarduinoNode *carduinoNode) {
+    NLOGI("CruiseExecutor::execute lastPedalsBits %s, lastCruiseBits %s", lastPedalsBits.c_str(), lastCruiseBits.c_str());
     auto* klineNode = static_cast<KlineNode*>(carduinoNode);
 
-    // 1. Legge i valori correnti come const char*
+    // Legge i valori correnti
     const std::string rawPedals = klineNode->getLastValue<std::string>(ValueToRead::PEDALS.id);
     const std::string rawCruise = klineNode->getLastValue<std::string>(ValueToRead::CRUISE_BITS.id);
+    const float cruiseSystem = klineNode->getLastValue<float>(ValueToRead::CRUISE_SYSTEM.id);
 
-    // 2. Trimmaggio e pulizia: "1  0  0" diventa "100", "100011" rimane "100011"
+    // Trimmaggio e pulizia: "1  0  0" diventa "100", "100011" rimane "100011"
     std::string pedalsBits = extractBits(rawPedals);
     std::string cruiseBits = extractBits(rawCruise);
 
-    // --- ANALISI PEDALS ---
-    std::string pedalsLogMessage = "";
-    bool pedalsChanged = false;
+    NLOGI("CruiseExecutor::execute, pedalsBits %s, cruiseBits %s", pedalsBits.c_str(), cruiseBits.c_str());
 
-    for (size_t i = 0; i < pedalsBits.length(); ++i) {
-        char currentBit = pedalsBits[i];
-        char lastBit = (i < lastPedalsBits.length()) ? lastPedalsBits[i] : '0';
-
-        if (currentBit != lastBit) {
-            if (!pedalsLogMessage.empty()) {
-                pedalsLogMessage += ", ";
-            }
-            
-            // Assegna il nome specifico se rientra nei primi 3 bit, altrimenti usa il numero di bit
-            std::string pedalName = (i < 3) ? PEDAL_NAMES[i] : ("Bit " + std::to_string(i));
-            
-            // Formattazione specifica per il pedale
-            std::string statusBefore = (lastBit == '1') ? "ON" : "OFF";
-            std::string statusAfter  = (currentBit == '1') ? "ON" : "OFF";
-            pedalsLogMessage += pedalName + ": " + statusBefore + " -> " + statusAfter;
-            pedalsChanged = true;
-        }
+    // Gestione PRIMO GIRO: Inizializza i valori senza loggare falsi cambiamenti
+    if (lastPedalsBits.empty()) {
+        lastPedalsBits = pedalsBits;
+    }
+    if (lastCruiseBits.empty()) {
+        lastCruiseBits = cruiseBits;
     }
 
-    // Unico log per i pedali
-    if (pedalsChanged) {
-        NLOGI("Pedals changes detected -> %s", pedalsLogMessage.c_str());
+    if(pedalsBits != lastPedalsBits) {
+        // --- ANALISI PEDALS ---
+        std::string pedalsLogMessage = "";
+
+        for (size_t i = 0; i < pedalsBits.length(); ++i) {
+            char currentBit = pedalsBits[i];
+            char lastBit = (i < lastPedalsBits.length()) ? lastPedalsBits[i] : '0';
+
+            if (currentBit != lastBit) {
+                if (!pedalsLogMessage.empty()) {
+                    pedalsLogMessage += ", ";
+                }
+                
+                // Assegna il nome specifico se rientra nei primi 3 bit, altrimenti usa il numero di bit
+                std::string pedalName = (i < 3) ? PEDAL_NAMES[i] : ("Bit " + std::to_string(i));
+                
+                // Formattazione specifica per il pedale
+                std::string statusBefore = (lastBit == '1') ? "ON" : "OFF";
+                std::string statusAfter  = (currentBit == '1') ? "ON" : "OFF";
+                pedalsLogMessage += pedalName + ": " + statusBefore + " -> " + statusAfter;
+            }
+        }
+
+        if (!pedalsLogMessage.empty()) {
+            NLOGI("Pedals changes detected -> %s", pedalsLogMessage.c_str());
+        }
+
         lastPedalsBits = pedalsBits;
     }
 
+    if(cruiseBits != lastCruiseBits) {
+        // --- ANALISI CRUISE ---
+        std::string cruiseLogMessage = "";
 
-    // --- ANALISI CRUISE ---
-    std::string cruiseLogMessage = "";
-    bool cruiseChanged = false;
+        for (size_t i = 0; i < cruiseBits.length(); ++i) {
+            char currentBit = cruiseBits[i];
+            char lastBit = (i < lastCruiseBits.length()) ? lastCruiseBits[i] : '0';
 
-    for (size_t i = 0; i < cruiseBits.length(); ++i) {
-        char currentBit = cruiseBits[i];
-        char lastBit = (i < lastCruiseBits.length()) ? lastCruiseBits[i] : '0';
-
-        if (currentBit != lastBit) {
-            if (!cruiseLogMessage.empty()) {
-                cruiseLogMessage += ", ";
+            if (currentBit != lastBit) {
+                if (!cruiseLogMessage.empty()) {
+                    cruiseLogMessage += ", ";
+                }
+                cruiseLogMessage += "Bit " + std::to_string(i) + ": " + lastBit + " -> " + currentBit;
             }
-            cruiseLogMessage += "Bit " + std::to_string(i) + ": " + lastBit + " -> " + currentBit;
-            cruiseChanged = true;
         }
+
+        
+        if (!cruiseLogMessage.empty()) {
+            NLOGI("Cruise changes detected -> %s", cruiseLogMessage.c_str());
+        }
+
+        lastCruiseBits = cruiseBits; // Salva la nuova stringa pulita
     }
 
-    if (cruiseChanged) {
-        NLOGI("Cruise changes detected -> %s", cruiseLogMessage.c_str());
-        lastCruiseBits = cruiseBits; // Salva la nuova stringa pulita
+    if(cruiseSystem != lastCruiseSystem) {
+        NLOGI("Cruise system change detected: %f -> %f", lastCruiseSystem, cruiseSystem);
+        lastCruiseSystem = cruiseSystem;
     }
 }
