@@ -3,14 +3,16 @@
 #include <string>
 
 // Funzione helper per rimuovere spazi e isolare solo i bit '0' e '1'
-static std::string extractBits(const char* raw) {
-    if (!raw) return "";
-    std::string cleanBits = "";
-    for (const char* p = raw; *p != '\0'; ++p) {
-        if (*p == '0' || *p == '1') {
-            cleanBits += *p;
+static std::string extractBits(const std::string& raw) {
+    std::string cleanBits;
+    cleanBits.reserve(raw.size()); // Pre-alloca la memoria per evitare riallocazioni
+
+    for (char c : raw) {
+        if (c == '0' || c == '1') {
+            cleanBits += c;
         }
     }
+
     return cleanBits;
 }
 
@@ -25,13 +27,12 @@ void CruiseExecutor::execute(CarduinoNode *carduinoNode) {
     auto* klineNode = static_cast<KlineNode*>(carduinoNode);
 
     // 1. Legge i valori correnti come const char*
-    const char* rawPedals = klineNode->getLastValue<const char*>(ValueToRead::PEDALS.id);
-    const char* rawCruise = klineNode->getLastValue<const char*>(ValueToRead::CRUISE_BITS.id);
+    const std::string rawPedals = klineNode->getLastValue<std::string>(ValueToRead::PEDALS.id);
+    const std::string rawCruise = klineNode->getLastValue<std::string>(ValueToRead::CRUISE_BITS.id);
 
     // 2. Trimmaggio e pulizia: "1  0  0" diventa "100", "100011" rimane "100011"
     std::string pedalsBits = extractBits(rawPedals);
     std::string cruiseBits = extractBits(rawCruise);
-
 
     // --- ANALISI PEDALS ---
     std::string pedalsLogMessage = "";
