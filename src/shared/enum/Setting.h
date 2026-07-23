@@ -11,6 +11,7 @@ class Setting : public TypedEnum {
         static const Setting HANDLE_KLINE;
         static const Setting SPD_LMT_LRM;
         static const Setting LOG_SND_RCV_MSG;
+        static const Setting LOG_HEAP_STS;
         // static const Setting AUTO_CLOSE_REARVIEW_MIRRORS;
         static const Setting OTA_MODE;
         // static const Setting ON_REVERSE_LOWER_MIRRORS;
@@ -66,3 +67,4 @@ inline const Setting Setting::TMP_SWC_PRESS_T = Setting(0x00, "TMP_SWC_PRESS_T",
 inline const Setting Setting::HANDLE_KLINE = Setting(0x01, "HANDLE_KLINE", &MessageType::BOOL);
 inline const Setting Setting::SPD_LMT_LRM = Setting(0x02, "SPD_LMT_LRM", &MessageType::BOOL);
 inline const Setting Setting::LOG_SND_RCV_MSG = Setting(0x03, "LOG_SND_RCV_MSG", &MessageType::BOOL);
+inline const Setting Setting::LOG_HEAP_STS = Setting(0x05, "LOG_HEAP_STS", &MessageType::BOOL);

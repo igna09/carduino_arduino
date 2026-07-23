@@ -7,6 +7,7 @@ CarduinoNode::CarduinoNode(uint8_t id, bool isEnabled)
     _id = id;
     this->isEnabled = isEnabled;
 
+    addSetting(&Setting::LOG_HEAP_STS, false, true);
     addSetting(&Setting::LOG_SND_RCV_MSG, false, true);
     addSetting(&Setting::OTA_MODE, false, [&](SettingInfo<bool> *settingInfo){  
         if(settingInfo->value) {
@@ -87,6 +88,13 @@ CarduinoNode::CarduinoNode(uint8_t id, bool isEnabled)
     enableUdpLog();
 
     startSerialRxTask();
+
+    startRepeatingTask("heap_monitor", 1000, [&]() {
+        auto settingPtr = getSetting<bool>(&Setting::LOG_HEAP_STS);
+        if (settingPtr != nullptr && settingPtr->value) {
+            logHeapStatus();
+        }
+    });
 
     NLOGD("CarduinoNode::CarduinoNode end");
 }
@@ -412,7 +420,6 @@ void CarduinoNode::sendByte(uint16_t messageId, int len, uint8_t *buf) {
 
 void CarduinoNode::sendHello() {
     NLOGD("CarduinoNode::sendHello called");
-    // Message hello(Priority::L.id, Node::MAIN.id,new EventMulti<uint8_t>(EV_HELLO, "HELLO"));
     Message hello(Priority::L.id, Node::MAIN.id, EventRegistry::createById(EV_HELLO));
     std::get<0>(static_cast<EventMulti<uint8_t>*>(hello.event)->values) = _id;
     sendMessage(hello);
@@ -878,4 +885,16 @@ esp_err_t CarduinoNode::otaIndexHandler(httpd_req_t *req) {
     httpd_resp_set_type(req, "text/html");
     httpd_resp_send(req, OTA_UPLOAD_HTML, HTTPD_RESP_USE_STRLEN);
     return ESP_OK;
+}
+
+void CarduinoNode::logHeapStatus() {
+    size_t freeHeap = esp_get_free_heap_size();
+    size_t minFreeHeap = esp_get_minimum_free_heap_size();
+    size_t largestBlock = heap_caps_get_largest_free_block(MALLOC_CAP_8BIT);
+
+    NLOGI("HEAP free=%u min=%u largestBlock=%u frag=%.1f%%",
+          (unsigned)freeHeap,
+          (unsigned)minFreeHeap,
+          (unsigned)largestBlock,
+          freeHeap ? 100.0f * (1.0f - (float)largestBlock / freeHeap) : 0.0f);
 }

@@ -258,4 +258,6 @@ private:
     esp_err_t otaUploadHandler(httpd_req_t *req);
     static esp_err_t otaIndexHandlerTrampoline(httpd_req_t *req);
     esp_err_t otaIndexHandler(httpd_req_t *req);
+
+    void logHeapStatus();
 };
