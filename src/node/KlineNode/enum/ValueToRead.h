@@ -5,7 +5,7 @@
 #include "KlineEcu.h"
 #include "ValueType.h"
 
-#define VALUE_TO_READ_SIZE 8
+#define VALUE_TO_READ_SIZE 9
 
 enum BlockToRead {
     FIRST = 0,

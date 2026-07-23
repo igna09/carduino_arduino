@@ -24,7 +24,6 @@ static const char* PEDAL_NAMES[] = {
 };
 
 void CruiseExecutor::execute(CarduinoNode *carduinoNode) {
-    NLOGI("CruiseExecutor::execute lastPedalsBits %s, lastCruiseBits %s", lastPedalsBits.c_str(), lastCruiseBits.c_str());
     auto* klineNode = static_cast<KlineNode*>(carduinoNode);
 
     // Legge i valori correnti
@@ -35,8 +34,6 @@ void CruiseExecutor::execute(CarduinoNode *carduinoNode) {
     // Trimmaggio e pulizia: "1  0  0" diventa "100", "100011" rimane "100011"
     std::string pedalsBits = extractBits(rawPedals);
     std::string cruiseBits = extractBits(rawCruise);
-
-    NLOGI("CruiseExecutor::execute, pedalsBits %s, cruiseBits %s", pedalsBits.c_str(), cruiseBits.c_str());
 
     // Gestione PRIMO GIRO: Inizializza i valori senza loggare falsi cambiamenti
     if (lastPedalsBits.empty()) {
