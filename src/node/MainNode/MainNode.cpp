@@ -22,6 +22,7 @@ MainNode::MainNode(): CarduinoNode(Node::MAIN.id, true), I2cNode() {
     configSwc();
     configEncoder();
     configSpeedWarning();
+    configTemperatureWarning();
 
     this->enable();
 }
@@ -104,6 +105,14 @@ void MainNode::configSpeedWarning() {
     _speedWarn.setEnabled(true);
     _speedWarn.setRepeatIntervalMs(30000);
     _speedWarn.setHysteresisKmh(10);
+}
+
+void MainNode::configTemperatureWarning() {
+    _temperatureWarn.init([this]{ _buzzer.playToneAsync(ToneType::ERROR); });
+    _temperatureWarn.setEnabled(true);
+    _temperatureWarn.setRepeatIntervalMs(15000);
+    _temperatureWarn.setHysteresisCelsius(5);
+    _temperatureWarn.setLimit(98);
 }
 
 void MainNode::configSwc() {

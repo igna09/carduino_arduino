@@ -31,6 +31,7 @@
 #include "SwcController.h"
 #include "SwcMapping.h"
 #include "SpeedLimitSet.h"
+#include "TemperatureLimitWarning.h"
 #include "BuzzerController.h"
 #include "Tone.h"
 #include "SwcPairingEvent.h"
@@ -57,6 +58,7 @@ enum class ClickPending { NONE, SINGLE, DOUBLE };
 class MainNode : public CarduinoNode, public I2cNode {
 public:
     SpeedLimitWarning _speedWarn;
+    TemperatureLimitWarning _temperatureWarn;
     uint8_t lastSpeed = 0;
 
     MainNode();
@@ -111,6 +113,7 @@ private:
     void configSwc();
     void configEncoder();
     void configSpeedWarning();
+    void configTemperatureWarning();
     void startTimeSync() override;
     uint32_t syncedMillis() const override;
     void pressSwcAsync(uint8_t channel, uint32_t holdMs);

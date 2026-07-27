@@ -15,5 +15,10 @@ void MainNodeSensorCanEvent::execute(CarduinoNode *node, Message *message) {
         uint8_t speed = std::get<0>(speedEv->values);
         main->lastSpeed = speed;
         main->_speedWarn.onSpeedUpdate(speed);
+    } else if(message->event->id == EV_ENGINE_WATER_COOLING_TEMPERATURE) {
+        auto* tempEv = static_cast<EventMulti<float>*>(message->event);
+        float temp = std::get<0>(tempEv->values);
+
+        main->_temperatureWarn.onTemperatureUpdate(temp);
     }
 };
