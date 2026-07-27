@@ -216,27 +216,30 @@ void MainNode::configAht() {
 void MainNode::configTemt6000() {
     NLOGD("MainNode::configTemt6000 called");
 
-    // 1. Inizializzazione dell'Unità ADC
+    // Scegliamo 12dB sia per il canale che per la calibrazione
+    constexpr adc_atten_t ADC_ATTEN_USED = ADC_ATTEN_DB_12;
+
+    // 1. Inizializzazione Unità ADC
     adc_oneshot_unit_handle_t adc_handle;
     adc_oneshot_unit_init_cfg_t init_config = {
         .unit_id = TEMT6000_ADC_UNIT,
     };
-    if(adc_oneshot_new_unit(&init_config, &adc_handle) != ESP_OK) {
+    if (adc_oneshot_new_unit(&init_config, &adc_handle) != ESP_OK) {
         NLOGE("adc_oneshot_new_unit failed");
         return;
     }
 
-    // 2. Configurazione del Canale ADC
+    // 2. Configurazione Canale ADC
     adc_oneshot_chan_cfg_t config = {
-        .atten = ADC_ATTEN_DB_12,
+        .atten = ADC_ATTEN_USED,
         .bitwidth = ADC_BITWIDTH_DEFAULT,
     };
-    if(adc_oneshot_config_channel(adc_handle, TEMT6000_ADC_CHANNEL, &config) != ESP_OK) {
+    if (adc_oneshot_config_channel(adc_handle, TEMT6000_ADC_CHANNEL, &config) != ESP_OK) {
         NLOGE("adc_oneshot_config_channel failed");
         return;
     }
 
-    // 3. Configurazione della Calibrazione
+    // 3. Configurazione Calibrazione (con attenuazione IDENTICA a 12dB)
     adc_cali_handle_t cali_handle = NULL;
     bool do_calibration = false;
 
@@ -244,7 +247,7 @@ void MainNode::configTemt6000() {
     adc_cali_curve_fitting_config_t cali_config = {
         .unit_id = TEMT6000_ADC_UNIT,
         .chan = TEMT6000_ADC_CHANNEL,
-        .atten = ADC_ATTEN_DB_2_5,
+        .atten = ADC_ATTEN_USED, // <-- CORRETTO: Adesso corrisponde al canale!
         .bitwidth = ADC_BITWIDTH_DEFAULT,
     };
     if (adc_cali_create_scheme_curve_fitting(&cali_config, &cali_handle) == ESP_OK) {
@@ -252,9 +255,9 @@ void MainNode::configTemt6000() {
     }
     #endif
 
-    static constexpr int   SAMPLES_NUM  = 10;     // n. campioni per media
-    static constexpr float LOAD_OHM     = 10000.0f; // resistore di carico (10kΩ)
-    static constexpr float UA_PER_LUX   = 2.0f;    // datasheet: 2µA -> 1 lux
+    static constexpr int   SAMPLES_NUM  = 10;
+    static constexpr float LOAD_OHM     = 10000.0f; // Resistenza 10kΩ sul modulo
+    static constexpr float UA_PER_LUX   = 0.5f;    // CORRETTO: 50µA corrisponde a 100 lux (0.1 µA/Lux)
 
     NLOGI("Sensore luminosità inizializzato.");
 
@@ -265,7 +268,6 @@ void MainNode::configTemt6000() {
 
         for (int i = 0; i < SAMPLES_NUM; ++i) {
             if (adc_oneshot_read(adc_handle, TEMT6000_ADC_CHANNEL, &adc_raw) != ESP_OK) {
-                NLOGI("adc_oneshot_read error");
                 continue;
             }
 
@@ -281,20 +283,18 @@ void MainNode::configTemt6000() {
         if (do_calibration && valid_samples > 0) {
             float voltage_avg_mv = (float)voltage_sum_mv / valid_samples;
 
-            // I = V / R  (mV / ohm -> mA, poi convertito in µA)
+            // I (mA) = V (mV) / R (ohm) -> moltiplicato per 1000 ottieni µA
             float current_uA = (voltage_avg_mv / LOAD_OHM) * 1000.0f;
 
-            // lux = corrente(µA) / 2
+            // Calcolo Lux corretto
             float lux = current_uA / UA_PER_LUX;
             int lux_int = (int)(lux + 0.5f);
 
-            // percentuale rispetto al fondo scala 3300 mV (indicativo)
-            float light_percent = (voltage_avg_mv / 3300.0f) * 100.0f;
+            float light_percent = (voltage_avg_mv / 3100.0f) * 100.0f; // 3100mV max per 12dB
             if (light_percent > 100.0f) light_percent = 100.0f;
 
             NLOGD("TEMT6000: %.1f mV | %.2f lux | %.1f%%", voltage_avg_mv, lux, light_percent);
 
-        
             auto *ev = static_cast<EventMulti<uint16_t> *>(EventRegistry::createById(EV_INTERNAL_LUMINANCE));
             std::get<0>(ev->values) = lux_int;
             Message m = Message(Priority::L.id, Node::BROADCAST.id, ev);
