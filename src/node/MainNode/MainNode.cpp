@@ -13,6 +13,7 @@ MainNode::MainNode(): CarduinoNode(Node::MAIN.id, true), I2cNode() {
     _canExecutor.addExecutor(new MainNodeSensorCanEvent());
     
     _serialExecutor.addExecutor(new SwcPairingEvent());
+    _serialExecutor.addExecutor(new SpeedLimitSet());
 
     _buzzer.init(GPIO_NUM_2);
     configTemt6000();

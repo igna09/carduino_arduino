@@ -30,6 +30,7 @@
 #include "MainNodeSensorCanEvent.h"
 #include "SwcController.h"
 #include "SwcMapping.h"
+#include "SpeedLimitSet.h"
 #include "BuzzerController.h"
 #include "Tone.h"
 #include "SwcPairingEvent.h"
