@@ -27,23 +27,23 @@ void CruiseExecutor::execute(CarduinoNode *carduinoNode) {
     auto* klineNode = static_cast<KlineNode*>(carduinoNode);
 
     // Legge i valori correnti
-    const std::string rawPedals = klineNode->getLastValue<std::string>(ValueToRead::PEDALS.id);
+    // const std::string rawPedals = klineNode->getLastValue<std::string>(ValueToRead::PEDALS.id);
     const std::string rawCruise = klineNode->getLastValue<std::string>(ValueToRead::CRUISE_BITS.id);
     const float cruiseSystem = klineNode->getLastValue<float>(ValueToRead::CRUISE_SYSTEM.id);
 
     // Trimmaggio e pulizia: "1  0  0" diventa "100", "100011" rimane "100011"
-    std::string pedalsBits = extractBits(rawPedals);
+    // std::string pedalsBits = extractBits(rawPedals);
     std::string cruiseBits = extractBits(rawCruise);
 
     // Gestione PRIMO GIRO: Inizializza i valori senza loggare falsi cambiamenti
-    if (lastPedalsBits.empty()) {
+    /*if (lastPedalsBits.empty()) {
         lastPedalsBits = pedalsBits;
-    }
+    }*/
     if (lastCruiseBits.empty()) {
         lastCruiseBits = cruiseBits;
     }
 
-    if(pedalsBits != lastPedalsBits) {
+    /*if(pedalsBits != lastPedalsBits) {
         // --- ANALISI PEDALS ---
         std::string pedalsLogMessage = "";
 
@@ -67,11 +67,11 @@ void CruiseExecutor::execute(CarduinoNode *carduinoNode) {
         }
 
         if (!pedalsLogMessage.empty()) {
-            NLOGI("Pedals changes detected -> %s", pedalsLogMessage.c_str());
+            NLOGI("Pedals (%s) changes detected -> %s", pedalsBits.c_str(), pedalsLogMessage.c_str());
         }
 
         lastPedalsBits = pedalsBits;
-    }
+    }*/
 
     if(cruiseBits != lastCruiseBits) {
         // --- ANALISI CRUISE ---
@@ -91,7 +91,7 @@ void CruiseExecutor::execute(CarduinoNode *carduinoNode) {
 
         
         if (!cruiseLogMessage.empty()) {
-            NLOGI("Cruise changes detected -> %s", cruiseLogMessage.c_str());
+            NLOGI("Cruise (%s) changes detected -> %s", cruiseBits.c_str(), cruiseLogMessage.c_str());
         }
 
         lastCruiseBits = cruiseBits; // Salva la nuova stringa pulita
