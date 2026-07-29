@@ -82,30 +82,35 @@ struct CanRxSlot {
     uint8_t data[TWAI_FRAME_MAX_LEN];
 };
 
-static const char OTA_UPLOAD_HTML[] =
-"<!DOCTYPE html><html><body> \
-<h3>Carduino OTA</h3> \
-<input type='file' id='f'> \
-<button onclick='up()'>Upload</button> \
-<p id='s'></p> \
-<script> \
-function up(){ \
-  var file = document.getElementById('f').files[0]; \
-  var s = document.getElementById('s'); \
-  if(!file){ s.innerText = 'Select a file'; return; } \
-  var x = new XMLHttpRequest(); \
-  x.open('POST', '/update-firmware'); \
-  x.upload.onprogress = function(e){ \
-    if(e.lengthComputable){ \
-      s.innerText = 'Uploading... ' + Math.round(e.loaded/e.total*100) + '%'; \
-    } \
-  }; \
-  x.onload = function(){ s.innerText = x.responseText; }; \
-  x.onerror = function(){ s.innerText = 'Error uploading'; }; \
-  x.send(file); \
-} \
-</script> \
-</body></html>";
+static const char OTA_UPLOAD_HTML_TEMPLATE[] = R"html(
+<!DOCTYPE html>
+<html>
+<body>
+  <h3>Carduino OTA - %s</h3>
+  <input type='file' id='f'>
+  <button onclick='up()'>Upload</button>
+  <p id='s'></p>
+  <script>
+    function up(){
+      var file = document.getElementById('f').files[0];
+      var s = document.getElementById('s');
+      if(!file){ s.innerText = 'Select a file'; return; }
+      var x = new XMLHttpRequest();
+      x.open('POST', '/update-firmware');
+      x.upload.onprogress = function(e){
+        if(e.lengthComputable){
+          // Nota il %% qui alla fine:
+          s.innerText = 'Uploading... ' + Math.round(e.loaded/e.total*100) + '%%';
+        }
+      };
+      x.onload = function(){ s.innerText = x.responseText; };
+      x.onerror = function(){ s.innerText = 'Error uploading'; };
+      x.send(file);
+    }
+  </script>
+</body>
+</html>
+)html";
 
 class CarduinoNode: public SettingBase, public UdpLogSender {
 public:

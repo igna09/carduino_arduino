@@ -880,8 +880,24 @@ esp_err_t CarduinoNode::otaIndexHandlerTrampoline(httpd_req_t *req) {
 }
 
 esp_err_t CarduinoNode::otaIndexHandler(httpd_req_t *req) {
+    const char* node_name = this->name().c_str(); 
+
+    // Alloca dinamicamente la memoria necessaria per l'HTML con il nome inserito
+    char *response_html = NULL;
+    int len = asprintf(&response_html, OTA_UPLOAD_HTML_TEMPLATE, node_name);
+
+    if (len < 0 || response_html == NULL) {
+        httpd_resp_send_500(req);
+        return ESP_FAIL;
+    }
+
+    // Invia la risposta
     httpd_resp_set_type(req, "text/html");
-    httpd_resp_send(req, OTA_UPLOAD_HTML, HTTPD_RESP_USE_STRLEN);
+    httpd_resp_sendstr(req, response_html);
+
+    // Ricordati di liberare il buffer allocato da asprintf
+    free(response_html);
+
     return ESP_OK;
 }
 
