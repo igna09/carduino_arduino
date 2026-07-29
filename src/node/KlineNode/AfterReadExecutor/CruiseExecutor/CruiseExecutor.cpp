@@ -100,9 +100,9 @@ void CruiseExecutor::execute(CarduinoNode *carduinoNode) {
     if(cruiseSystem != lastCruiseSystem) {
         NLOGI("Cruise system change detected: %f -> %f", lastCruiseSystem, cruiseSystem);
         lastCruiseSystem = cruiseSystem;
-
-        auto* ev = static_cast<EventMulti<float>*>(EventRegistry::createById(EV_CRUISE_STATUS));
-        std::get<0>(ev->values) = cruiseSystem;
-        carduinoNode->sendMessage(Message(Priority::L.id, Node::BROADCAST.id, ev));
     }
+
+    auto* ev = static_cast<EventMulti<float>*>(EventRegistry::createById(EV_CRUISE_STATUS));
+    std::get<0>(ev->values) = cruiseSystem;
+    carduinoNode->sendMessage(Message(Priority::L.id, Node::BROADCAST.id, ev));
 }

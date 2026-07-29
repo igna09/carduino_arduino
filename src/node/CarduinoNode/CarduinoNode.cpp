@@ -7,8 +7,8 @@ CarduinoNode::CarduinoNode(uint8_t id, bool isEnabled)
     _id = id;
     this->isEnabled = isEnabled;
 
-    addSetting(&Setting::LOG_HEAP_STS, false, true);
-    addSetting(&Setting::LOG_SND_RCV_MSG, false, true);
+    addSetting(&Setting::LOG_HEAP_STS, false, false);
+    addSetting(&Setting::LOG_SND_RCV_MSG, false, false);
     addSetting(&Setting::OTA_MODE, false, [&](SettingInfo<bool> *settingInfo){  
         if(settingInfo->value) {
             this->otaStartup(); 

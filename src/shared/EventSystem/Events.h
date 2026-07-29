@@ -34,7 +34,6 @@ DECLARE_EVENT(WARNING_SEVERITY_LOW,     0x11, "WARNING_SEVERITY_LOW",     EventC
 DECLARE_EVENT(WARNING_SEVERITY_MEDIUM,  0x12, "WARNING_SEVERITY_MEDIUM",  EventCategory::CONTROL)
 DECLARE_EVENT(WARNING_SEVERITY_HIGH,    0x13, "WARNING_SEVERITY_HIGH",    EventCategory::CONTROL)
 DECLARE_EVENT(SPEED_LIMIT_SET,          0x2F, "SPEED_LIMIT_SET",          EventCategory::CONTROL, uint8_t)
-DECLARE_EVENT(CRUISE_STATUS,            0x30, "CRUISE_STATUS",            EventCategory::CONTROL, float)
 
 // --- Sensori ----------------------------------------------------------------
 DECLARE_EVENT(EXTERNAL_TEMPERATURE,             0x14, "EXTERNAL_TEMPERATURE",             EventCategory::SENSOR, float)
@@ -55,6 +54,7 @@ DECLARE_EVENT(FUEL_CONSUMPTION,                 0x21, "FUEL_CONSUMPTION",       
 DECLARE_EVENT(BATTERY_VOLTAGE,                  0x22, "BATTERY_VOLTAGE",                  EventCategory::SENSOR, float)
 DECLARE_EVENT(IS_REVERSE,                       0x23, "IS_REVERSE",                       EventCategory::SENSOR, bool)
 DECLARE_EVENT(IS_KEY_ON,                        0x24, "IS_KEY_ON",                        EventCategory::SENSOR, bool)
+DECLARE_EVENT(CRUISE_STATUS,                    0x30, "CRUISE_STATUS",                    EventCategory::SENSOR, float)
 
 // --- Controllo media --------------------------------------------------------
 DECLARE_EVENT(VOLUME_UP,    0x25, "VOLUME_UP",   EventCategory::MEDIA)

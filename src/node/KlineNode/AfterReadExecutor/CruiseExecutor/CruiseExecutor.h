@@ -15,5 +15,5 @@ class CruiseExecutor : public AfterReadExecutorInterface {
         // Variabili di istanza come interi per salvare l'ultimo valore loggato
         std::string lastPedalsBits = "";
         std::string lastCruiseBits = "";
-        float lastCruiseSystem = 0;
+        float lastCruiseSystem = -1;
 };

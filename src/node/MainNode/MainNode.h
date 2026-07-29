@@ -28,6 +28,7 @@
 #include "BootExecutor.h"
 #include "HelloTrackerExecutor.h"
 #include "MainNodeSensorCanEvent.h"
+#include "MainNodeCanControlEvent.h"
 #include "SwcController.h"
 #include "SwcMapping.h"
 #include "SpeedLimitSet.h"
