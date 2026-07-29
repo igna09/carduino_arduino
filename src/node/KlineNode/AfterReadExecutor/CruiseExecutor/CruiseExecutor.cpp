@@ -23,6 +23,41 @@ static const char* PEDAL_NAMES[] = {
     "Freno luci"   // Bit 2
 };
 
+// --- ENUM CRUISE STATE (max 6 caratteri) ---
+enum class CruiseState : uint8_t {
+    OFF    = 0,
+    READY  = 1,
+    ACTIVE = 2,
+    BRAKE  = 3,
+    CLUTCH = 4,
+    PAUSED = 5
+};
+
+static CruiseState determineCruiseState(const std::string& cruiseBits, float cruiseSystem) {
+    // 1. PRIMARIA VERIFICA PEDALI DAI BIT (Stringa "100011" -> Index 0 = Bit 5, Index 1 = Bit 4)
+    if (cruiseBits.length() >= 6) {
+        // Bit 5 = Frizione (Fondamentale, dato che cruiseSystem non cambia quando premi la frizione)
+        if (cruiseBits[0] == '1') {
+            return CruiseState::CLUTCH;
+        }
+        // Bit 4 = Freno
+        if (cruiseBits[1] == '1') {
+            return CruiseState::BRAKE;
+        }
+    }
+
+    // 2. VERIFICA STATO CENTRALINA MOTORE (cruiseSystem)
+    int statusInt = static_cast<int>(cruiseSystem);
+    switch (statusInt) {
+        case 0:  return CruiseState::OFF;
+        case 1:  return CruiseState::READY;
+        case 9:  return CruiseState::ACTIVE;
+        case 17: return CruiseState::BRAKE;  // Il valore 17 corrisponde al Freno lato ECU
+        case 2:  return CruiseState::PAUSED;
+        default: return (cruiseSystem > 0) ? CruiseState::READY : CruiseState::OFF;
+    }
+}
+
 void CruiseExecutor::execute(CarduinoNode *carduinoNode) {
     auto* klineNode = static_cast<KlineNode*>(carduinoNode);
 
@@ -102,7 +137,11 @@ void CruiseExecutor::execute(CarduinoNode *carduinoNode) {
         lastCruiseSystem = cruiseSystem;
     }
 
-    auto* ev = static_cast<EventMulti<float>*>(EventRegistry::createById(EV_CRUISE_STATUS));
-    std::get<0>(ev->values) = cruiseSystem;
+    // Determina lo stato unificato con priorità alla frizione/freno
+    CruiseState currentState = determineCruiseState(cruiseBits, cruiseSystem);
+
+    // Invio ad Android
+    auto* ev = static_cast<EventMulti<uint8_t>*>(EventRegistry::createById(EV_CRUISE_STATUS));
+    std::get<0>(ev->values) = static_cast<uint8_t>(currentState);
     carduinoNode->sendMessage(Message(Priority::L.id, Node::BROADCAST.id, ev));
 }

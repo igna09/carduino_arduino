@@ -54,7 +54,7 @@ DECLARE_EVENT(FUEL_CONSUMPTION,                 0x21, "FUEL_CONSUMPTION",       
 DECLARE_EVENT(BATTERY_VOLTAGE,                  0x22, "BATTERY_VOLTAGE",                  EventCategory::SENSOR, float)
 DECLARE_EVENT(IS_REVERSE,                       0x23, "IS_REVERSE",                       EventCategory::SENSOR, bool)
 DECLARE_EVENT(IS_KEY_ON,                        0x24, "IS_KEY_ON",                        EventCategory::SENSOR, bool)
-DECLARE_EVENT(CRUISE_STATUS,                    0x30, "CRUISE_STATUS",                    EventCategory::SENSOR, float)
+DECLARE_EVENT(CRUISE_STATUS,                    0x30, "CRUISE_STATUS",                    EventCategory::SENSOR, uint8_t)
 
 // --- Controllo media --------------------------------------------------------
 DECLARE_EVENT(VOLUME_UP,    0x25, "VOLUME_UP",   EventCategory::MEDIA)
