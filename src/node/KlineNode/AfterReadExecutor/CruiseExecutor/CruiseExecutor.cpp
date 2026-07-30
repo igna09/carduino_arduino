@@ -31,7 +31,7 @@ enum class CruiseState : uint8_t {
     BRAKE  = 3,
     CLUTCH = 4,
     PAUSED = 5,
-    ERROR = 6
+    ERROR  = 6
 };
 
 static CruiseState determineCruiseState(const std::string& cruiseBits, float cruiseSystem) {
