@@ -30,12 +30,16 @@ enum class CruiseState : uint8_t {
     ACTIVE = 2,
     BRAKE  = 3,
     CLUTCH = 4,
-    PAUSED = 5
+    PAUSED = 5,
+    ERROR = 6
 };
 
 static CruiseState determineCruiseState(const std::string& cruiseBits, float cruiseSystem) {
     // 1. PRIMARIA VERIFICA PEDALI DAI BIT (Stringa "100011" -> Index 0 = Bit 5, Index 1 = Bit 4)
     if (cruiseBits.length() >= 6) {
+        if(cruiseBits[5] == '1' && cruiseBits[4] == '0') {
+            return CruiseState::ERROR;
+        }
         // Bit 5 = Frizione (Fondamentale, dato che cruiseSystem non cambia quando premi la frizione)
         if (cruiseBits[0] == '1') {
             return CruiseState::CLUTCH;
